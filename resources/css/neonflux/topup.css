@@ -1,0 +1,50 @@
+/* ==========================================================================
+   NEON FLUX — Top-Up Page Styles
+   Amount buttons, payment methods, active states
+   ========================================================================== */
+
+/* --- Amount Button Active State --- */
+.amount-btn {
+    transition: all 0.2s ease;
+}
+
+.amount-btn.active {
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), transparent);
+    border-color: rgba(0, 240, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3), 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+.amount-btn.active .amount-label {
+    color: #00f0ff;
+    font-weight: 600;
+}
+
+.amount-btn.active .amount-price {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+}
+
+.amount-btn.active .amount-check {
+    opacity: 1;
+}
+
+/* --- Payment Method Active State --- */
+.payment-option {
+    transition: all 0.2s ease;
+}
+
+.payment-option.active {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dark .payment-option.active {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- Hero Banner Overlay --- */
+.hero-overlay-bottom {
+    background: linear-gradient(to top, var(--hero-overlay), transparent);
+}
+
+.hero-overlay-left {
+    background: linear-gradient(to right, var(--hero-overlay), transparent);
+}

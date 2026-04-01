@@ -1,0 +1,46 @@
+{
+    "version": 2,
+    "framework": null,
+    "builds": [
+        {
+            "src": "vercel/index.php",
+            "use": "vercel-php@0.9.0"
+        },
+        {
+            "src": "public/**",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/build/(.*)",
+            "dest": "/public/build/$1"
+        },
+        {
+            "src": "/(css|js|images|Image|vendor|video|neonflux|logo)/(.*)",
+            "dest": "/public/$1/$2"
+        },
+        {
+            "src": "/favicon.ico",
+            "dest": "/public/favicon.ico"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/vercel/index.php"
+        }
+    ],
+    "env": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "true",
+        "DUITKU_MODE": "sandbox",
+        "LOG_CHANNEL": "stderr",
+        "SESSION_DRIVER": "cookie",
+        "CACHE_STORE": "array",
+        "VIEW_COMPILED_PATH": "/tmp/views",
+        "SESSION_PATH": "/",
+        "APP_SERVICES_CACHE": "/tmp/services.php",
+        "APP_PACKAGES_CACHE": "/tmp/packages.php",
+        "APP_CONFIG_CACHE": "/tmp/config.php",
+        "APP_ROUTES_CACHE": "/tmp/routes.php"
+    }
+}

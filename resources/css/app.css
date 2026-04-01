@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* Neon Flux Theme Imports */
+@import './neonflux/base.css';
+@import './neonflux/topup.css';
+
+:root {
+    --color-primary: #00f0ff;
+    --color-secondary: #ff0099;
+}
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Rajdhani', sans-serif;
+
+    /* Dynamic Colors (Overridable via :root) */
+    --color-primary: var(--color-primary);
+    --color-secondary: var(--color-secondary);
+
+    /* Dedicated Accent Colors */
+    --color-accent-blue: #60a5fa;
+    --color-accent-red: #ef4444;
+    --color-accent-magenta: #d946ef;
+
+    --color-background-dark: #050510;
+    --color-background-admin: #020617;
+    --color-glass-border: rgba(255, 255, 255, 0.1);
+    --color-glass-surface: rgba(20, 20, 35, 0.6);
+
+    --color-gopay: #00AED6;
+    --color-ovo: #4C3494;
+    --color-dana: #118EEA;
+    --color-shopeepay: #EE4D2D;
+}

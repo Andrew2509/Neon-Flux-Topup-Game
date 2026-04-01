@@ -1,0 +1,333 @@
+{
+	"info": {
+		"_postman_id": "a9e587fb-c6f4-4e66-9d34-459bf410a3b6",
+		"name": "PrincePay JWT & Auth",
+		"description": "Collection for testing JWT and Auth implementation in PrincePay Gaming (Laravel).\n\n### Gambaran Sistem Website Top Up Besar:\n1. User pilih game\n2. Pilih nominal\n3. Buat pesanan\n4. Bayar\n5. Payment gateway konfirmasi\n6. Order dikirim ke supplier\n7. Item masuk ke akun game\n8. Status transaksi sukses",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "1. Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New User\",\n    \"email\": \"newuser@example.com\",\n    \"phone\": \"08123456789\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"08123456789\",\n    \"code\": \"123456\",\n    \"type\": \"register\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/verify-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "JWKS & Public Keys",
+			"item": [
+				{
+					"name": "Get JWKS (Public Keys)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/.well-known/jwks.json",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								".well-known",
+								"jwks.json"
+							]
+						},
+						"description": "Fetch the public keys used to sign JWT tokens. Standard JWKS format."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions & Callbacks",
+			"item": [
+				{
+					"name": "Simulate Duitku Callback",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"merchantCode\": \"D1234\",\n    \"amount\": \"10000\",\n    \"merchantOrderId\": \"PRP260315...\",\n    \"signature\": \"PASTE_MD5_SIGNATURE_HERE\",\n    \"resultCode\": \"00\",\n    \"reference\": \"REF12345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/duitku/callback",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"duitku",
+								"callback"
+							]
+						},
+						"description": "Simulates Duitku payment callback.\n\n### Cara Hitung Signature untuk Testing:\n1. Buka situs MD5 generator (misal: md5.cz)\n2. Gabungkan string: `merchantCode` + `amount` + `merchantOrderId` + `merchantKey` (API Key di database)\n3. Contoh: `D123410000PRP260315...APIKEY123` -> MD5 ini yang dipaste ke field signature."
+					},
+					"response": []
+				},
+				{
+					"name": "Check Player ID (Nickname)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": \"12345678\",\n    \"operator_id\": \"mobile-legends\",\n    \"zone_id\": \"1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/check-id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"check-id"
+							]
+						},
+						"description": "Validates a game player ID and returns the nickname using Codashop API simulation."
+					},
+					"response": []
+				},
+				{
+					"name": "Track Order (JSON)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/track?order_id=ORD-ABCDEFG",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"track"
+							],
+							"query": [
+								{
+									"key": "order_id",
+									"value": "ORD-ABCDEFG"
+								}
+							]
+						},
+						"description": "Tracks the status and audit logs of an order."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "JWT Testing (Old)",
+			"item": [
+				{
+					"name": "Generate Test Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jwt/generate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"jwt",
+								"generate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/jwt/verify",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"jwt",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://www.neonflux.my.id",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

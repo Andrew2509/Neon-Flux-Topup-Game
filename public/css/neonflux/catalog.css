@@ -1,0 +1,41 @@
+/* ==========================================================================
+   NEON FLUX — Catalog Specific Styles
+   ========================================================================== */
+
+/* --- Card Hover Effect --- */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    border-color: rgba(0, 240, 255, 0.4);
+    transform: translateY(-5px);
+}
+
+/* --- Platform Badge Hover --- */
+.platform-badge {
+    transition: all 0.2s ease;
+}
+
+.platform-badge:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Navigation & Layout Adjustments --- */
+main {
+    scrollbar-gutter: stable;
+}
+
+/* --- Tailwind 4 Custom Utilities / Theme Extensions --- */
+@theme {
+    --shadow-neon-cyan: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+    --shadow-neon-magenta: 0 0 10px rgba(255, 0, 153, 0.5), 0 0 20px rgba(255, 0, 153, 0.3);
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+    --blur-xs: 2px;
+
+    --background-image-cyber-grid: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.1) 0%, rgba(5, 5, 16, 0) 50%),
+                                  linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+                                  linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+}

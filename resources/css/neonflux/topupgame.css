@@ -1,0 +1,53 @@
+/* ==========================================================================
+   NEON FLUX — Top-up Game Specific Styles
+   ========================================================================== */
+
+/* --- Hero Background with Mask --- */
+.hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60vh;
+    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmWRXTkXAB_CIMlNYwBAdFFA4-xWvuzWZJdi3fH6ErwGG_F5NZYHQZrfhO33hcccN1GUHr5_mEoiK_4-I5oz92XzFgQZ3Ywq0HK2Rh5x4tBphexyV6abOi8J0mdVo-p0fViwv3MduB9t9upHOdff06ACsctQVGhmjd9oQE2Wx6CwP0kkM2njsPH7QWPJu34I5E6vuu-3yPWRPfQ-uT9X-epR3zVJI2cLGdMn3L-T2ag1ben_9R28hz3Lg5_3h0pmF0NfVFkTrUAzI');
+    background-size: cover;
+    background-position: center top;
+    mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
+    z-index: -1;
+    opacity: 0.4;
+}
+
+/* --- Glass Panels --- */
+.glass-panel-light {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+}
+
+.glass-input {
+    background: var(--surface-alt);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.glass-input:focus {
+    border-color: #00f0ff;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+/* --- Interactive Cards --- */
+.radio-card:checked + div {
+    border-color: #00f0ff;
+    background: rgba(0, 240, 255, 0.1);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+.method-card:checked + div {
+    border-color: #f09;
+    background: rgba(255, 0, 153, 0.1);
+    box-shadow: 0 0 15px rgba(255, 0, 153, 0.3);
+}
+
+.promo-glow {
+    box-shadow: inset 0 0 30px rgba(0, 240, 255, 0.1), inset 0 0 10px rgba(255, 0, 153, 0.1);
+}

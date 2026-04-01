@@ -1,0 +1,74 @@
+/* ==========================================================================
+   NEON FLUX — Top-Up Game Detail Page Styles
+   Specific styles for game details, nominal cards, and payment layouts
+   ========================================================================== */
+
+.hero-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(to bottom, var(--hero-overlay), transparent);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* --- Glass Input --- */
+.glass-input {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    transition: all 0.3s ease;
+}
+
+.dark .glass-input {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--border-color);
+    color: #ffffff;
+}
+
+.glass-input:focus {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--primary);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+    outline: none;
+}
+
+/* --- Radio & Method Cards --- */
+.radio-card, .method-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-light {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+}
+
+.dark .glass-panel-light {
+    background: var(--surface-color);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 25px -5px rgba(0, 240, 255, 0.1), 0 10px 10px -5px rgba(0, 240, 255, 0.04);
+}
+
+.dark .card-hover:hover {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+/* --- Promo Banner Glow --- */
+.promo-glow {
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.05);
+}
+
+.dark .promo-glow {
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+}

@@ -1,0 +1,208 @@
+{
+	"info": {
+		"_postman_id": "a9e587fb-c6f4-4e66-9d34-459bf410a3b6",
+		"name": "PrincePay - 8 Steps Transaction Flow",
+		"description": "Koleksi Postman Terstruktur untuk Simulasi Bisnis Top Up.\n\n### 8 Langkah Alur Transaksi:\n1. User pilih game\n2. Pilih nominal\n3. Buat pesanan (Postman Trigger)\n4. Bayar (Manual via link)\n5. Payment gateway konfirmasi (Postman Trigger)\n6. Order dikirim ke supplier (Otomatis Server)\n7. Item masuk ke akun game\n8. Status transaksi sukses (Postman Tracking)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Step 1 & 2: Katalis (Browsing)",
+			"item": [
+				{
+					"name": "Cek Produk & Nominal",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}",
+							"host": [
+								"{{baseUrl}}"
+							]
+						},
+						"description": "Halaman awal untuk memilih game dan nominal."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Step 3: Buat Pesanan (Checkout)",
+			"item": [
+				{
+					"name": "3. Create Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success) {",
+									"    pm.globals.set(\"last_order_id\", jsonData.data.order_id);",
+									"    console.log(\"Saved order_id: \" + jsonData.data.order_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": \"12345678\",\n    \"zone_id\": \"1234\",\n    \"service\": \"1\",\n    \"payment\": \"BR\",\n    \"nomor\": \"08123456789\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/checkout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"checkout"
+							]
+						},
+						"description": "Membuat pesanan baru dan mendapatkan `payment_url`. Variabel `last_order_id` akan otomatis terisi setelah request sukses."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Step 4: Bayar (Manual)",
+			"item": [
+				{
+					"name": "Info Pembayaran",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://pembayaran-duitku-dan-instruksinya",
+							"host": [
+								"https",
+								"pembayaran-duitku-dan-instruksinya"
+							]
+						},
+						"description": "Buka `payment_url` yang didapat dari Step 3 secara manual di browser untuk simulasi pembayaran."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Step 5: Payment Gateway Konfirmasi",
+			"item": [
+				{
+					"name": "5. Simulate Duitku Callback",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"merchantCode\": \"DS28758\",\n    \"amount\": \"10000\",\n    \"merchantOrderId\": \"{{last_order_id}}\",\n    \"signature\": \"PASTE_32_CHAR_MD5_HERE\",\n    \"resultCode\": \"00\",\n    \"reference\": \"REF12345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/duitku/callback",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"duitku",
+								"callback"
+							]
+						},
+						"description": "Simulasi Duitku memberi tahu server bahwa pembayaran SUKSES."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Step 6 & 7: Proses Otomatis",
+			"item": [
+				{
+					"name": "Info Background Job",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://server-processing",
+							"host": [
+								"https",
+								"server-processing"
+							]
+						},
+						"description": "Langkah ini terjadi secara otomatis di server (background job) untuk mengirim pesanan ke supplier."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Step 8: Final Status (Track)",
+			"item": [
+				{
+					"name": "8. Track Order Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/track?order_id={{last_order_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"track"
+							],
+							"query": [
+								{
+									"key": "order_id",
+									"value": "{{last_order_id}}"
+								}
+							]
+						},
+						"description": "Cek apakah status pesanan sudah 'success' dan lihat audit logs-nya."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://www.neonflux.my.id",
+			"type": "string"
+		}
+	]
+}

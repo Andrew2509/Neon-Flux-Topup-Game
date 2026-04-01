@@ -1,0 +1,17 @@
+/node_modules
+/vendor
+/.env
+/storage/*.key
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/views
+/storage/logs
+.git
+/public/hot
+# Do NOT ignore build files, Vercel needs them
+#!package.json
+#!package-lock.json
+#!composer.json
+#!composer.lock
+#!vite.config.js
+# /public/build should be kept if we build locally, but if Vercel builds it, we can ignore it locally if we want, but better to just let Vercel handle it.

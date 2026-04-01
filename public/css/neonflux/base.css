@@ -1,0 +1,72 @@
+/* ==========================================================================
+   NEON FLUX — Base Styles
+   Body background, glass panels, text glow, scrollbar, gradient borders
+   ========================================================================== */
+
+/* --- Body Background: Cyber Grid --- */
+body.neonflux {
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(255, 0, 153, 0.15), transparent 25%),
+        linear-gradient(var(--grid-color) 2px, transparent 2px),
+        linear-gradient(90deg, var(--grid-color) 2px, transparent 2px),
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+}
+
+/* --- Glass Panel --- */
+.glass-panel {
+    background: var(--surface-color);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+}
+
+.glass-panel:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* --- Text Glow --- */
+.text-glow {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+}
+
+/* --- Gradient Border --- */
+.border-gradient {
+    position: relative;
+    background: rgba(30, 35, 60, 0.6);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 1rem;
+}
+
+.border-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: -1;
+    margin: -2px;
+    border-radius: inherit;
+    background: linear-gradient(to right, #00f0ff, #ff0099);
+}
+
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.3);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 240, 255, 0.6);
+}

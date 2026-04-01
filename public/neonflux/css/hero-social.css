@@ -1,0 +1,159 @@
+/* From Uiverse.io by akshayjalluri6 */
+.hero-social-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-left: -2px; /* Pull left slightly for perfect optical alignment with text */
+}
+
+.hero-social-Btn {
+  border: none;
+  border-radius: 9999px; /* More robust for circles than 50% */
+  width: 45px;
+  height: 45px;
+  min-width: 45px; /* Prevent squishing */
+  flex-shrink: 0; /* Critical: prevent flex parent from squashing the circle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none !important;
+}
+
+/* Use margin-right for the items, except the last one */
+.hero-social-Btn:not(:last-child) {
+  margin-right: 12px;
+}
+
+.hero-social-Btn.instagram {
+  background: #f09433;
+  background: -moz-linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  );
+  background: -webkit-linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  );
+  background: linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  );
+}
+
+.hero-social-Btn.youtube {
+  background-color: #ff0000;
+}
+
+.hero-social-Btn.twitter {
+  background-color: #1da1f2;
+}
+
+.hero-social-Btn.whatsapp {
+  background-color: #25D366;
+}
+
+.hero-social-Btn.facebook {
+  background-color: #1877F2;
+}
+
+.hero-social-Btn:hover {
+  width: 125px;
+  transition-duration: 0.4s;
+  border-radius: 30px;
+}
+
+.hero-social-Btn:hover .hero-social-text {
+  opacity: 1;
+  transition-duration: 0.4s;
+}
+
+.hero-social-Btn:hover .hero-social-svgIcon {
+  opacity: 0;
+  transition-duration: 0.3s;
+}
+
+.hero-social-text {
+  position: absolute;
+  color: rgb(255, 255, 255);
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  opacity: 0;
+  transition-duration: 0.4s;
+  font-size: 14px;
+}
+
+.hero-social-svgIcon {
+  transition-duration: 0.3s;
+  width: 24px;
+  height: 24px;
+}
+
+.hero-social-svgIcon path {
+  fill: white;
+}
+
+/* Responsive adjustments for HP and Tablet */
+@media (max-width: 1024px) {
+  .hero-social-Btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  .hero-social-svgIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .hero-social-Btn:hover {
+    width: 100px;
+    border-radius: 20px;
+  }
+
+  .hero-social-text {
+    font-size: 11px;
+  }
+
+  /* Reduce margin on smaller screens */
+  .hero-social-Btn:not(:last-child) {
+    margin-right: 8px;
+  }
+}
+
+/* Specific glows for brand colors */
+.hero-social-Btn.instagram {
+  box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);
+}
+.hero-social-Btn.whatsapp {
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+.hero-social-Btn.facebook {
+  box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+}
+
+.hero-social-Btn.instagram:hover {
+  box-shadow: 0 0 20px rgba(220, 39, 67, 0.6);
+}
+.hero-social-Btn.whatsapp:hover {
+  box-shadow: 0 0 20px rgba(37, 211, 102, 0.6);
+}
+.hero-social-Btn.facebook:hover {
+  box-shadow: 0 0 20px rgba(24, 119, 242, 0.6);
+}
