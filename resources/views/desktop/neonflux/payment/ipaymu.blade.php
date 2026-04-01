@@ -34,18 +34,22 @@
                         Auto Scan QRIS
                     </div>
                     
-                    @php
-                        $qrSource = $ipaymuData['QrImage'] ?? $ipaymuData['qr_image'] ?? $ipaymuData['QrTemplate'] ?? $ipaymuData['qr_template'] ?? null;
-                        if (!$qrSource && (isset($ipaymuData['QrString']) || isset($ipaymuData['qr_string']))) {
-                            $qrString = $ipaymuData['QrString'] ?? $ipaymuData['qr_string'];
-                            $qrSource = "https://api.qrserver.com/v1/create-qr-code/?data=" . urlencode($qrString) . "&size=300x300";
-                        }
-                    @endphp
-
                     <div class="relative w-full max-w-[280px] aspect-square overflow-hidden rounded-xl border-4 border-slate-50">
-                        <img src="{{ $qrSource }}" alt="QRIS Payment" class="w-full h-full object-contain">
+                        <img src="{{ $qrUrl ?? '' }}" alt="QRIS Payment" class="w-full h-full object-contain">
                         <div class="absolute inset-0 border-16 border-white/0 group-hover:border-white/5 transition-all duration-700 pointer-events-none"></div>
                     </div>
+                    
+                    @if($qrUrl)
+                    <div class="mt-4 text-center">
+                        <a href="{{ $qrUrl }}" target="_blank" class="text-[10px] text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Klik di sini jika barcode tidak muncul
+                        </a>
+                    </div>
+                    @endif
+                </div>
 
                     <div class="mt-6 flex items-center gap-3 bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS Logo" class="h-6">

@@ -286,9 +286,22 @@ class TransactionController extends Controller
                 $view = "desktop.neonflux.payment.ipaymu"; // Fallback to desktop
             }
 
+            // Normalize QR Source for QRIS
+            $qrUrl = null;
+            if (($data['Via'] ?? $data['via'] ?? '') == 'QRIS') {
+                $qrString = $data['QrString'] ?? $data['qr_string'] ?? $data['PaymentNo'] ?? $data['payment_no'] ?? null;
+                // If it looks like a valid QRIS string (starting with 000201), use external generator as it's more reliable
+                if ($qrString && str_starts_with($qrString, '000201')) {
+                    $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?data=" . urlencode($qrString) . "&size=400x400";
+                } else {
+                    $qrUrl = $data['QrImage'] ?? $data['qr_image'] ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
+                }
+            }
+
             return view($view, [
                 'order' => $order,
-                'ipaymuData' => $data
+                'ipaymuData' => $data,
+                'qrUrl' => $qrUrl
             ]);
         }
 
