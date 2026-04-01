@@ -1,24 +1,33 @@
-@extends('desktop.layouts.neonflux')
+@extends('desktop.layouts.user')
 
-@section('title', 'Pembayaran ' . ($ipaymuData['PaymentName'] ?? 'Pesanan') . ' - ' . get_setting('site_name', 'NEON FLUX'))
+@section('title', 'Pembayaran #' . $pay->order_id)
 
 @section('content')
-<div class="min-h-[90vh] flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
+<style>
+    .glass-card {
+        background: rgba(34, 38, 47, 0.4);
+        backdrop-filter: blur(24px);
+        border: 1px solid rgba(153, 247, 255, 0.1);
+    }
+    .neon-glow-primary {
+        box-shadow: 0 0 15px rgba(0, 241, 254, 0.3);
+    }
+    .flux-gradient {
+        background: linear-gradient(135deg, #99f7ff 0%, #00f1fe 100%);
+    }
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+</style>
+
+<div class="relative min-h-screen py-12 px-4 md:px-8 flex flex-col items-center">
     <!-- Background Decor -->
     <div class="absolute top-1/4 -left-20 size-96 bg-primary/10 blur-[120px] rounded-full animate-pulse"></div>
     <div class="absolute bottom-1/4 -right-20 size-80 bg-cyan-500/10 blur-[120px] rounded-full animate-pulse" style="animation-delay: 2s"></div>
 
     <div class="w-full max-w-4xl z-10">
-        <!-- Dashboard Wrapper -->
+        <!-- Main Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-            <!-- Main Content (Left: 8 Cols) -->
-            <div class="lg:col-span-12 xl:col-span-8 space-y-6">
-                <div class="glass-panel p-8 md:p-10 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
-                    <!-- Header Mobile-Style but wider -->
-                    <div class="flex flex-col md:flex-row items-center gap-6 mb-10 border-b border-white/5 pb-8">
-                        <div class="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/5 shrink-0">
-                            @if(($ipaymuData['Via'] ?? '') == 'QRIS')
                                 <span class="material-icons-round text-4xl">qr_code_2</span>
                             @elseif(($ipaymuData['Channel'] ?? '') == 'VA')
                                 <span class="material-icons-round text-4xl">account_balance</span>
