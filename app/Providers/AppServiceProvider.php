@@ -27,7 +27,9 @@ class AppServiceProvider extends ServiceProvider
         }
 
 
-        \Illuminate\Support\Facades\View::share('footerPayments', \App\Models\PaymentMethod::where('status', 'Aktif')->take(12)->get());
+        if (!app()->runningInConsole() || \Illuminate\Support\Facades\Schema::hasTable('payment_methods')) {
+            \Illuminate\Support\Facades\View::share('footerPayments', \App\Models\PaymentMethod::where('status', 'Aktif')->take(12)->get());
+        }
 
         // Define Auth Rate Limiter (5 attempts per minute)
         RateLimiter::for('auth', function (Request $request) {
