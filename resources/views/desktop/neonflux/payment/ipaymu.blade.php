@@ -3,149 +3,172 @@
 @section('title', 'Pembayaran ' . ($ipaymuData['PaymentName'] ?? 'Pesanan') . ' - ' . get_setting('site_name', 'NEON FLUX'))
 
 @section('content')
-<div class="min-h-[80vh] flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
+<div class="min-h-[90vh] flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
     <!-- Background Decor -->
     <div class="absolute top-1/4 -left-20 size-96 bg-primary/10 blur-[120px] rounded-full animate-pulse"></div>
     <div class="absolute bottom-1/4 -right-20 size-80 bg-cyan-500/10 blur-[120px] rounded-full animate-pulse" style="animation-delay: 2s"></div>
 
-    <div class="w-full max-w-2xl z-10">
-        <div class="glass-panel p-8 md:p-12 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
-            <!-- Header -->
-            <div class="text-center mb-10 space-y-3">
-                <div class="inline-flex items-center justify-center size-16 rounded-2xl bg-primary/10 text-primary mb-4 border border-primary/20 shadow-lg shadow-primary/5">
+    <div class="w-full max-w-5xl z-10">
+        <!-- Dashboard Wrapper -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Main Content (Left: 8 Cols) -->
+            <div class="lg:col-span-12 xl:col-span-8 space-y-6">
+                <div class="glass-panel p-8 md:p-10 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
+                    <!-- Header Mobile-Style but wider -->
+                    <div class="flex flex-col md:flex-row items-center gap-6 mb-10 border-b border-white/5 pb-8">
+                        <div class="size-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/5 shrink-0">
+                            @if(($ipaymuData['Via'] ?? '') == 'QRIS')
+                                <span class="material-icons-round text-4xl">qr_code_2</span>
+                            @elseif(($ipaymuData['Channel'] ?? '') == 'VA')
+                                <span class="material-icons-round text-4xl">account_balance</span>
+                            @else
+                                <span class="material-icons-round text-4xl">payments</span>
+                            @endif
+                        </div>
+                        <div class="text-center md:text-left space-y-1">
+                            <h1 class="text-3xl font-black text-white tracking-tight">
+                                {{ $ipaymuData['PaymentName'] ?? 'Selesaikan Pembayaran' }}
+                            </h1>
+                            <p class="text-slate-400 font-medium">Ikuti langkah di bawah untuk memproses pesanan Anda secara otomatis.</p>
+                        </div>
+                    </div>
+
                     @if(($ipaymuData['Via'] ?? '') == 'QRIS')
-                        <span class="material-icons-round text-3xl">qr_code_2</span>
-                    @elseif(($ipaymuData['Channel'] ?? '') == 'VA')
-                        <span class="material-icons-round text-3xl">account_balance</span>
+                        <!-- QR Code Display -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                            <div class="flex flex-col items-center justify-center bg-white rounded-4xl p-8 shadow-2xl relative group">
+                                <div class="absolute -top-4 bg-primary text-slate-900 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-primary/20 z-20">
+                                    Auto Scan QRIS
+                                </div>
+                                
+                                <div class="relative w-full max-w-[240px] aspect-square overflow-hidden rounded-xl border-4 border-slate-50">
+                                    <img src="{{ $qrUrl ?? '' }}" alt="QRIS Payment" class="w-full h-full object-contain">
+                                </div>
+                                
+                                @if($qrUrl)
+                                <div class="mt-4 text-center">
+                                    <a href="{{ $qrUrl }}" target="_blank" class="text-[10px] text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-1 font-bold">
+                                        <span class="material-icons-round text-xs">open_in_new</span>
+                                        Barcode tidak muncul? Klik di sini
+                                    </a>
+                                </div>
+                                @endif
+                            </div>
+
+                            <div class="space-y-6">
+                                <div class="flex items-center gap-4 bg-white/5 border border-white/10 p-5 rounded-3xl">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS" class="h-8">
+                                    <div class="h-8 w-px bg-white/10"></div>
+                                    <p class="text-xs text-slate-400 font-medium leading-relaxed">
+                                        Scan QR di samping menggunakan aplikasi m-Banking atau E-Wallet pilihan Anda.
+                                    </p>
+                                </div>
+                                <div class="space-y-4">
+                                    <h3 class="text-white font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                                        <span class="size-5 rounded-full bg-primary text-slate-950 flex items-center justify-center text-[10px]">!</span>
+                                        Penting
+                                    </h3>
+                                    <ul class="text-[11px] text-slate-400 space-y-2 list-disc list-inside">
+                                        <li>Pastikan nominal yang muncul di aplikasi sesuai</li>
+                                        <li>Jangan tutup halaman ini sebelum status berubah</li>
+                                        <li>Pesanan diproses instan setelah scan berhasil</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     @else
-                        <span class="material-icons-round text-3xl">payments</span>
+                        <!-- VA / Payment Number Display -->
+                        <div class="bg-white/5 border border-white/5 rounded-4xl p-10 text-center relative group">
+                            <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Nomor Pembayaran / VA</p>
+                            <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+                                <h2 id="paymentCode" class="text-5xl md:text-6xl font-black text-white tracking-tighter">{{ $ipaymuData['PaymentNo'] ?? '' }}</h2>
+                                <button onclick="copyToClipboard('{{ $ipaymuData['PaymentNo'] ?? '' }}')" class="px-8 h-14 rounded-2xl bg-primary text-slate-950 flex items-center justify-center gap-3 font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                                    <span class="material-icons-round">content_copy</span>
+                                    <span>Salin VA</span>
+                                </button>
+                            </div>
+                            <p class="mt-6 text-sm font-bold text-primary uppercase tracking-widest border-t border-white/5 pt-6 inline-block">
+                                {{ $ipaymuData['PaymentName'] ?? 'Virtual Account' }}
+                            </p>
+                        </div>
                     @endif
                 </div>
-                <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">
-                    {{ $ipaymuData['PaymentName'] ?? 'Pembayaran' }}
-                </h1>
-                <p class="text-slate-400 font-medium">Selesaikan pembayaran untuk memproses pesanan Anda.</p>
+
+                <!-- Instructions Dashboard -->
+                <div class="glass-panel p-8 rounded-[2.5rem] border border-white/5 shadow-2xl relative">
+                    <h3 class="text-white font-black text-lg uppercase tracking-widest mb-6">Instruksi Pembayaran</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        @php
+                            $steps = ($ipaymuData['Via'] ?? '') == 'QRIS' 
+                                ? ['Simpan atau Screenshot kode QR di atas', 'Buka aplikasi e-Wallet atau m-Banking pilihan Anda', 'Pilih menu SCAN/QRIS dan unggah gambar kode QR']
+                                : ['Salin nomor Virtual Account yang tertera', 'Lakukan transfer via ATM atau m-Banking sesuai bank tujuan', 'Simpan struk jika perlu, status akan terupdate otomatis'];
+                        @endphp
+                        @foreach($steps as $idx => $step)
+                        <div class="relative group">
+                            <div class="size-10 rounded-xl bg-white/5 text-white flex items-center justify-center mb-4 font-black border border-white/10 group-hover:bg-primary group-hover:text-slate-950 transition-all duration-500">
+                                {{ $idx + 1 }}
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed font-medium">
+                                {{ $step }}
+                            </p>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
-            @if(($ipaymuData['Via'] ?? '') == 'QRIS')
-                <!-- QR Code Display -->
-                <div class="flex flex-col items-center justify-center bg-white rounded-4xl p-8 shadow-2xl mb-8 relative group">
-                    <div class="absolute -top-4 bg-primary text-slate-900 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-primary/20 z-20">
-                        Auto Scan QRIS
+            <!-- Sidebar (Right: 4 Cols) -->
+            <div class="lg:col-span-12 xl:col-span-4 space-y-6">
+                <!-- Status & Timer Card -->
+                <div class="glass-panel p-8 rounded-[2.5rem] border border-white/5 shadow-2xl text-center space-y-6">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Batas Waktu</p>
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="material-icons-round text-primary animate-pulse">timer</span>
+                            <div id="countdown" class="text-4xl font-black text-white tracking-widest font-mono">15:00</div>
+                        </div>
                     </div>
-                    
-                    <div class="relative w-full max-w-[280px] aspect-square overflow-hidden rounded-xl border-4 border-slate-50">
-                        <img src="{{ $qrUrl ?? '' }}" alt="QRIS Payment" class="w-full h-full object-contain">
-                        <div class="absolute inset-0 border-16 border-white/0 group-hover:border-white/5 transition-all duration-700 pointer-events-none"></div>
+                    <div class="bg-primary/5 border border-primary/10 rounded-2xl p-4">
+                        <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Total yang harus dibayar</p>
+                        <p class="text-3xl font-black text-white tracking-tight">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
                     </div>
-                    
-                    @if($qrUrl)
-                    <div class="mt-4 text-center">
-                        <a href="{{ $qrUrl }}" target="_blank" class="text-[10px] text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                            Klik di sini jika barcode tidak muncul
-                        </a>
-                    </div>
-                    @endif
                 </div>
 
-                    <div class="mt-6 flex items-center gap-3 bg-slate-50 px-5 py-3 rounded-2xl border border-slate-100">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS Logo" class="h-6">
-                        <div class="w-px h-4 bg-slate-300"></div>
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Accepted Nationwide</span>
+                <!-- Mini Order Summary -->
+                <div class="glass-panel p-8 rounded-[2.5rem] border border-white/5 shadow-2xl space-y-6">
+                    <h4 class="text-white font-black text-sm uppercase tracking-widest mb-4 border-b border-white/5 pb-4">Detil Transaksi</h4>
+                    <div class="space-y-4 text-xs">
+                        <div class="flex justify-between items-start gap-4">
+                            <span class="text-slate-500 font-bold shrink-0">ORDER ID</span>
+                            <span class="text-white font-black text-right break-all font-mono">{{ $order->order_id }}</span>
+                        </div>
+                        <div class="flex justify-between items-start gap-4">
+                            <span class="text-slate-500 font-bold shrink-0">PRODUK</span>
+                            <span class="text-white font-black text-right leading-tight">{{ $order->product_name }}</span>
+                        </div>
+                        <div class="flex justify-between items-start gap-4">
+                            <span class="text-slate-500 font-bold shrink-0">STATUS</span>
+                            <div class="flex items-center gap-2 text-yellow-400 font-black">
+                                <div class="size-2 rounded-full bg-yellow-400 animate-ping"></div>
+                                <span>Menunggu Bayar</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            @else
-                <!-- VA / Payment Number Display -->
-                <div class="bg-white/5 border border-white/5 rounded-4xl p-8 mb-8 text-center relative group">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Nomor Pembayaran / VA</p>
-                    <div class="flex items-center justify-center gap-4">
-                        <h2 id="paymentCode" class="text-4xl md:text-5xl font-black text-white tracking-tighter">{{ $ipaymuData['PaymentNo'] ?? '' }}</h2>
-                        <button onclick="copyToClipboard('{{ $ipaymuData['PaymentNo'] ?? '' }}')" class="size-12 rounded-2xl bg-primary text-slate-950 flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-110 active:scale-95 transition-all">
-                            <span class="material-icons-round">content_copy</span>
+
+                    <div class="pt-6 grid grid-cols-1 gap-3">
+                        <a href="{{ route('track.order', ['order_id' => $order->order_id]) }}" class="w-full bg-white/5 text-white font-black text-[11px] py-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+                            <span class="material-icons-round text-sm">history</span>
+                            <span>Cek Status Pesanan</span>
+                        </a>
+                        <button onclick="window.print()" class="w-full bg-white/5 text-slate-400 font-black text-[11px] py-3 rounded-2xl hover:text-white transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+                            <span class="material-icons-round text-sm">print</span>
+                            <span>Cetak Detail</span>
                         </button>
                     </div>
-                    @if(($ipaymuData['Channel'] ?? '') == 'VA')
-                        <p class="mt-4 text-sm font-bold text-primary uppercase tracking-widest">{{ $ipaymuData['PaymentName'] ?? 'Virtual Account' }}</p>
-                    @endif
-                </div>
-            @endif
-
-            <!-- Payment Info Grid -->
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-white/5 border border-white/5 rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Bayar</p>
-                    <p class="text-2xl font-black text-primary tracking-tight">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
-                </div>
-                <div class="bg-white/5 border border-white/5 rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Batas Waktu</p>
-                    <div id="countdown" class="text-2xl font-black text-white tracking-tight">15:00</div>
                 </div>
             </div>
 
-            <!-- Order Summary -->
-            <div class="bg-white/5 border border-white/5 rounded-3xl p-6 space-y-4 mb-8 text-sm font-medium">
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400">Order ID</span>
-                    <span class="text-white font-mono uppercase tracking-tight">{{ $order->order_id }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400">Produk</span>
-                    <span class="text-white text-right leading-tight max-w-[200px]">{{ $order->product_name }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400">Metode</span>
-                    <span class="text-white">{{ $ipaymuData['PaymentName'] ?? 'iPaymu' }}</span>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <a href="{{ route('track.order', ['order_id' => $order->order_id]) }}" class="w-full bg-white/5 text-white font-black text-sm py-4 rounded-2xl border border-white/10 hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                    <span class="material-icons-round text-sm">history</span>
-                    <span>Cek Status</span>
-                </a>
-                <button onclick="window.print()" class="w-full bg-primary text-slate-950 font-black text-sm py-4 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all flex items-center justify-center gap-2">
-                    <span class="material-icons-round text-sm">download</span>
-                    <span>Simpan Detail</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Instructions -->
-        <div class="mt-8 space-y-4">
-            <h3 class="text-white font-black text-center text-lg uppercase tracking-widest">Cara Pembayaran</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                @if(($ipaymuData['Via'] ?? '') == 'QRIS')
-                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center text-xs text-slate-400 leading-relaxed">
-                        <span class="size-8 rounded-full bg-white/5 text-white flex items-center justify-center mx-auto mb-3 font-black">1</span>
-                        <p>Simpan atau screenshot kode QR di atas</p>
-                    </div>
-                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center text-xs text-slate-400 leading-relaxed">
-                        <span class="size-8 rounded-full bg-white/5 text-white flex items-center justify-center mx-auto mb-3 font-black">2</span>
-                        <p>Buka aplikasi E-Wallet (OVO, DANA) atau Mobile Banking</p>
-                    </div>
-                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center text-xs text-slate-400 leading-relaxed">
-                        <span class="size-8 rounded-full bg-white/5 text-white flex items-center justify-center mx-auto mb-3 font-black">3</span>
-                        <p>Pilih Scan/QRIS lalu unggah foto Kode QR</p>
-                    </div>
-                @else
-                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center text-xs text-slate-400 leading-relaxed">
-                        <span class="size-8 rounded-full bg-white/5 text-white flex items-center justify-center mx-auto mb-3 font-black">1</span>
-                        <p>Salin nomor Virtual Account yang muncul di atas</p>
-                    </div>
-                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center text-xs text-slate-400 leading-relaxed">
-                        <span class="size-8 rounded-full bg-white/5 text-white flex items-center justify-center mx-auto mb-3 font-black">2</span>
-                        <p>Lakukan transfer melalui ATM atau Mobile Banking</p>
-                    </div>
-                    <div class="glass-panel p-5 rounded-2xl border border-white/5 text-center text-xs text-slate-400 leading-relaxed">
-                        <span class="size-8 rounded-full bg-white/5 text-white flex items-center justify-center mx-auto mb-3 font-black">3</span>
-                        <p>Simpan bukti bayar. Pesanan akan diproses otomatis.</p>
-                    </div>
-                @endif
-            </div>
         </div>
     </div>
 </div>
@@ -182,7 +205,7 @@
             display.textContent = minutes + ":" + seconds;
 
             if (--timer < 0) {
-                display.textContent = "EXT";
+                display.textContent = "00:00";
             }
         }, 1000);
     }
