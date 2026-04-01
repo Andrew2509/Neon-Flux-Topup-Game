@@ -40,8 +40,15 @@
             @if(($ipaymuData['Via'] ?? '') == 'QRIS')
                 <!-- QR Code Display -->
                 <div class="bg-white rounded-3xl p-6 shadow-xl mb-6 relative mx-auto max-w-[240px]">
+                    @php
+                        $qrSource = $ipaymuData['QrImage'] ?? $ipaymuData['qr_image'] ?? $ipaymuData['QrTemplate'] ?? $ipaymuData['qr_template'] ?? null;
+                        if (!$qrSource && (isset($ipaymuData['QrString']) || isset($ipaymuData['qr_string']))) {
+                            $qrString = $ipaymuData['QrString'] ?? $ipaymuData['qr_string'];
+                            $qrSource = "https://api.qrserver.com/v1/create-qr-code/?data=" . urlencode($qrString) . "&size=300x300";
+                        }
+                    @endphp
                     <div class="relative w-full aspect-square overflow-hidden rounded-xl border border-slate-50">
-                        <img src="{{ $ipaymuData['QrImage'] ?? $ipaymuData['QrTemplate'] ?? '' }}" alt="QRIS Payment" class="w-full h-full object-contain">
+                        <img src="{{ $qrSource }}" alt="QRIS Payment" class="w-full h-full object-contain">
                     </div>
                 </div>
             @else
