@@ -298,6 +298,15 @@ class TransactionController extends Controller
                         ]
                     ]);
                 }
+                if ($qrImage && !$paymentUrl) {
+                    // Detect device for proper view folder
+                    $device = (new CatalogController())->deviceType();
+                    $view = "{$device}.neonflux.payment.ipaymu_qris";
+                    if (!view()->exists($view)) {
+                        $view = "desktop.neonflux.payment.ipaymu_qris"; // Fallback to desktop
+                    }
+                    return view($view, compact('order', 'qrImage', 'sessionId'));
+                }
                 return redirect($finalUrl);
             }
         }
