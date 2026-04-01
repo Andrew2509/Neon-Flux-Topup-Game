@@ -15,18 +15,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
+        \App\Models\User::create([
             'name' => 'Admin Neon Flux',
             'email' => 'admin@neonflux.id',
             'password' => \Illuminate\Support\Facades\Hash::make('admin123'),
             'role' => 'admin',
+            'email_verified_at' => now(),
         ]);
 
-        User::factory()->create([
+        \App\Models\User::create([
             'name' => 'Member Test',
             'email' => 'member@example.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'role' => 'member',
+            'email_verified_at' => now(),
         ]);
     }
 }
