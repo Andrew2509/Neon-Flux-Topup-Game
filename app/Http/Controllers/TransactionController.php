@@ -278,37 +278,18 @@ class TransactionController extends Controller
         $message = $res['Message'] ?? $res['message'] ?? 'Gagal membuat pembayaran iPaymu.';
 
         if ($status == 200 && $data) {
-            $paymentUrl = $data['Url'] ?? $data['url'] ?? null;
-            $qrImage = $data['QrImage'] ?? $data['QrTemplate'] ?? $data['qr_image'] ?? null;
-            $sessionId = $data['SessionID'] ?? $data['sessionid'] ?? $data['session_id'] ?? '';
-
-            // Use QR image or template if direct URL is not provided
-            $finalUrl = $paymentUrl ?: $qrImage;
-
-            if ($finalUrl) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
-                        'data' => [
-                            'order_id' => $order->order_id,
-                            'payment_url' => $finalUrl,
-                            'session_id' => $sessionId,
-                            'qr_image' => $qrImage // Providing both for flexibility
-                        ]
-                    ]);
-                }
-                if ($qrImage && !$paymentUrl) {
-                    // Detect device for proper view folder
-                    $device = (new CatalogController())->deviceType();
-                    $view = "{$device}.neonflux.payment.ipaymu_qris";
-                    if (!view()->exists($view)) {
-                        $view = "desktop.neonflux.payment.ipaymu_qris"; // Fallback to desktop
-                    }
-                    return view($view, compact('order', 'qrImage', 'sessionId'));
-                }
-                return redirect($finalUrl);
+            // Detect device for proper view folder
+            $device = (new CatalogController())->deviceType();
+            $view = "{$device}.neonflux.payment.ipaymu";
+            
+            if (!view()->exists($view)) {
+                $view = "desktop.neonflux.payment.ipaymu"; // Fallback to desktop
             }
+
+            return view($view, [
+                'order' => $order,
+                'ipaymuData' => $data
+            ]);
         }
 
         $order->update(['status' => 'failed', 'payload' => $res]);
