@@ -279,21 +279,26 @@ class TransactionController extends Controller
 
         if ($status == 200 && $data) {
             $paymentUrl = $data['Url'] ?? $data['url'] ?? null;
+            $qrImage = $data['QrImage'] ?? $data['QrTemplate'] ?? $data['qr_image'] ?? null;
             $sessionId = $data['SessionID'] ?? $data['sessionid'] ?? $data['session_id'] ?? '';
 
-            if ($paymentUrl) {
+            // Use QR image or template if direct URL is not provided
+            $finalUrl = $paymentUrl ?: $qrImage;
+
+            if ($finalUrl) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => true,
                         'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
                         'data' => [
                             'order_id' => $order->order_id,
-                            'payment_url' => $paymentUrl,
-                            'session_id' => $sessionId
+                            'payment_url' => $finalUrl,
+                            'session_id' => $sessionId,
+                            'qr_image' => $qrImage // Providing both for flexibility
                         ]
                     ]);
                 }
-                return redirect($paymentUrl);
+                return redirect($finalUrl);
             }
         }
 
