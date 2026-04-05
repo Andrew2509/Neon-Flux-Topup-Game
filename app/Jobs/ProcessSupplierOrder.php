@@ -51,10 +51,11 @@ class ProcessSupplierOrder implements ShouldQueue
         $productCode = $payloadData['product_code'] ?? '';
         $serverId = $payloadData['server_id'] ?? '';
 
-        $url = "https://api.tokovoucher.net/v1/transaksi";
-        
+        $base = config('services.tokovoucher.transaction_base', 'https://api.tokovoucher.net');
+        $url = rtrim((string) $base, '/').'/v1/transaksi';
+
         try {
-            $response = Http::timeout(45)->connectTimeout(15)->get($url, [
+            $response = $this->tokovoucherHttp()->get($url, [
                 'ref_id' => $this->order->order_id,
                 'produk' => $productCode,
                 'tujuan' => $tujuan,
@@ -168,5 +169,23 @@ class ProcessSupplierOrder implements ShouldQueue
         );
 
         return implode(' — ', $parts).$hint;
+    }
+
+    /**
+     * Client HTTP ke TokoVoucher; opsional paksa IPv4 agar IP publik sama dengan yang di-whitelist member.
+     */
+    private function tokovoucherHttp(): \Illuminate\Http\Client\PendingRequest
+    {
+        $req = Http::timeout(45)->connectTimeout(15);
+
+        if (config('services.tokovoucher.force_ipv4') && defined('CURL_IPRESOLVE_V4') && defined('CURLOPT_IPRESOLVE')) {
+            $req = $req->withOptions([
+                'curl' => [
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                ],
+            ]);
+        }
+
+        return $req;
     }
 }

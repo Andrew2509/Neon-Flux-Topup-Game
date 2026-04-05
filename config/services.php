@@ -44,4 +44,14 @@ return [
         'api_key' => env('ORBIT_WA_API_KEY'),
     ],
 
+    /*
+    | TokoVoucher — dok: error HTTP/timeout dianggap pending hingga callback atau cek status berkala.
+    | Host transaksi: https://api.tokovoucher.net atau http://trx-ip.tokovoucher.net (jalur IP, bila diarahkan TokoVoucher).
+    | IP 188.166.243.56: biasanya untuk whitelist callback masuk ke server/firewall Anda (bukan IP outbound).
+    */
+    'tokovoucher' => [
+        'transaction_base' => rtrim(env('TOKOVOUCHER_TRANSACTION_BASE', 'https://api.tokovoucher.net'), '/'),
+        'force_ipv4' => filter_var(env('TOKOVOUCHER_FORCE_IPV4', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
 ];
