@@ -37,6 +37,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return (topIdx !== -1 && parts[topIdx + 1]) ? parts[topIdx + 1] : '';
     }
 
+    function checkIdEndpoint() {
+        return new URL('/api/check-id', window.location.origin).href;
+    }
+
+    function applyNicknameToSummary(nick) {
+        const n = (nick || '').trim().slice(0, 128);
+        const sp = document.getElementById('summary-player-name');
+        if (!sp) return;
+        if (sp.getAttribute('data-sticky-summary') === '1') {
+            sp.textContent = n ? ('Nama: ' + n) : '';
+            sp.classList.toggle('hidden', !n);
+        } else {
+            sp.textContent = n || '—';
+        }
+    }
+
     function whatsappDigitsOk() {
         if (!customerWhatsappInput) return true;
         const d = (customerWhatsappInput.value || '').replace(/\D/g, '');
@@ -267,6 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerNickname = document.getElementById('player-nickname');
     const nicknameArea = document.getElementById('nickname-area');
 
+    let checkIdGeneration = 0;
+    let checkIdAbort = null;
+
     async function checkPlayerId() {
         const userId = userIdInput ? userIdInput.value.trim() : '';
         const zoneId = zoneIdInput ? zoneIdInput.value.trim() : '';
@@ -275,17 +294,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameSlug = resolveGameSlug();
 
         if (userId.length < 3) {
+            checkIdGeneration += 1;
+            if (checkIdAbort) {
+                checkIdAbort.abort();
+                checkIdAbort = null;
+            }
             if (playerNicknameInput) {
                 playerNicknameInput.value = '';
             }
             if (nicknameArea) {
                 nicknameArea.classList.add('hidden');
             }
+            applyNicknameToSummary('');
             updateSummary();
             return;
         }
 
         if (zoneIdInput && zoneId.length < 1) {
+            checkIdGeneration += 1;
+            if (checkIdAbort) {
+                checkIdAbort.abort();
+                checkIdAbort = null;
+            }
             if (playerNicknameInput) {
                 playerNicknameInput.value = '';
             }
@@ -296,28 +326,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 playerNickname.textContent = 'Isi Zone ID dulu untuk cek nama pemain';
                 playerNickname.classList.remove('text-red-500');
             }
+            applyNicknameToSummary('');
             updateSummary();
             return;
         }
+
+        checkIdGeneration += 1;
+        const myGen = checkIdGeneration;
+        if (checkIdAbort) {
+            checkIdAbort.abort();
+        }
+        checkIdAbort = new AbortController();
 
         if (playerNicknameInput) {
             playerNicknameInput.value = '';
         }
 
-        if (!nicknameArea || !playerNickname) {
-            return;
+        const hasNickUi = nicknameArea && playerNickname;
+        if (hasNickUi) {
+            nicknameArea.classList.remove('hidden');
+            nicknameArea.classList.add('flex', 'animate-pulse');
+            playerNickname.textContent = 'Mengecek...';
+            playerNickname.classList.remove('text-red-500');
         }
-        nicknameArea.classList.remove('hidden');
-        nicknameArea.classList.add('flex', 'animate-pulse');
-        playerNickname.textContent = 'Mengecek...';
-        playerNickname.classList.remove('text-red-500');
+        applyNicknameToSummary('');
         updateSummary();
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]');
 
-            const response = await fetch('/api/check-id', {
+            const response = await fetch(checkIdEndpoint(), {
                 method: 'POST',
+                signal: checkIdAbort.signal,
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -332,71 +372,106 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            nicknameArea.classList.remove('animate-pulse');
+            if (myGen !== checkIdGeneration) {
+                return;
+            }
+
+            if (hasNickUi) {
+                nicknameArea.classList.remove('animate-pulse');
+            }
 
             const rawText = await response.text();
             let data = null;
             try {
                 data = rawText ? JSON.parse(rawText) : null;
             } catch (parseErr) {
-                playerNickname.textContent = 'Server mengembalikan data bukan JSON. Muat ulang halaman atau cek koneksi.';
-                playerNickname.classList.add('text-red-500');
+                if (myGen !== checkIdGeneration) return;
+                if (hasNickUi) {
+                    playerNickname.textContent = 'Server mengembalikan data bukan JSON. Muat ulang halaman atau cek koneksi.';
+                    playerNickname.classList.add('text-red-500');
+                }
                 if (playerNicknameInput) {
                     playerNicknameInput.value = '';
                 }
-                updateSummary();
-                return;
-            }
-            
-            if (!response.ok) {
-                playerNickname.textContent = (data && data.message) ? data.message : ('Gagal mengecek ID (HTTP ' + response.status + ')');
-                playerNickname.classList.add('text-red-500');
-                if (playerNicknameInput) {
-                    playerNicknameInput.value = '';
-                }
+                applyNicknameToSummary('');
                 updateSummary();
                 return;
             }
 
-            if (data.success) {
-                playerNickname.textContent = data.nickname;
-                playerNickname.classList.remove('text-red-500');
-                if (playerNicknameInput && data.nickname) {
-                    const n = String(data.nickname).slice(0, 128);
-                    playerNicknameInput.value = n;
+            if (!response.ok) {
+                if (myGen !== checkIdGeneration) return;
+                if (hasNickUi) {
+                    playerNickname.textContent = (data && data.message) ? data.message : ('Gagal mengecek ID (HTTP ' + response.status + ')');
+                    playerNickname.classList.add('text-red-500');
                 }
-            } else {
-                playerNickname.textContent = data.message || 'Invalid ID';
-                playerNickname.classList.add('text-red-500');
                 if (playerNicknameInput) {
                     playerNicknameInput.value = '';
                 }
+                applyNicknameToSummary('');
+                updateSummary();
+                return;
+            }
+
+            if (data && (data.success === true || data.success === 1 || data.success === '1')) {
+                if (myGen !== checkIdGeneration) return;
+                const n = data.nickname != null ? String(data.nickname).trim().slice(0, 128) : '';
+                if (hasNickUi) {
+                    playerNickname.textContent = n || '—';
+                    playerNickname.classList.remove('text-red-500');
+                }
+                if (playerNicknameInput && n) {
+                    playerNicknameInput.value = n;
+                }
+                applyNicknameToSummary(n);
+            } else {
+                if (myGen !== checkIdGeneration) return;
+                if (hasNickUi) {
+                    playerNickname.textContent = (data && data.message) ? data.message : 'Invalid ID';
+                    playerNickname.classList.add('text-red-500');
+                }
+                if (playerNicknameInput) {
+                    playerNicknameInput.value = '';
+                }
+                applyNicknameToSummary('');
             }
             updateSummary();
         } catch (error) {
+            if (error.name === 'AbortError') {
+                return;
+            }
             console.error('Error auto check ID:', error);
-            playerNickname.textContent = 'Masalah koneksi: ' + (error.message || '');
-            playerNickname.classList.add('text-red-500');
+            if (myGen !== checkIdGeneration) return;
+            if (hasNickUi) {
+                playerNickname.textContent = 'Masalah koneksi: ' + (error.message || '');
+                playerNickname.classList.add('text-red-500');
+            }
             if (playerNicknameInput) {
                 playerNicknameInput.value = '';
             }
+            applyNicknameToSummary('');
             updateSummary();
         }
     }
 
-    const debouncedCheck = debounce(checkPlayerId, 900);
+    const debouncedCheck = debounce(checkPlayerId, 700);
 
     if (userIdInput) {
         userIdInput.addEventListener('input', debouncedCheck);
         userIdInput.addEventListener('change', () => checkPlayerId());
+        userIdInput.addEventListener('blur', debouncedCheck);
     }
     if (zoneIdInput) {
         zoneIdInput.addEventListener('input', debouncedCheck);
         zoneIdInput.addEventListener('change', () => checkPlayerId());
+        zoneIdInput.addEventListener('blur', debouncedCheck);
     }
 
     requestAnimationFrame(() => {
         checkPlayerId();
+    });
+
+    window.addEventListener('load', () => {
+        setTimeout(checkPlayerId, 400);
     });
 
     // --- Form Submission Handling ---
