@@ -115,12 +115,15 @@ class DokuService
                 'body'   => $result,
             ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
+                $parsed = $this->parseCheckoutApiError($result, $response->body());
+
                 return [
                     'success' => false,
-                    'status'  => $response->status(),
-                    'message' => $result['message'] ?? $response->body(),
-                    'raw'     => $result,
+                    'status' => $response->status(),
+                    'message' => $parsed['message'],
+                    'error_code' => $parsed['code'],
+                    'raw' => is_array($result) ? $result : null,
                 ];
             }
 
@@ -138,6 +141,42 @@ class DokuService
                 'message' => $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Dokumentasi DOKU sering mengembalikan { "error": { "code", "message", "type" } } tanpa "message" di akar.
+     *
+     * @param  array|string|null  $result
+     * @return array{message: string, code: string|null}
+     */
+    private function parseCheckoutApiError($result, string $fallbackBody): array
+    {
+        if (is_array($result) && isset($result['error']) && is_array($result['error'])) {
+            $code = isset($result['error']['code']) ? (string) $result['error']['code'] : null;
+            $msg = isset($result['error']['message']) ? trim((string) $result['error']['message']) : '';
+
+            return [
+                'message' => $msg !== '' ? $msg : ($fallbackBody !== '' ? $fallbackBody : 'Permintaan ditolak oleh DOKU.'),
+                'code' => $code !== '' ? $code : null,
+            ];
+        }
+
+        if (is_array($result) && isset($result['message'])) {
+            $top = $result['message'];
+            if (is_string($top) && $top !== '') {
+                return ['message' => $top, 'code' => null];
+            }
+            if (is_array($top)) {
+                return ['message' => json_encode($top, JSON_UNESCAPED_UNICODE), 'code' => null];
+            }
+        }
+
+        $body = trim($fallbackBody);
+
+        return [
+            'message' => $body !== '' ? $body : 'Permintaan ditolak oleh DOKU.',
+            'code' => null,
+        ];
     }
 
     /**

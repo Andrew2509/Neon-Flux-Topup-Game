@@ -333,13 +333,16 @@ class TransactionController extends Controller
 
         // Payment creation failed
         $errorMsg = $res['message'] ?? 'Gagal membuat pembayaran DOKU.';
-        
-        // Fix array to string conversion
+        $errorCode = $res['error_code'] ?? null;
+
         if (is_array($errorMsg)) {
-            // Try to extract readable message if possible
-            $errorMsgStr = json_encode($errorMsg);
+            $errorMsgStr = json_encode($errorMsg, JSON_UNESCAPED_UNICODE);
         } else {
-            $errorMsgStr = $errorMsg;
+            $errorMsgStr = (string) $errorMsg;
+        }
+
+        if ($errorCode === 'merchant_inactive') {
+            $errorMsgStr = 'Akun merchant DOKU tidak aktif (merchant_inactive). Cek status di dashboard DOKU Jokul, selesaikan aktivasi/kontrak, atau hubungi support DOKU.';
         }
 
         $order->update(['status' => 'failed', 'payload' => $res['raw'] ?? $res]);
