@@ -36,14 +36,22 @@
                             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Status Sekarang</p>
                             @php
                                 $status_color = match($order->status) {
-                                    'success' => 'emerald',
+                                    'success', 'paid', 'processing' => 'emerald',
                                     'pending_payment', 'pending' => 'amber',
-                                    'processing' => 'cyan',
                                     'failed', 'failed_provider' => 'red',
                                     default => 'slate'
                                 };
+                                $status_label = match($order->status) {
+                                    'success' => 'Berhasil',
+                                    'paid', 'processing' => 'Berhasil',
+                                    'pending_payment' => 'Menunggu Bayar',
+                                    'pending' => 'Pending',
+                                    'failed' => 'Gagal',
+                                    'failed_provider' => 'Gagal (Provider)',
+                                    default => ucfirst($order->status)
+                                };
                             @endphp
-                            <span class="text-xl font-black text-{{ $status_color }}-400 uppercase italic">{{ strtoupper($order->status) }}</span>
+                            <span class="text-xl font-black text-{{ $status_color }}-400 uppercase italic">{{ $status_label }}</span>
                         </div>
                         <div class="text-right">
                             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Invoice ID</p>
@@ -121,15 +129,23 @@
                             <td class="px-8 py-4 text-center">
                                 @php
                                     $l_status_color = match($lOrder->status) {
-                                        'success' => 'emerald',
+                                        'success', 'paid', 'processing' => 'emerald',
                                         'pending_payment', 'pending' => 'amber',
-                                        'processing' => 'cyan',
                                         'failed', 'failed_provider' => 'red',
                                         default => 'slate'
                                     };
+                                    $l_status_label = match($lOrder->status) {
+                                        'success' => 'Berhasil',
+                                        'paid', 'processing' => 'Berhasil',
+                                        'pending_payment' => 'Menunggu',
+                                        'pending' => 'Pending',
+                                        'failed' => 'Gagal',
+                                        'failed_provider' => 'Gagal',
+                                        default => ucfirst($lOrder->status)
+                                    };
                                 @endphp
                                 <span class="px-2 py-0.5 bg-{{ $l_status_color }}-500/10 text-{{ $l_status_color }}-400 text-[9px] font-black rounded border border-{{ $l_status_color }}-500/20 uppercase">
-                                    {{ $lOrder->status }}
+                                    {{ $l_status_label }}
                                 </span>
                             </td>
                         </tr>

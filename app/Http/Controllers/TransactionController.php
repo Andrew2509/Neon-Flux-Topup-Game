@@ -131,7 +131,7 @@ class TransactionController extends Controller
                 $user->decrement('balance', $order->total_price);
                 
                 // Update Order
-                $order->logStatus("Pembayaran menggunakan saldo berhasil. Sisa saldo: " . number_format($user->balance, 0, ',', '.'), 'processing');
+                $order->logStatus("Pembayaran menggunakan saldo berhasil. Sisa saldo: " . number_format($user->balance, 0, ',', '.'), 'paid');
                 
                 // Dispatch Job
                 \App\Jobs\ProcessSupplierOrder::dispatch($order);
@@ -140,7 +140,7 @@ class TransactionController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Pembayaran saldo berhasil. Pesanan sedang diproses.',
+                    'message' => 'Pembayaran saldo berhasil.',
                     'data' => [
                         'order_id' => $order->order_id,
                         'redirect_url' => route('track.order', ['order_id' => $order->order_id])
@@ -309,13 +309,22 @@ class TransactionController extends Controller
 
         // Payment creation failed
         $errorMsg = $res['message'] ?? 'Gagal membuat pembayaran DOKU.';
+        
+        // Fix array to string conversion
+        if (is_array($errorMsg)) {
+            // Try to extract readable message if possible
+            $errorMsgStr = json_encode($errorMsg);
+        } else {
+            $errorMsgStr = $errorMsg;
+        }
+
         $order->update(['status' => 'failed', 'payload' => $res['raw'] ?? $res]);
         Log::error('DOKU Checkout Failed', ['order_id' => $order->order_id, 'response' => $res]);
 
         if ($request->expectsJson()) {
-            return response()->json(['success' => false, 'message' => $errorMsg], 400);
+            return response()->json(['success' => false, 'message' => $errorMsgStr], 400);
         }
-        return back()->with('error', 'Pesanan gagal diinisiasi: ' . $errorMsg);
+        return back()->with('error', 'Pesanan gagal diinisiasi: ' . $errorMsgStr);
     }
 
     private function processIPaymu($order, $paymentMethod, Request $request)
@@ -526,7 +535,7 @@ class TransactionController extends Controller
     private function finalizeOrder($order, $providerInfo)
     {
         \Illuminate\Support\Facades\DB::transaction(function () use ($order, $providerInfo) {
-            $order->logStatus("Pembayaran berhasil dikonfirmasi oleh $providerInfo.", 'processing');
+            $order->logStatus("Pembayaran berhasil dikonfirmasi oleh $providerInfo.", 'paid');
             \App\Jobs\ProcessSupplierOrder::dispatch($order);
         });
     }
@@ -585,7 +594,7 @@ class TransactionController extends Controller
             try {
                 \Illuminate\Support\Facades\DB::transaction(function () use ($order, $reference) {
                     // Update Order status and log payment success
-                    $order->logStatus('Pembayaran berhasil dikonfirmasi oleh Duitku.', 'processing', [
+                    $order->logStatus('Pembayaran berhasil dikonfirmasi oleh Duitku.', 'paid', [
                         'duitku_reference' => $reference
                     ]);
 
@@ -658,7 +667,7 @@ class TransactionController extends Controller
         if ($statusCode == 1 && $order->status === 'pending_payment') {
             try {
                 \Illuminate\Support\Facades\DB::transaction(function () use ($order, $trxId) {
-                    $order->logStatus('Pembayaran berhasil dikonfirmasi oleh iPaymu.', 'processing', [
+                    $order->logStatus('Pembayaran berhasil dikonfirmasi oleh iPaymu.', 'paid', [
                         'ipaymu_trx_id' => $trxId
                     ]);
 

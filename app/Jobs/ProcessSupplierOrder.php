@@ -21,12 +21,13 @@ class ProcessSupplierOrder implements ShouldQueue
 
     public function handle(): void
     {
-        // Skip if already successful
+        // Skip if already fulfilled
         if ($this->order->status === 'success') {
             return;
         }
 
-        $this->order->logStatus('Memulai proses pengiriman ke supplier...', 'processing');
+        // Jangan ubah status ke processing: pembayaran sudah 'paid' dan ditampilkan sebagai berhasil di lacak pesanan
+        $this->order->logStatus('Memulai proses pengiriman ke supplier...', null);
 
         $tokovoucher = Provider::where('name', 'like', '%Toko%')->orWhere('name', 'like', '%Digiflazz%')->first();
         
