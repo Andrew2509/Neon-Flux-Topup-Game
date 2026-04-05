@@ -50,6 +50,11 @@ return [
     | IP 188.166.243.56: biasanya untuk whitelist callback masuk ke server/firewall Anda (bukan IP outbound).
     */
     'tokovoucher' => [
+        /**
+         * Host untuk JSON API: pascabayar-inq, POST transaksi, cek status (dok: https://api.tokovoucher.net).
+         * Jangan samakan dengan trx-ip — jalur IP sering tidak mendukung endpoint ini → HTTP 503 HTML.
+         */
+        'api_base' => rtrim(env('TOKOVOUCHER_API_BASE', 'https://api.tokovoucher.net'), '/'),
         'transaction_base' => rtrim(env('TOKOVOUCHER_TRANSACTION_BASE', 'https://api.tokovoucher.net'), '/'),
         /** Host cadangan bila utama 502/503/504 (mis. http://trx-ip.tokovoucher.net sesuai panduan TV). */
         'transaction_fallback' => ($tvFb = trim((string) env('TOKOVOUCHER_TRANSACTION_FALLBACK', ''))) !== ''

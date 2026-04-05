@@ -1005,7 +1005,7 @@ class TransactionController extends Controller
             'signature' => $signature,
         ];
 
-        $base = config('services.tokovoucher.transaction_base', 'https://api.tokovoucher.net');
+        $base = config('services.tokovoucher.api_base', 'https://api.tokovoucher.net');
         $url = rtrim((string) $base, '/').'/v1/pascabayar-inq';
 
         Log::info('CheckID TokoVoucher Pascabayar Request', [
