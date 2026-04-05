@@ -19,9 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryTotal = document.getElementById('summary-total');
     const playerNicknameInput = document.getElementById('player_nickname_input');
 
+    /** true saat request /api/check-id sedang berjalan — updateSummary tidak boleh menimpa teks loading / hasil. */
+    let playerLookupInFlight = false;
+
     function isPlaceholderNicknameText(t) {
         if (!t) return true;
         if (t === 'Mengecek...') return true;
+        if (t.startsWith('Mencari')) return true;
         if (t.startsWith('Isi Zone ID')) return true;
         if (t.startsWith('Lengkapi Zone')) return true;
         return false;
@@ -93,49 +97,83 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (summaryPlayerName) {
-            let nick = playerNicknameInput && playerNicknameInput.value.trim()
-                ? playerNicknameInput.value.trim()
-                : '';
-            if (!nick) {
-                const nickEl = document.getElementById('player-nickname');
-                if (nickEl && !nickEl.classList.contains('text-red-500')) {
-                    const t = nickEl.textContent.trim();
-                    if (t && !isPlaceholderNicknameText(t)) {
-                        nick = t;
-                        if (playerNicknameInput) {
-                            playerNicknameInput.value = t.slice(0, 128);
-                        }
-                    }
-                }
-            }
-            if (summaryPlayerName.getAttribute('data-sticky-summary') === '1') {
-                summaryPlayerName.textContent = nick ? ('Nama: ' + nick) : '';
-                summaryPlayerName.classList.toggle('hidden', !nick);
-            } else {
-                summaryPlayerName.textContent = nick || '—';
-            }
+        if (summaryWhatsapp && customerWhatsappInput) {
+            const w = (customerWhatsappInput.value || '').trim();
+            summaryWhatsapp.textContent = w || 'Belum Diisi';
         }
 
-        // Update Total Price
-        if (selectedProduct && summaryTotal) {
-            let basePrice = parseInt(selectedProduct.dataset.price.replace(/\./g, ''));
-            let total = basePrice;
+        reflowSummaryPlayerName();
 
-            if (selectedPayment) {
-                const feeStr = selectedPayment.dataset.fee;
+        let selectedProduct2 = null;
+        let selectedPayment2 = null;
+        productRadios.forEach(r => {
+            if (r.checked) selectedProduct2 = r;
+        });
+        paymentRadios.forEach(r => {
+            if (r.checked) selectedPayment2 = r;
+        });
+        if (selectedProduct2 && summaryTotal) {
+            let basePrice = parseInt(selectedProduct2.dataset.price.replace(/\./g, ''), 10);
+            let total = basePrice;
+            if (selectedPayment2) {
+                const feeStr = selectedPayment2.dataset.fee;
                 if (feeStr.includes('%')) {
                     const feePercent = parseFloat(feeStr.replace('%', ''));
                     total += basePrice * (feePercent / 100);
                 } else {
-                    total += parseInt(feeStr.replace(/[^\d]/g, '')) || 0;
+                    total += parseInt(feeStr.replace(/[^\d]/g, ''), 10) || 0;
                 }
             }
-
             summaryTotal.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
         } else if (summaryTotal) {
             summaryTotal.textContent = 'Rp 0';
         }
+    }
+
+    function reflowSummaryPlayerName() {
+        if (!summaryPlayerName) {
+            return;
+        }
+        if (playerLookupInFlight) {
+            return;
+        }
+        let nick = playerNicknameInput && playerNicknameInput.value.trim()
+            ? playerNicknameInput.value.trim()
+            : '';
+        if (!nick) {
+            const nickEl = document.getElementById('player-nickname');
+            if (nickEl && !nickEl.classList.contains('text-red-500')) {
+                const t = nickEl.textContent.trim();
+                if (t && !isPlaceholderNicknameText(t)) {
+                    nick = t;
+                    if (playerNicknameInput) {
+                        playerNicknameInput.value = t.slice(0, 128);
+                    }
+                }
+            }
+        }
+        if (summaryPlayerName.getAttribute('data-sticky-summary') === '1') {
+            summaryPlayerName.textContent = nick ? ('Nama: ' + nick) : '';
+            summaryPlayerName.classList.toggle('hidden', !nick);
+        } else {
+            summaryPlayerName.textContent = nick || '—';
+        }
+        summaryPlayerName.classList.remove('animate-pulse', 'opacity-80');
+    }
+
+    function paintSummaryPlayerLoading() {
+        const sp = document.getElementById('summary-player-name');
+        if (!sp) {
+            return;
+        }
+        const msg = 'Mencari nama pemain...';
+        if (sp.getAttribute('data-sticky-summary') === '1') {
+            sp.textContent = 'Nama: ' + msg;
+            sp.classList.remove('hidden');
+        } else {
+            sp.textContent = msg;
+        }
+        sp.classList.add('animate-pulse', 'opacity-80');
     }
 
     function updatePaymentPrices() {
@@ -295,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (userId.length < 3) {
             checkIdGeneration += 1;
+            playerLookupInFlight = false;
             if (checkIdAbort) {
                 checkIdAbort.abort();
                 checkIdAbort = null;
@@ -312,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (zoneIdInput && zoneId.length < 1) {
             checkIdGeneration += 1;
+            playerLookupInFlight = false;
             if (checkIdAbort) {
                 checkIdAbort.abort();
                 checkIdAbort = null;
@@ -338,6 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         checkIdAbort = new AbortController();
 
+        playerLookupInFlight = true;
+        paintSummaryPlayerLoading();
+
         if (playerNicknameInput) {
             playerNicknameInput.value = '';
         }
@@ -346,10 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hasNickUi) {
             nicknameArea.classList.remove('hidden');
             nicknameArea.classList.add('flex', 'animate-pulse');
-            playerNickname.textContent = 'Mengecek...';
+            playerNickname.textContent = 'Mencari nama pemain...';
             playerNickname.classList.remove('text-red-500');
         }
-        applyNicknameToSummary('');
         updateSummary();
 
         try {
@@ -393,8 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (playerNicknameInput) {
                     playerNicknameInput.value = '';
                 }
-                applyNicknameToSummary('');
-                updateSummary();
                 return;
             }
 
@@ -407,8 +447,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (playerNicknameInput) {
                     playerNicknameInput.value = '';
                 }
-                applyNicknameToSummary('');
-                updateSummary();
                 return;
             }
 
@@ -422,7 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (playerNicknameInput && n) {
                     playerNicknameInput.value = n;
                 }
-                applyNicknameToSummary(n);
             } else {
                 if (myGen !== checkIdGeneration) return;
                 if (hasNickUi) {
@@ -432,9 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (playerNicknameInput) {
                     playerNicknameInput.value = '';
                 }
-                applyNicknameToSummary('');
             }
-            updateSummary();
         } catch (error) {
             if (error.name === 'AbortError') {
                 return;
@@ -448,8 +483,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (playerNicknameInput) {
                 playerNicknameInput.value = '';
             }
-            applyNicknameToSummary('');
-            updateSummary();
+        } finally {
+            if (myGen === checkIdGeneration) {
+                playerLookupInFlight = false;
+                updateSummary();
+            }
         }
     }
 

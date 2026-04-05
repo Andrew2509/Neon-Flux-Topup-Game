@@ -73,7 +73,7 @@
                 <div class="absolute top-0 left-0 w-1 h-full bg-primary shadow-neon-cyan"></div>
                 <div class="flex items-center gap-4 mb-6">
                     <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl border border-primary/40 shadow-neon-cyan">1</div>
-                    <h2 class="text-xl font-display font-bold text-slate-950 dark:text-white">Masukkan ID Pemain</h2>
+                    <h2 class="text-xl font-display font-bold text-slate-950 dark:text-white">Masukkan Data Akun</h2>
                 </div>
                 <div class="grid @if($category->has_zone) grid-cols-1 md:grid-cols-2 @else @endif gap-6 items-end">
                     <div>
@@ -102,7 +102,7 @@
             </section>
 
             <!-- Step 2: Nominal -->
-            <section class="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden">
+            <section id="nominal-section" class="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden transition-all duration-300">
                 <div class="flex items-center gap-4 mb-6">
                     <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl border border-primary/40 shadow-neon-cyan">2</div>
                     <h2 class="text-xl font-display font-bold text-slate-950 dark:text-white">Pilih Nominal Top-Up</h2>
