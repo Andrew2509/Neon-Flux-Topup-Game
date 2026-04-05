@@ -1,0 +1,22 @@
+[Unit]
+Description=Laravel Queue Worker (PrincePayGaming / neonflux.my.id)
+After=network-online.target mysql.service mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=5
+WorkingDirectory=/var/www/PrincePayGaming
+Environment=APP_ENV=production
+ExecStart=/usr/bin/php artisan queue:work database --sleep=3 --tries=5 --max-time=3600 --timeout=120
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=laravel-queue-neonflux
+
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
