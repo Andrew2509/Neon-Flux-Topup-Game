@@ -96,6 +96,10 @@ class TransactionController extends Controller
             return $this->processBalancePayment($order, $request);
         }
 
+        if (stripos($providerName, 'DOKU') !== false) {
+            return $this->processDoku($order, $paymentMethod, $request);
+        }
+
         if (stripos($providerName, 'iPaymu') !== false) {
             return $this->processIPaymu($order, $paymentMethod, $request);
         }
@@ -250,6 +254,68 @@ class TransactionController extends Controller
             $order->update(['status' => 'failed', 'payload' => ['error_exception' => $e->getMessage()]]);
             return back()->with('error', 'Gagal terhubung ke Duitku: ' . $e->getMessage());
         }
+    }
+
+    private function processDoku($order, $paymentMethod, Request $request)
+    {
+        $user = $order->user ?? \Illuminate\Support\Facades\Auth::user();
+        $dokuService = new \App\Services\DokuService();
+
+        // Map payment method code to DOKU payment_method_types
+        $paymentMethodTypes = [];
+        if ($paymentMethod) {
+            $code = strtoupper($paymentMethod->code);
+            if (str_contains($code, 'QRIS')) $paymentMethodTypes = ['QRIS'];
+            elseif (str_contains($code, 'BCA')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BCA'];
+            elseif (str_contains($code, 'BNI')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BNI'];
+            elseif (str_contains($code, 'BRI')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BRI'];
+            elseif (str_contains($code, 'MANDIRI')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_MANDIRI'];
+            elseif (str_contains($code, 'PERMATA')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_PERMATA'];
+            elseif (str_contains($code, 'CIMB')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_CIMB'];
+            elseif (str_contains($code, 'DANAMON')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_DANAMON'];
+            elseif (str_contains($code, 'SHOPEEPAY')) $paymentMethodTypes = ['EMONEY_SHOPEE_PAY'];
+            elseif (str_contains($code, 'OVO')) $paymentMethodTypes = ['EMONEY_OVO'];
+            elseif (str_contains($code, 'DANA')) $paymentMethodTypes = ['EMONEY_DANA'];
+            elseif (str_contains($code, 'LINKAJA')) $paymentMethodTypes = ['EMONEY_LINKAJA'];
+            elseif (str_contains($code, 'ALFAMART')) $paymentMethodTypes = ['ONLINE_TO_OFFLINE_ALFA'];
+            elseif (str_contains($code, 'INDOMARET')) $paymentMethodTypes = ['ONLINE_TO_OFFLINE_INDOMARET'];
+            elseif (str_contains($code, 'CC') || str_contains($code, 'CREDIT')) $paymentMethodTypes = ['CREDIT_CARD'];
+        }
+
+        $res = $dokuService->createCheckoutPayment([
+            'orderId'            => $order->order_id,
+            'amount'             => $order->total_price,
+            'name'               => $user->name ?? 'Guest',
+            'email'              => $user->email ?? 'guest@neonflux.my.id',
+            'phone'              => $user->phone ?? '081122334455',
+            'returnUrl'          => route('track.order', ['order_id' => $order->order_id]),
+            'notifyUrl'          => url('/api/doku/callback'),
+            'paymentMethodTypes' => $paymentMethodTypes,
+        ]);
+
+        if (!empty($res['success']) && !empty($res['paymentUrl'])) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
+                    'data'    => [
+                        'order_id'    => $order->order_id,
+                        'payment_url' => $res['paymentUrl'],
+                    ]
+                ]);
+            }
+            return redirect($res['paymentUrl']);
+        }
+
+        // Payment creation failed
+        $errorMsg = $res['message'] ?? 'Gagal membuat pembayaran DOKU.';
+        $order->update(['status' => 'failed', 'payload' => $res['raw'] ?? $res]);
+        Log::error('DOKU Checkout Failed', ['order_id' => $order->order_id, 'response' => $res]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => $errorMsg], 400);
+        }
+        return back()->with('error', 'Pesanan gagal diinisiasi: ' . $errorMsg);
     }
 
     private function processIPaymu($order, $paymentMethod, Request $request)
@@ -610,6 +676,76 @@ class TransactionController extends Controller
         }
 
         return response()->json(['success' => 'ok']);
+    }
+
+    public function dokuCallback(Request $request)
+    {
+        Log::info('DOKU Callback Received:', [
+            'headers' => [
+                'Client-Id'         => $request->header('Client-Id'),
+                'Request-Id'        => $request->header('Request-Id'),
+                'Request-Timestamp' => $request->header('Request-Timestamp'),
+                'Signature'         => $request->header('Signature') ? '***PRESENT***' : '***MISSING***',
+            ],
+            'body' => $request->all(),
+        ]);
+
+        $dokuService = new \App\Services\DokuService();
+
+        // 1. Validate Signature
+        if (!$dokuService->validateNotificationSignature($request)) {
+            Log::error('DOKU Callback: Signature validation FAILED');
+            return response()->json(['error' => 'Invalid signature'], 403);
+        }
+
+        Log::info('DOKU Callback: Signature VALID');
+
+        try {
+            $payload = $request->all();
+
+            // 2. Extract key fields from notification
+            $invoiceNumber  = $payload['order']['invoice_number'] ?? null;
+            $transStatus    = $payload['transaction']['status'] ?? null;
+            $serviceId      = $payload['service']['id'] ?? 'UNKNOWN';
+            $channelId      = $payload['channel']['id'] ?? 'UNKNOWN';
+
+            if (!$invoiceNumber) {
+                Log::error('DOKU Callback: Missing invoice_number', ['payload' => $payload]);
+                return response()->json(['error' => 'Missing invoice_number'], 400);
+            }
+
+            // 3. Find Order
+            $order = Order::where('order_id', $invoiceNumber)->first();
+            if (!$order) {
+                Log::error('DOKU Callback: Order not found', ['invoice' => $invoiceNumber]);
+                return response()->json(['error' => 'Order not found'], 404);
+            }
+
+            // 4. Idempotency check
+            if ($order->status !== 'pending_payment' && $transStatus === 'SUCCESS') {
+                Log::info('DOKU Callback: Already processed', ['order_id' => $invoiceNumber]);
+                return response()->json(['success' => 'already_processed']);
+            }
+
+            // 5. Process based on transaction status
+            if ($transStatus === 'SUCCESS' && $order->status === 'pending_payment') {
+                $this->finalizeOrder($order, "DOKU ({$serviceId}/{$channelId})");
+                Log::info('DOKU Callback: Order finalized', ['order_id' => $invoiceNumber]);
+            } elseif ($transStatus === 'FAILED') {
+                $order->logStatus('Pembayaran gagal (DOKU - ' . $channelId . ').', 'failed');
+                Log::info('DOKU Callback: Payment failed', ['order_id' => $invoiceNumber]);
+            } else {
+                Log::info('DOKU Callback: Unhandled status', [
+                    'order_id' => $invoiceNumber,
+                    'status'   => $transStatus,
+                ]);
+            }
+
+            return response()->json(['success' => 'ok']);
+        } catch (\Exception $e) {
+            Log::error('DOKU Callback Exception:', ['msg' => $e->getMessage()]);
+            return response()->json(['error' => 'Internal Server Error'], 500);
+        }
     }
 
     /**

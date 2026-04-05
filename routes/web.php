@@ -99,6 +99,7 @@ Route::group(['middleware' => []], function () {
         ->name('topup.check-id');
     Route::post('/api/duitku/callback', [App\Http\Controllers\TransactionController::class, 'duitkuCallback'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::post('/api/ipaymu/callback', [App\Http\Controllers\TransactionController::class, 'ipaymuCallback'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+    Route::post('/api/doku/callback', [App\Http\Controllers\TransactionController::class, 'dokuCallback'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::post('/api/midtrans/callback', [App\Http\Controllers\TransactionController::class, 'midtransCallback'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::post('/api/tokovoucher/webhook', [App\Http\Controllers\Api\WebhookController::class, 'tokovoucher'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
