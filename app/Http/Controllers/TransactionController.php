@@ -545,10 +545,20 @@ class TransactionController extends Controller
         Log::info('iPaymu Callback Received:', $request->all());
 
         $ipaymuService = new \App\Services\IPaymuService();
-        if (!$ipaymuService->validateCallback($request->all(), $request->input('signature') ?? '')) {
-            Log::error('iPaymu Callback: Invalid Signature', ['payload' => $request->all()]);
+        
+        // Extract signature from header (V2 standard) or input parameter (fallback)
+        $signature = $request->header('signature') ?? $request->input('signature') ?? '';
+        $rawBody = $request->getContent();
+
+        if (!$ipaymuService->validateCallback($request->all(), $signature, $rawBody)) {
+            Log::error('iPaymu Callback: Invalid Signature', [
+                'payload' => $request->all(),
+                'signature_received' => $signature,
+                'has_raw_body' => !empty($rawBody)
+            ]);
             return response()->json(['error' => 'Invalid signature'], 400);
         }
+
 
         $trxId = $request->input('trx_id');
         $referenceId = $request->input('reference_id');

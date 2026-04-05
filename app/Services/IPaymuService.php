@@ -134,25 +134,50 @@ class IPaymuService
     /**
      * Validate Callback Signature
      */
-    public function validateCallback(array $data, string $receivedSignature): bool
+    public function validateCallback(array $data, string $receivedSignature, string $rawBody = ''): bool
     {
         if (empty($receivedSignature)) {
             return false;
         }
 
-        // 1. Remove signature from data
+        // Strategy 1: Official iPaymu V2 (HMAC-SHA256 with Raw Body & API Key)
+        if (!empty($rawBody)) {
+            $sha256_body = hash('sha256', $rawBody);
+            $generatedV2 = hash_hmac('sha256', $sha256_body, $this->apiKey);
+            if (hash_equals($generatedV2, $receivedSignature)) {
+                return true;
+            }
+        }
+
+        // Strategy 2: iPaymu Official (sha256(va + trx_id + status + apiKey))
+        $va = $data['va'] ?? $this->va;
+        $trx_id = $data['trx_id'] ?? '';
+        $status = $data['status'] ?? '';
+        $legacyString = $va . $trx_id . $status . $this->apiKey;
+        $generatedLegacy = hash('sha256', $legacyString);
+        if (hash_equals($generatedLegacy, $receivedSignature)) {
+            return true;
+        }
+
+        // Strategy 3: iPaymu HMAC with API Key and JSON Payload
         $payload = $data;
         unset($payload['signature']);
-
-        // 2. Sort by keys ascending (ksort)
         ksort($payload);
-
-        // 3. Generate JSON string
         $jsonBody = json_encode($payload);
+        $generatedHMAC = hash_hmac('sha256', $jsonBody, $this->apiKey);
+        if (hash_equals($generatedHMAC, $receivedSignature)) {
+            return true;
+        }
 
-        // 4. Generate HMAC-SHA256 using Merchant VA as Secret Key
-        $calculatedSignature = hash_hmac('sha256', $jsonBody, $this->va);
+        Log::warning('iPaymu Signature Mismatch Debug:', [
+            'received' => $receivedSignature,
+            'expected_v2' => !empty($rawBody) ? hash_hmac('sha256', hash('sha256', $rawBody), $this->apiKey) : 'N/A',
+            'expected_legacy' => $generatedLegacy,
+            'raw_body_len' => strlen($rawBody),
+            'va_used' => $va
+        ]);
 
-        return hash_equals($calculatedSignature, $receivedSignature);
+        return false;
     }
+
 }
