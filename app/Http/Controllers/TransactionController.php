@@ -542,13 +542,23 @@ class TransactionController extends Controller
 
     public function ipaymuCallback(Request $request)
     {
-        Log::info('iPaymu Callback Received:', $request->all());
+        Log::info('iPaymu Callback Full Info:', [
+            'headers' => $request->headers->all(),
+            'body' => $request->all(),
+            'raw_content' => $request->getContent()
+        ]);
 
         $ipaymuService = new \App\Services\IPaymuService();
         
-        // Extract signature from header (V2 standard) or input parameter (fallback)
-        $signature = $request->header('signature') ?? $request->input('signature') ?? '';
+        // Try multiple header names for signature
+        $signature = $request->header('signature') 
+                  ?? $request->header('Signature') 
+                  ?? $request->header('X-Ipaymu-Signature') 
+                  ?? $request->input('signature') 
+                  ?? '';
+                  
         $rawBody = $request->getContent();
+
 
         if (!$ipaymuService->validateCallback($request->all(), $signature, $rawBody)) {
             Log::error('iPaymu Callback: Invalid Signature', [

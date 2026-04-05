@@ -136,7 +136,16 @@ class IPaymuService
      */
     public function validateCallback(array $data, string $receivedSignature, string $rawBody = ''): bool
     {
+        Log::debug('iPaymu Validate Trace start:', [
+            'api_key_last_4' => substr($this->apiKey, -4),
+            'va' => $this->va,
+            'received_sig' => $receivedSignature,
+            'body_snippet' => substr($rawBody, 0, 100),
+            'body_len' => strlen($rawBody)
+        ]);
+
         if (empty($receivedSignature)) {
+            Log::warning('iPaymu Validation: No signature received');
             return false;
         }
 
@@ -145,9 +154,11 @@ class IPaymuService
             $sha256_body = hash('sha256', $rawBody);
             $generatedV2 = hash_hmac('sha256', $sha256_body, $this->apiKey);
             if (hash_equals($generatedV2, $receivedSignature)) {
+                Log::info('iPaymu Validation Success: Strategy 1 (V2)');
                 return true;
             }
         }
+
 
         // Strategy 2: iPaymu Official (sha256(va + trx_id + status + apiKey))
         $va = $data['va'] ?? $this->va;
