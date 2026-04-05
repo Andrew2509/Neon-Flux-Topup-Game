@@ -329,15 +329,25 @@ class TransactionController extends Controller
 
     private function processIPaymu($order, $paymentMethod, Request $request)
     {
-        $user = $order->user;
+        /** Samakan dengan Midtrans/DOKU: relasi order + sesi login */
+        $user = $order->user ?? \Illuminate\Support\Facades\Auth::user();
+
+        $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'localhost';
+        $orderTag = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $order->order_id));
+        $guestEmail = 'guest+' . $orderTag . '@' . $appHost;
+
+        $buyerName = $user->name ?? ('Pelanggan ' . $order->order_id);
+        $buyerEmail = $user->email ?? $guestEmail;
+        $buyerPhone = $user->phone ?? ('08' . str_pad((string) (abs(crc32($order->order_id . (string) $order->id)) % 1000000000), 9, '0', STR_PAD_LEFT));
+
         $ipaymuService = new \App\Services\IPaymuService();
         $res = $ipaymuService->createPayment([
             'orderId' => $order->order_id,
             'amount' => $order->total_price,
             'product' => $order->product_name,
-            'name' => $user->name ?? 'Guest',
-            'email' => $user->email ?? 'guest@princepay.com',
-            'phone' => $user->phone ?? '081122334455',
+            'name' => $buyerName,
+            'email' => $buyerEmail,
+            'phone' => $buyerPhone,
             'returnUrl' => route('home'),
             'cancelUrl' => route('home'),
             'notifyUrl' => url('/api/ipaymu/callback'),
@@ -351,6 +361,9 @@ class TransactionController extends Controller
         $status = $res['Status'] ?? $res['status'] ?? null;
         $data = $res['Data'] ?? $res['data'] ?? null;
         $message = $res['Message'] ?? $res['message'] ?? 'Gagal membuat pembayaran iPaymu.';
+        if (stripos((string) $message, 'Suspicious buyer') !== false) {
+            $message = 'Pembayaran ditolak oleh iPaymu (pembeli terdeteksi risiko). Coba tanpa VPN, jaringan lain, atau login dengan data asli. Jika terus terjadi, hubungi iPaymu atau gunakan metode bayar lain.';
+        }
 
         if ($status == 200 && $data) {
             // Detect device for proper view folder
