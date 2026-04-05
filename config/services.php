@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    /*
+    | Orbit WhatsApp API (https://orbitwaapi.site/docs)
+    | POST .../messages/send dengan Authorization: Bearer <API Key>
+    */
+    'orbit_wa' => [
+        'base_url' => rtrim(env('ORBIT_WA_BASE_URL', 'https://orbitwaapi.site/api/v1'), '/'),
+        'api_key' => env('ORBIT_WA_API_KEY'),
+    ],
+
 ];

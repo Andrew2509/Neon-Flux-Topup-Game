@@ -112,24 +112,39 @@ class ProviderController extends Controller
             return back()->with('info', 'Midtrans adalah Payment Gateway. Saldo Anda akan tercatat sebagai settlement yang masuk ke rekening bank Anda sesuai jadwal disbursement Midtrans. Silakan cek detail di Dashboard Midtrans.');
         }
 
-        // Cek Orbit WhatsApp
+        // Cek Orbit WhatsApp (https://orbitwaapi.site/docs — GET /v1/devices)
         elseif (str_contains($name, 'whatsapp') || str_contains($name, 'orbit')) {
             try {
-                $response = Http::withToken($provider->api_key)
-                    ->get("https://orbit-whatsapp-api.vercel.app/api/v1/devices");
+                $base = config('services.orbit_wa.base_url');
+                $response = Http::timeout(15)
+                    ->withToken($provider->api_key)
+                    ->get("{$base}/devices");
 
-                if ($response->successful()) {
-                    $result = $response->json();
-                    if ($result['success'] && !empty($result['data'])) {
-                        $device = $result['data'][0]; // Assume first device
-                        $status = ($device['status'] === 'connected') ? 'Aktif' : 'Error';
-                        $provider->update(['status' => $status]);
-                        
-                        $msg = "Status WhatsApp (" . $device['phone_number'] . "): " . $device['status'];
-                        return back()->with('success', $msg);
-                    }
+                if (!$response->successful()) {
+                    return back()->with('error', 'Gagal memuat status WhatsApp: Cek API Key atau URL Orbit di .env (ORBIT_WA_BASE_URL).');
                 }
-                return back()->with('error', 'Gagal memuat status WhatsApp: Cek API Key Orbit.');
+
+                $body = $response->json();
+                $devices = null;
+                if (is_array($body) && isset($body[0]) && is_array($body[0])) {
+                    $devices = $body;
+                } elseif (is_array($body) && !empty($body['data']) && is_array($body['data'])) {
+                    $devices = $body['data'];
+                }
+
+                if (empty($devices)) {
+                    return back()->with('error', 'Gagal memuat status WhatsApp: respons device kosong atau API Key tidak valid.');
+                }
+
+                $device = $devices[0];
+                $st = strtolower((string) ($device['status'] ?? ''));
+                $status = in_array($st, ['connected', 'aktif', 'online'], true) ? 'Aktif' : 'Error';
+                $provider->update(['status' => $status]);
+
+                $label = $device['phone_number'] ?? $device['name'] ?? ('Device #' . ($device['id'] ?? ''));
+                $msg = 'Status WhatsApp (' . $label . '): ' . ($device['status'] ?? '-');
+
+                return back()->with('success', $msg);
             } catch (\Exception $e) {
                 return back()->with('error', 'Koneksi ke server Orbit gagal.');
             }
