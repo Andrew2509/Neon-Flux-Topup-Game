@@ -858,6 +858,70 @@ class TransactionController extends Controller
         return [null, $slug];
     }
 
+    /**
+     * Deteksi sukses respons Codashop initPayment (bentuk field bisa bervariasi).
+     */
+    private static function codashopCheckSucceeded(?array $result): bool
+    {
+        if (! is_array($result) || $result === []) {
+            return false;
+        }
+
+        if (isset($result['RESULT_CODE']) && (string) $result['RESULT_CODE'] === '10001') {
+            return false;
+        }
+
+        if (trim((string) ($result['errorMsg'] ?? '')) !== '') {
+            return false;
+        }
+
+        if (! empty($result['is_publisher_validate_error'])) {
+            return false;
+        }
+
+        $s = $result['success'] ?? null;
+        if ($s === true || $s === 1 || $s === '1' || $s === 'true') {
+            return true;
+        }
+
+        $c = $result['confirmation'] ?? null;
+        if (($c === true || $c === 1 || $c === '1') && ! empty($result['confirmationFields']) && is_array($result['confirmationFields'])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Ambil nickname dari confirmationFields atau dari result (JSON URL-encoded).
+     */
+    private static function extractCodashopNickname(array $result, array $gameConfig): string
+    {
+        $nicknameKey = $gameConfig['nicknameKey'];
+        $fields = $result['confirmationFields'] ?? [];
+        if (! is_array($fields)) {
+            $fields = [];
+        }
+
+        $nickname = '';
+        if ($nicknameKey === 'roles.0.role') {
+            $nickname = (string) urldecode($fields['roles'][0]['role'] ?? '');
+        } else {
+            $nickname = (string) urldecode($fields[$nicknameKey] ?? '');
+        }
+
+        $nickname = trim(str_replace('+', ' ', $nickname));
+
+        if ($nickname === '' && ! empty($result['result'])) {
+            $payload = json_decode(rawurldecode((string) $result['result']), true);
+            if (is_array($payload) && ! empty($payload['username'])) {
+                $nickname = trim(str_replace('+', ' ', urldecode((string) $payload['username'])));
+            }
+        }
+
+        return $nickname !== '' ? $nickname : 'Nickname ditemukan';
+    }
+
     public function checkPlayerId(Request $request)
     {
         $request->validate([
@@ -903,31 +967,33 @@ class TransactionController extends Controller
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
                 'Origin'       => 'https://www.codashop.com',
                 'Referer'      => 'https://www.codashop.com/',
-            ])->connectTimeout(10)->timeout(15)->post('https://order-sg.codashop.com/initPayment.action', $postdata);
+                'User-Agent'   => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            ])->connectTimeout(12)->timeout(22)->post('https://order-sg.codashop.com/initPayment.action', $postdata);
 
             $result = $response->json();
-            Log::info('CheckID Codashop Response', ['body' => $result]);
+            if (! is_array($result) && is_string($response->body()) && $response->body() !== '') {
+                $decoded = json_decode($response->body(), true);
+                $result = is_array($decoded) ? $decoded : null;
+            }
 
-            if ($result && $result['success'] === true && empty($result['errorMsg'])) {
-                // Extract nickname from confirmationFields
-                $nickname = 'Nickname ditemukan';
-                $nicknameKey = $gameConfig['nicknameKey'];
+            Log::info('CheckID Codashop Response', [
+                'http' => $response->status(),
+                'body' => $result,
+            ]);
 
-                if ($nicknameKey === 'roles.0.role') {
-                    $nickname = urldecode($result['confirmationFields']['roles'][0]['role'] ?? $nickname);
-                } else {
-                    $nickname = urldecode($result['confirmationFields'][$nicknameKey] ?? $nickname);
-                }
+            if ($response->successful() && self::codashopCheckSucceeded($result)) {
+                $nickname = self::extractCodashopNickname($result, $gameConfig);
 
                 return response()->json([
                     'success' => true,
-                    'nickname' => $nickname
+                    'nickname' => $nickname,
                 ]);
             } else {
                 // Check for rate limit
-                if (isset($result['RESULT_CODE']) && $result['RESULT_CODE'] == '10001') {
+                if (is_array($result) && isset($result['RESULT_CODE']) && $result['RESULT_CODE'] == '10001') {
                     return response()->json([
                         'success' => false,
                         'message' => 'Terlalu banyak percobaan. Tunggu 5 detik dan coba lagi.'

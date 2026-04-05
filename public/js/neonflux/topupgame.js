@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const debouncedCheck = debounce(checkPlayerId, 600);
+    const debouncedCheck = debounce(checkPlayerId, 900);
 
     if (userIdInput) {
         userIdInput.addEventListener('input', debouncedCheck);
