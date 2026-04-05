@@ -19,11 +19,20 @@ class DokuService
 
         $this->clientId  = $provider->provider_id ?? '';
         $this->secretKey = $provider->api_key ?? '';
-
-        $mode = $provider->mode ?? 'sandbox';
-        $this->baseUrl = $mode === 'production'
-            ? 'https://api.doku.com'
-            : 'https://api-sandbox.doku.com';
+        
+        $mode = $provider->mode ?? 'production'; // Defaulting to production for live domain neonflux.my.id
+        
+        Log::info('DOKU Config Init:', [
+            'provider_name' => $provider->name ?? 'NULL',
+            'client_id' => $this->clientId,
+            'mode_raw' => $provider->mode ?? 'NULL',
+            'mode_used' => $mode
+        ]);
+        
+        // If they explicitly chose sandbox, use sandbox, otherwise use production.
+        $this->baseUrl = $mode === 'sandbox'
+            ? 'https://api-sandbox.doku.com'
+            : 'https://api.doku.com';
     }
 
     /**
