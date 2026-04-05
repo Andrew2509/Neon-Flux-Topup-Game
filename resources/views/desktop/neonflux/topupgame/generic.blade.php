@@ -1,7 +1,6 @@
 @extends('desktop.layouts.neonflux')
 
 @section('title', 'Top-up ' . $category->name . ' - ' . get_setting('site_name', 'Neon Flux'))
- drum major line refinement.
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/neonflux/topupgame.css') }}" />

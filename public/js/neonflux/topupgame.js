@@ -229,7 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : ''
+                    'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : '',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     user_id: userId,
@@ -240,15 +241,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             nicknameArea.classList.remove('animate-pulse');
-            
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                playerNickname.textContent = errData.message || 'Gagal mengecek ID';
+
+            const rawText = await response.text();
+            let data = null;
+            try {
+                data = rawText ? JSON.parse(rawText) : null;
+            } catch (parseErr) {
+                playerNickname.textContent = 'Server mengembalikan data bukan JSON. Muat ulang halaman atau cek koneksi.';
                 playerNickname.classList.add('text-red-500');
                 return;
             }
-
-            const data = await response.json();
+            
+            if (!response.ok) {
+                playerNickname.textContent = (data && data.message) ? data.message : ('Gagal mengecek ID (HTTP ' + response.status + ')');
+                playerNickname.classList.add('text-red-500');
+                return;
+            }
 
             if (data.success) {
                 playerNickname.textContent = data.nickname;
@@ -259,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Error auto check ID:', error);
-            playerNickname.textContent = 'Masalah koneksi';
+            playerNickname.textContent = 'Masalah koneksi: ' + (error.message || '');
             playerNickname.classList.add('text-red-500');
         }
     }

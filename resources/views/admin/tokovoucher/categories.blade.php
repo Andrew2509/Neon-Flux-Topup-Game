@@ -116,6 +116,26 @@
 
 @push('scripts')
 <script>
+    async function readJsonOrExplain(response) {
+        const text = await response.text();
+        if (!text || !text.trim()) {
+            throw new Error('Respons kosong dari server (HTTP ' + response.status + '). Muat ulang halaman.');
+        }
+        let data = null;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            const snippet = text.trim().slice(0, 120).replace(/\s+/g, ' ');
+            const hint = response.status === 419
+                ? 'Sesi/halaman kadaluarsa (CSRF). Muat ulang halaman lalu coba lagi.'
+                : (response.status === 401 || response.status === 403)
+                    ? 'Akses ditolak. Pastikan Anda masih login sebagai admin.'
+                    : 'Server mengembalikan halaman HTML, bukan JSON (kode ' + response.status + ').';
+            throw new Error(hint + (snippet ? ' Cuplikan: ' + snippet : ''));
+        }
+        return data;
+    }
+
     async function toggleStatus(id, checkbox) {
         const label = document.querySelector(`.status-label-${id}`);
         const originalChecked = checkbox.checked;
@@ -125,11 +145,13 @@
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
-            const result = await response.json();
+            const result = await readJsonOrExplain(response);
             
             if (result.status === 1) {
                 label.textContent = result.new_status;
@@ -161,17 +183,19 @@
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
-            const result = await response.json();
+            const result = await readJsonOrExplain(response);
             
             if (result.status === 1) {
                 alert(result.message);
                 location.reload();
             } else {
-                alert('Gagal: ' + result.error_msg);
+                alert('Gagal: ' + (result.error_msg || result.message || 'Tidak diketahui'));
             }
         } catch (err) {
             alert('Kesalahan jaringan: ' + err.message);
