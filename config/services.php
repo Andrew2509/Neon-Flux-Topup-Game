@@ -54,4 +54,13 @@ return [
         'force_ipv4' => filter_var(env('TOKOVOUCHER_FORCE_IPV4', true), FILTER_VALIDATE_BOOLEAN),
     ],
 
+    /*
+    | Cek ID di halaman top-up: prioritas inquiry TokoVoucher (pascabayar-inq) jika produk dari TV;
+    | game prabayar tidak punya inquiry nama di dokumen TV — gunakan fallback Codashop bila diizinkan.
+    */
+    'check_id' => [
+        'tokovoucher_pascabayar' => filter_var(env('CHECK_ID_TOKOVOUCHER_PASCABAYAR', true), FILTER_VALIDATE_BOOLEAN),
+        'codashop_fallback' => filter_var(env('CHECK_ID_CODASHOP_FALLBACK', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
 ];

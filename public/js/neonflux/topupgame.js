@@ -45,6 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return new URL('/api/check-id', window.location.origin).href;
     }
 
+    function getSelectedProductCode() {
+        let code = '';
+        productRadios.forEach((r) => {
+            if (r.checked) code = String(r.value || '').trim();
+        });
+        return code;
+    }
+
     function applyNicknameToSummary(nick) {
         const n = (nick || '').trim().slice(0, 128);
         const sp = document.getElementById('summary-player-name');
@@ -278,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     productRadios.forEach(r => r.addEventListener('change', () => {
         updateSummary();
         updatePaymentPrices();
+        checkPlayerId();
     }));
     paymentRadios.forEach(r => r.addEventListener('change', updateSummary));
     if (customerWhatsappInput) {
@@ -410,7 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     user_id: userId,
                     zone_id: zoneId,
                     operator_id: operatorId,
-                    game_slug: gameSlug
+                    game_slug: gameSlug,
+                    product_code: getSelectedProductCode()
                 })
             });
 

@@ -922,6 +922,130 @@ class TransactionController extends Controller
         return $nickname !== '' ? $nickname : 'Nickname ditemukan';
     }
 
+    /**
+     * HTTP client untuk TokoVoucher (timeout + opsional IPv4, sama konsepnya dengan ProcessSupplierOrder).
+     */
+    private function tokovoucherCheckHttp(): \Illuminate\Http\Client\PendingRequest
+    {
+        $req = Http::timeout(45)->connectTimeout(15);
+
+        if (config('services.tokovoucher.force_ipv4') && defined('CURL_IPRESOLVE_V4') && defined('CURLOPT_IPRESOLVE')) {
+            $req = $req->withOptions([
+                'curl' => [
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                ],
+            ]);
+        }
+
+        return $req;
+    }
+
+    /**
+     * Provider TokoVoucher untuk API member/transaksi (sama urutan prioritas dengan antrian order).
+     */
+    private function resolveTokovoucherProvider(): ?Provider
+    {
+        $p = Provider::where(function ($q) {
+            $q->where('name', 'like', '%Toko%')
+                ->orWhere('name', 'like', '%tokovoucher%');
+        })->first();
+
+        if (! $p || ! $p->provider_id || ! $p->api_key) {
+            return null;
+        }
+
+        return $p;
+    }
+
+    /**
+     * Inquiry pascabayar TokoVoucher: aman untuk cek nama (tidak mem-debit seperti /v1/transaksi).
+     * Dok: signature md5(REF_ID:MEMBER_CODE:SECRET).
+     *
+     * @return string|null nickname atau null jika tidak relevan / gagal
+     */
+    private function tryTokovoucherPascabayarInquiry(Request $request): ?string
+    {
+        if (! config('services.check_id.tokovoucher_pascabayar')) {
+            return null;
+        }
+
+        $productCode = trim((string) $request->input('product_code', ''));
+        if ($productCode === '') {
+            return null;
+        }
+
+        $service = Service::where('product_code', $productCode)
+            ->where('provider', 'TokoVoucher')
+            ->first();
+
+        if (! $service) {
+            return null;
+        }
+
+        $provider = $this->resolveTokovoucherProvider();
+        if (! $provider) {
+            return null;
+        }
+
+        $refId = 'INQ'.strtoupper(bin2hex(random_bytes(6)));
+        $memberCode = $provider->provider_id;
+        $secret = $provider->api_key;
+        $signature = md5($refId.':'.$memberCode.':'.$secret);
+
+        $payload = [
+            'ref_id' => $refId,
+            'produk' => $productCode,
+            'tujuan' => $request->user_id,
+            'server_id' => (string) ($request->zone_id ?? ''),
+            'member_code' => $memberCode,
+            'signature' => $signature,
+        ];
+
+        $base = config('services.tokovoucher.transaction_base', 'https://api.tokovoucher.net');
+        $url = rtrim((string) $base, '/').'/v1/pascabayar-inq';
+
+        Log::info('CheckID TokoVoucher Pascabayar Request', [
+            'url' => $url,
+            'ref_id' => $refId,
+            'produk' => $productCode,
+            'tujuan' => $request->user_id,
+        ]);
+
+        $response = $this->tokovoucherCheckHttp()
+            ->asJson()
+            ->acceptJson()
+            ->post($url, $payload);
+
+        $result = $response->json();
+        if (! is_array($result)) {
+            Log::info('CheckID TokoVoucher Pascabayar Response (non-json)', [
+                'http' => $response->status(),
+                'body' => Str::limit($response->body(), 800),
+            ]);
+
+            return null;
+        }
+
+        Log::info('CheckID TokoVoucher Pascabayar Response', [
+            'http' => $response->status(),
+            'body' => $result,
+        ]);
+
+        if (isset($result['status']) && is_numeric($result['status']) && (int) $result['status'] === 0) {
+            return null;
+        }
+
+        $status = $result['status'] ?? '';
+        if (strcasecmp((string) $status, 'Sukses') === 0) {
+            $name = trim((string) ($result['customer_name'] ?? ''));
+            if ($name !== '') {
+                return mb_substr($name, 0, 128);
+            }
+        }
+
+        return null;
+    }
+
     public function checkPlayerId(Request $request)
     {
         $request->validate([
@@ -929,21 +1053,37 @@ class TransactionController extends Controller
             'operator_id' => 'nullable|string',
             'zone_id' => 'nullable',
             'game_slug' => 'nullable|string',
+            'product_code' => 'nullable|string|max:64',
         ]);
 
-        [$gameConfig, $resolvedSlug] = self::resolveCodashopGameConfig(
-            $request->game_slug,
-            $request->operator_id
-        );
-
-        if (! $gameConfig) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi ID belum tersedia untuk game ini.',
-            ]);
-        }
-
         try {
+            $tvNickname = $this->tryTokovoucherPascabayarInquiry($request);
+            if ($tvNickname !== null) {
+                return response()->json([
+                    'success' => true,
+                    'nickname' => $tvNickname,
+                ]);
+            }
+
+            if (! config('services.check_id.codashop_fallback')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada nama dari TokoVoucher untuk kombinasi produk ini. Untuk game, aktifkan CHECK_ID_CODASHOP_FALLBACK atau gunakan produk inquiry (pascabayar).',
+                ]);
+            }
+
+            [$gameConfig, $resolvedSlug] = self::resolveCodashopGameConfig(
+                $request->game_slug,
+                $request->operator_id
+            );
+
+            if (! $gameConfig) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi ID belum tersedia untuk game ini.',
+                ]);
+            }
+
             $postdata = [
                 'voucherPricePoint.id'            => $gameConfig['vppId'],
                 'voucherPricePoint.price'         => $gameConfig['vppPrice'],
