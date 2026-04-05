@@ -29,8 +29,16 @@ class ProcessSupplierOrder implements ShouldQueue
         // Jangan ubah status ke processing: pembayaran sudah 'paid' dan ditampilkan sebagai berhasil di lacak pesanan
         $this->order->logStatus('Memulai proses pengiriman ke supplier...', null);
 
-        $tokovoucher = Provider::where('name', 'like', '%Toko%')->orWhere('name', 'like', '%Digiflazz%')->first();
-        
+        // Hanya akun TokoVoucher yang valid untuk api.tokovoucher.net (prioritas "Toko", bukan OR sembarang provider)
+        $tokovoucher = Provider::where(function ($q) {
+            $q->where('name', 'like', '%Toko%')
+                ->orWhere('name', 'like', '%tokovoucher%');
+        })->first();
+
+        if (! $tokovoucher) {
+            $tokovoucher = Provider::where('name', 'like', '%Digiflazz%')->first();
+        }
+
         if (!$tokovoucher || !$tokovoucher->provider_id || !$tokovoucher->api_key) {
             $this->order->logStatus('Gagal: Konfigurasi supplier tidak lengkap.', 'failed_provider');
             return;
@@ -53,10 +61,21 @@ class ProcessSupplierOrder implements ShouldQueue
                 'server_id' => $serverId,
             ]);
 
-            $resultToko = $response->json();
+            $resultToko = $response->json() ?? [];
 
-            if ($response->successful() && isset($resultToko['status']) && $resultToko['status'] == 1) {
-                $this->order->logStatus('Sukses: Order berhasil dikirim ke supplier.', 'success', $resultToko);
+            $tvStatus = $resultToko['status'] ?? null;
+            $tvOk = $tvStatus === 1 || $tvStatus === '1' || $tvStatus === true;
+
+            if ($response->successful() && $tvOk) {
+                $merged = $this->order->payload ?? [];
+                $merged['tokovoucher'] = [
+                    'sn' => $resultToko['sn'] ?? '',
+                    'ref_id' => $resultToko['ref_id'] ?? $this->order->order_id,
+                    'trx_id' => $resultToko['trx_id'] ?? '',
+                    'message' => $resultToko['message'] ?? '',
+                ];
+                $this->order->update(['payload' => $merged]);
+                $this->order->logStatus('Sukses: Order berhasil dikirim ke supplier (TokoVoucher).', 'success', $resultToko);
             } else {
                 $msg = $resultToko['message'] ?? 'Error dari supplier.';
                 $this->order->logStatus("Pending: Supplier mengembalikan error: {$msg}. Akan dicoba lagi sesuai jadwal.", null, $resultToko);

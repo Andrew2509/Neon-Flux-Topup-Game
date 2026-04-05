@@ -42,24 +42,31 @@
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Status Pesanan</p>
                             @php
                                 $status_color = match($order->status) {
-                                    'success', 'paid', 'processing' => 'emerald',
+                                    'success' => 'emerald',
+                                    'paid', 'processing' => 'cyan',
                                     'pending_payment', 'pending' => 'amber',
-                                    'failed', 'failed_provider' => 'red',
+                                    'failed', 'failed_provider', 'failed_permanent' => 'red',
                                     default => 'slate'
                                 };
                                 $status_label = match($order->status) {
-                                    'success' => 'Berhasil',
-                                    'paid', 'processing' => 'Berhasil',
+                                    'success' => 'Produk terkirim',
+                                    'paid', 'processing' => 'Pembayaran OK — proses ke game',
                                     'pending_payment' => 'Menunggu Pembayaran',
                                     'pending' => 'Pending',
                                     'failed' => 'Gagal',
                                     'failed_provider' => 'Gagal (Provider)',
+                                    'failed_permanent' => 'Gagal (hubungi admin)',
                                     default => ucfirst($order->status)
                                 };
                             @endphp
-                            <div class="flex items-center gap-2">
-                                <span class="size-2 rounded-full bg-{{ $status_color }}-500 animate-ping"></span>
-                                <span class="text-xl font-black text-{{ $status_color }}-400 uppercase tracking-tight">{{ $status_label }}</span>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="size-2 rounded-full bg-{{ $status_color }}-500 animate-ping"></span>
+                                    <span class="text-xl font-black text-{{ $status_color }}-400 uppercase tracking-tight">{{ $status_label }}</span>
+                                </div>
+                                @if(in_array($order->status, ['paid', 'processing'], true))
+                                    <p class="text-[11px] text-slate-400 font-medium leading-relaxed max-w-md">Uang sudah masuk; top-up ke akun game dijalankan oleh supplier. Biasanya selesai dalam beberapa menit. <strong class="text-slate-300">Ref ID TokoVoucher</strong> sama dengan nomor transaksi di atas — cek di member TokoVoucher dengan filter Ref ID itu.</p>
+                                @endif
                             </div>
                         </div>
                         <div class="text-right">
@@ -87,7 +94,7 @@
                         </div>
                     </div>
 
-                    @if($order->status === 'success' && isset($order->payload['tokovoucher']['sn']))
+                    @if($order->status === 'success' && !empty($order->payload['tokovoucher']['sn'] ?? ''))
                         <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5 flex flex-col gap-2">
                             <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Serial Number / Pesan</p>
                             <div class="flex items-center justify-between gap-3">
@@ -156,18 +163,20 @@
                             <td class="px-8 py-5 text-center">
                                 @php
                                     $l_status_color = match($lOrder->status) {
-                                        'success', 'paid', 'processing' => 'emerald',
+                                        'success' => 'emerald',
+                                        'paid', 'processing' => 'cyan',
                                         'pending_payment', 'pending' => 'amber',
-                                        'failed', 'failed_provider' => 'red',
+                                        'failed', 'failed_provider', 'failed_permanent' => 'red',
                                         default => 'slate'
                                     };
                                     $l_status_label = match($lOrder->status) {
-                                        'success' => 'Berhasil',
-                                        'paid', 'processing' => 'Berhasil',
+                                        'success' => 'Terkirim',
+                                        'paid', 'processing' => 'Proses game',
                                         'pending_payment' => 'Menunggu',
                                         'pending' => 'Pending',
                                         'failed' => 'Gagal',
                                         'failed_provider' => 'Gagal',
+                                        'failed_permanent' => 'Gagal',
                                         default => ucfirst($lOrder->status)
                                     };
                                 @endphp

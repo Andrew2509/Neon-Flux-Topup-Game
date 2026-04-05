@@ -36,18 +36,20 @@
                             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Status Sekarang</p>
                             @php
                                 $status_color = match($order->status) {
-                                    'success', 'paid', 'processing' => 'emerald',
+                                    'success' => 'emerald',
+                                    'paid', 'processing' => 'cyan',
                                     'pending_payment', 'pending' => 'amber',
-                                    'failed', 'failed_provider' => 'red',
+                                    'failed', 'failed_provider', 'failed_permanent' => 'red',
                                     default => 'slate'
                                 };
                                 $status_label = match($order->status) {
-                                    'success' => 'Berhasil',
-                                    'paid', 'processing' => 'Berhasil',
+                                    'success' => 'Produk terkirim',
+                                    'paid', 'processing' => 'Bayar OK — proses game',
                                     'pending_payment' => 'Menunggu Bayar',
                                     'pending' => 'Pending',
                                     'failed' => 'Gagal',
                                     'failed_provider' => 'Gagal (Provider)',
+                                    'failed_permanent' => 'Gagal (hubungi admin)',
                                     default => ucfirst($order->status)
                                 };
                             @endphp
@@ -129,18 +131,20 @@
                             <td class="px-8 py-4 text-center">
                                 @php
                                     $l_status_color = match($lOrder->status) {
-                                        'success', 'paid', 'processing' => 'emerald',
+                                        'success' => 'emerald',
+                                        'paid', 'processing' => 'cyan',
                                         'pending_payment', 'pending' => 'amber',
-                                        'failed', 'failed_provider' => 'red',
+                                        'failed', 'failed_provider', 'failed_permanent' => 'red',
                                         default => 'slate'
                                     };
                                     $l_status_label = match($lOrder->status) {
-                                        'success' => 'Berhasil',
-                                        'paid', 'processing' => 'Berhasil',
+                                        'success' => 'Terkirim',
+                                        'paid', 'processing' => 'Proses',
                                         'pending_payment' => 'Menunggu',
                                         'pending' => 'Pending',
                                         'failed' => 'Gagal',
                                         'failed_provider' => 'Gagal',
+                                        'failed_permanent' => 'Gagal',
                                         default => ucfirst($lOrder->status)
                                     };
                                 @endphp

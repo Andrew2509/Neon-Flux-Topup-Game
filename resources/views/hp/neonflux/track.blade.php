@@ -40,18 +40,20 @@
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status Pesanan</p>
                         @php
                             $status_color = match($order->status) {
-                                'success', 'paid', 'processing' => 'emerald',
+                                'success' => 'emerald',
+                                'paid', 'processing' => 'cyan',
                                 'pending_payment', 'pending' => 'amber',
-                                'failed', 'failed_provider' => 'red',
+                                'failed', 'failed_provider', 'failed_permanent' => 'red',
                                 default => 'slate'
                             };
                             $status_label = match($order->status) {
-                                'success' => 'Berhasil',
-                                'paid', 'processing' => 'Berhasil',
+                                'success' => 'Produk terkirim',
+                                'paid', 'processing' => 'Bayar OK — proses game',
                                 'pending_payment' => 'Menunggu Bayar',
                                 'pending' => 'Tertunda',
                                 'failed' => 'Gagal',
                                 'failed_provider' => 'Gagal (Provider)',
+                                'failed_permanent' => 'Gagal (hubungi admin)',
                                 default => ucfirst($order->status)
                             };
                         @endphp
@@ -59,6 +61,9 @@
                             <span class="size-1.5 rounded-full bg-{{ $status_color }}-500 animate-pulse"></span>
                             {{ $status_label }}
                         </span>
+                        @if(in_array($order->status, ['paid', 'processing'], true))
+                            <p class="text-[10px] text-slate-500 font-medium leading-snug mt-1">Ref TokoVoucher = {{ $order->order_id }}. Cek list transaksi setelah beberapa menit.</p>
+                        @endif
                     </div>
                     <div class="text-right space-y-1">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID Pesanan</p>
@@ -86,7 +91,7 @@
                     </div>
                 </div>
 
-                @if($order->status === 'success' && isset($order->payload['tokovoucher']['sn']))
+                @if($order->status === 'success' && !empty($order->payload['tokovoucher']['sn'] ?? ''))
                     <div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 space-y-2">
                         <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Serial Number / Pesan</p>
                         <div class="flex items-center justify-between gap-2">
@@ -132,18 +137,20 @@
                         <p class="text-[11px] font-black text-primary">Rp {{ number_format($lOrder->total_price, 0, ',', '.') }}</p>
                         @php
                             $l_status_color = match($lOrder->status) {
-                                'success', 'paid', 'processing' => 'emerald',
+                                'success' => 'emerald',
+                                'paid', 'processing' => 'cyan',
                                 'pending_payment', 'pending' => 'amber',
-                                'failed', 'failed_provider' => 'red',
+                                'failed', 'failed_provider', 'failed_permanent' => 'red',
                                 default => 'slate'
                             };
                             $l_status_label = match($lOrder->status) {
-                                'success' => 'Berhasil',
-                                'paid', 'processing' => 'Berhasil',
+                                'success' => 'Terkirim',
+                                'paid', 'processing' => 'Proses',
                                 'pending_payment' => 'Menunggu',
                                 'pending' => 'Pending',
                                 'failed' => 'Gagal',
                                 'failed_provider' => 'Gagal',
+                                'failed_permanent' => 'Gagal',
                                 default => ucfirst($lOrder->status)
                             };
                         @endphp
