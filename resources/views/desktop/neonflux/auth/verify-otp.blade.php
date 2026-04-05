@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
-    {{-- Custom CSS via Vite --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Hanya CSS: halaman ini tidak butuh bundle JS top-up (mengurangi konflik ekstensi browser di konsol) --}}
+    @vite(['resources/css/app.css'])
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -71,25 +71,18 @@
             @endif
 
             <div class="mt-8 pt-6 border-t border-zinc-800/50 flex flex-col items-center gap-4">
-                <p class="text-zinc-500 text-sm font-medium">Belum menerima kode?</p>
+                <p class="text-zinc-500 text-sm font-medium text-center">Belum menerima kode? Gunakan tombol di bawah untuk mengirim ulang.</p>
                 <form action="{{ route('resend.otp') }}" method="POST">
                     @csrf
                     <input type="hidden" name="phone" value="{{ $phone }}">
                     <input type="hidden" name="type" value="{{ $type }}">
                     <button type="submit" class="text-primary font-bold hover:underline decoration-2 underline-offset-4">
-                        Kirim Ulang Kode
+                        Kirim ulang kode
                     </button>
                 </form>
-            </div>
-
-            <!-- Resend Link (Optional/Stub) -->
-            <div class="mt-8 flex flex-col items-center gap-4">
-                <p class="text-zinc-500 text-sm font-medium">
-                    Tidak menerima kode? <a class="text-primary font-bold hover:underline decoration-2 underline-offset-4 ml-1" href="#">Kirim ulang</a>
-                </p>
-                <a class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors font-bold text-sm" href="{{ url('login') }}">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                    Kembali ke Login
+                <a class="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors font-bold text-sm" href="{{ url('login-ui') }}">
+                    <span class="material-symbols-outlined text-base">arrow_back</span>
+                    Kembali ke login
                 </a>
             </div>
         </div>
