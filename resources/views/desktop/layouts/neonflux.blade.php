@@ -14,8 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
 
-    {{-- Custom CSS via Vite --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Custom CSS via Vite (aman bila manifest belum ada — lihat partial) --}}
+    @include('partials.vite-safe')
 
 
     <style>
