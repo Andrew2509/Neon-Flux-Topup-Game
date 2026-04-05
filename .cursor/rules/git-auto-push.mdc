@@ -1,0 +1,16 @@
+---
+description: Setelah perbaikan kode selesai, langsung commit dan push ke origin (tanpa menunggu perintah push terpisah).
+globs: "**/*"
+alwaysApply: true
+---
+
+# Git: push otomatis
+
+Setelah **selesai** mengerjakan perbaikan atau fitur (diff sudah final):
+
+1. `git status` — pastikan hanya file yang relevan.
+2. `git add` file yang diubah.
+3. `git commit -m "..."` dengan pesan ringkas bermakna (bahasa Inggris atau Indonesia konsisten dengan commit terakhir di repo).
+4. `git push origin main` (atau branch yang sedang dipakai).
+
+Lakukan ini **tanpa menunggu** user mengetik "push", kecuali user secara eksplisit meminta **jangan** push atau membatalkan.
