@@ -118,6 +118,7 @@ Route::group(['middleware' => []], function () {
     // Admin Routes
     Route::get('/admin-dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders');
+    Route::post('/admin/orders/{order}/fulfill-tokovoucher', [App\Http\Controllers\Admin\OrderController::class, 'fulfillTokovoucher'])->name('admin.orders.fulfill_tokovoucher');
     Route::delete('/admin/orders/mass-destroy', [App\Http\Controllers\Admin\OrderController::class, 'massDestroy'])->name('admin.orders.mass_destroy');
     Route::delete('/admin/orders/destroy-all', [App\Http\Controllers\Admin\OrderController::class, 'destroyAll'])->name('admin.orders.destroy_all');
     Route::get('/admin/members', [App\Http\Controllers\Admin\MemberController::class, 'index'])->name('admin.members');

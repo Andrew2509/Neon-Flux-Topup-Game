@@ -6,6 +6,10 @@
 
 @section('content')
 <div class="space-y-6">
+    <p class="text-xs text-slate-500 max-w-3xl leading-relaxed">
+        Pesanan <strong class="text-slate-400">success</strong> biasanya sudah otomatis memanggil TokoVoucher lewat antrian.
+        Tombol <strong class="text-emerald-400/90">Kirim ke game</strong> hanya tampil jika status <strong class="text-cyan-400/90">paid</strong> (pembayaran sudah masuk, belum terkirim ke supplier).
+    </p>
     <!-- Filters & Actions -->
     <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-white/5">
         <form action="{{ route('admin.orders') }}" method="GET" class="flex items-center gap-3 w-full md:w-auto">
@@ -16,10 +20,15 @@
             
             <div class="relative min-w-[140px]">
                 <select name="status" onchange="this.form.submit()" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary transition-all w-full outline-none appearance-none cursor-pointer">
-                    <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>Semua Status</option>
+                    <option value="all" {{ request('status') == 'all' || !request()->has('status') ? 'selected' : '' }}>Semua Status</option>
+                    <option value="pending_payment" {{ request('status') == 'pending_payment' ? 'selected' : '' }}>Menunggu bayar</option>
+                    <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid (siap kirim game)</option>
+                    <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="success" {{ request('status') == 'success' ? 'selected' : '' }}>Success</option>
                     <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                    <option value="failed_provider" {{ request('status') == 'failed_provider' ? 'selected' : '' }}>Failed provider</option>
+                    <option value="failed_permanent" {{ request('status') == 'failed_permanent' ? 'selected' : '' }}>Failed permanen</option>
                 </select>
                 <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg pointer-events-none">expand_more</span>
             </div>
@@ -86,24 +95,33 @@
                             <td class="px-6 py-4 text-center">
                                 @php
                                     $status_color = match($order->status) {
-                                        'success' => 'blue',
-                                        'pending' => 'amber',
-                                        'failed' => 'red',
+                                        'success' => 'emerald',
+                                        'paid', 'processing' => 'cyan',
+                                        'pending_payment', 'pending' => 'amber',
+                                        'failed', 'failed_provider', 'failed_permanent' => 'red',
                                         default => 'slate'
                                     };
                                 @endphp
                                 <span class="px-3 py-1 bg-{{ $status_color }}-500/10 text-{{ $status_color }}-400 text-[10px] font-bold rounded-full border border-{{ $status_color }}-500/20">
-                                    {{ ucfirst($order->status) }}
+                                    {{ str_replace('_', ' ', $order->status) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <button type="button" class="size-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all">
+                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                    @if($order->status === 'paid')
+                                    <button type="button"
+                                        onclick="fulfillTokovoucher({{ $order->id }}, @js($order->order_id))"
+                                        class="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wide hover:bg-emerald-500/30 transition-all inline-flex items-center gap-1"
+                                        title="Panggil API TokoVoucher (sama seperti antrian otomatis)">
+                                        <span class="material-symbols-outlined text-sm">send</span>
+                                        Kirim ke game
+                                    </button>
+                                    @endif
+                                    <a href="{{ route('track.order', ['order_id' => $order->order_id]) }}" target="_blank" rel="noopener"
+                                        class="size-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all"
+                                        title="Lacak di situs">
                                         <span class="material-symbols-outlined text-lg">visibility</span>
-                                    </button>
-                                    <button type="button" class="size-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-secondary hover:border-secondary transition-all">
-                                        <span class="material-symbols-outlined text-lg">edit</span>
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -198,6 +216,58 @@
                 document.getElementById('massDeleteForm').submit();
             }
         });
+    }
+
+    async function fulfillTokovoucher(orderPk, orderId) {
+        const ask = await Swal.fire({
+            title: 'Kirim ke TokoVoucher?',
+            html: 'Pesanan <strong>' + orderId + '</strong> akan diproses ke ID game (API transaksi).',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#334155',
+            confirmButtonText: 'Ya, kirim',
+            cancelButtonText: 'Batal',
+            background: '#0f172a',
+            color: '#fff'
+        });
+        if (!ask.isConfirmed) return;
+
+        try {
+            const res = await fetch('{{ url('/admin/orders') }}/' + orderPk + '/fulfill-tokovoucher', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const raw = await res.text();
+            let data = {};
+            try { data = raw ? JSON.parse(raw) : {}; } catch (e) {
+                throw new Error('Respons server bukan JSON (kode ' + res.status + ').');
+            }
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || ('HTTP ' + res.status));
+            }
+            await Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: data.message,
+                background: '#0f172a',
+                color: '#fff'
+            });
+            location.reload();
+        } catch (e) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: e.message || 'Terjadi kesalahan',
+                background: '#0f172a',
+                color: '#fff'
+            });
+        }
     }
 
     function confirmDeleteAll() {

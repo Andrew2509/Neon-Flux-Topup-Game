@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessSupplierOrder;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -33,6 +34,51 @@ class OrderController extends Controller
         $orders = $query->paginate(10)->withQueryString();
         
         return view('admin.orders', compact('orders'));
+    }
+
+    /**
+     * Pemanggilan manual API TokoVoucher (/v1/transaksi) untuk pesanan yang sudah paid
+     * (biasanya sudah otomatis lewat antrian; tombol ini untuk jalan ulang / jika antrian sempat gagal).
+     */
+    public function fulfillTokovoucher(Request $request, Order $order)
+    {
+        if ($order->status !== 'paid') {
+            $msg = 'Tombol kirim hanya untuk pesanan berstatus paid. Status saat ini: '.$order->status.'.';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
+        try {
+            ProcessSupplierOrder::dispatchSync($order);
+            $order->refresh();
+
+            if ($order->status === 'success') {
+                $message = 'Berhasil: TokoVoucher memproses pesanan '.$order->order_id.'.';
+            } else {
+                $message = 'Proses selesai tetapi status pesanan masih '.$order->status.'. Cek log pesanan atau coba lagi.';
+            }
+
+            return $request->expectsJson()
+                ? response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'order_status' => $order->status,
+                ])
+                : back()->with('success', $message);
+        } catch (\Throwable $e) {
+            $order->refresh();
+            $message = 'Gagal memanggil TokoVoucher: '.$e->getMessage();
+
+            return $request->expectsJson()
+                ? response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'order_status' => $order->status,
+                ], 500)
+                : back()->with('error', $message);
+        }
     }
 
     public function massDestroy(Request $request)
