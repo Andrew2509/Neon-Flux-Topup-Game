@@ -926,6 +926,41 @@ class TransactionController extends Controller
         return $nickname !== '' ? $nickname : 'Nickname ditemukan';
     }
 
+    private static function codashopResultIsRateLimited(?array $result): bool
+    {
+        if (! is_array($result)) {
+            return false;
+        }
+        $c = $result['RESULT_CODE'] ?? null;
+
+        return $c === 10001 || $c === '10001';
+    }
+
+    /**
+     * @return array{response: \Illuminate\Http\Client\Response, result: array|null}
+     */
+    private function requestCodashopInitPayment(array $postdata): array
+    {
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept'       => 'application/json',
+            'Origin'       => 'https://www.codashop.com',
+            'Referer'      => 'https://www.codashop.com/',
+            'User-Agent'   => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        ])->connectTimeout(12)->timeout(22)->post('https://order-sg.codashop.com/initPayment.action', $postdata);
+
+        $result = $response->json();
+        if (! is_array($result) && is_string($response->body()) && $response->body() !== '') {
+            $decoded = json_decode($response->body(), true);
+            $result = is_array($decoded) ? $decoded : null;
+        }
+
+        return [
+            'response' => $response,
+            'result' => is_array($result) ? $result : null,
+        ];
+    }
+
     /**
      * HTTP client untuk TokoVoucher (timeout + opsional IPv4, sama konsepnya dengan ProcessSupplierOrder).
      */
@@ -1109,19 +1144,9 @@ class TransactionController extends Controller
                 'zone_id' => $request->zone_id ?? '',
             ]);
 
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept'       => 'application/json',
-                'Origin'       => 'https://www.codashop.com',
-                'Referer'      => 'https://www.codashop.com/',
-                'User-Agent'   => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            ])->connectTimeout(12)->timeout(22)->post('https://order-sg.codashop.com/initPayment.action', $postdata);
-
-            $result = $response->json();
-            if (! is_array($result) && is_string($response->body()) && $response->body() !== '') {
-                $decoded = json_decode($response->body(), true);
-                $result = is_array($decoded) ? $decoded : null;
-            }
+            $first = $this->requestCodashopInitPayment($postdata);
+            $response = $first['response'];
+            $result = $first['result'];
 
             Log::info('CheckID Codashop Response', [
                 'http' => $response->status(),
@@ -1135,20 +1160,39 @@ class TransactionController extends Controller
                     'success' => true,
                     'nickname' => $nickname,
                 ]);
-            } else {
-                // Check for rate limit
-                if (is_array($result) && isset($result['RESULT_CODE']) && $result['RESULT_CODE'] == '10001') {
+            }
+
+            if (self::codashopResultIsRateLimited($result)) {
+                usleep(2300000);
+                $second = $this->requestCodashopInitPayment($postdata);
+                $response = $second['response'];
+                $result = $second['result'];
+
+                Log::info('CheckID Codashop Response (retry)', [
+                    'http' => $response->status(),
+                    'body' => $result,
+                ]);
+
+                if ($response->successful() && self::codashopCheckSucceeded($result)) {
+                    $nickname = self::extractCodashopNickname($result, $gameConfig);
+
                     return response()->json([
-                        'success' => false,
-                        'message' => 'Terlalu banyak percobaan. Tunggu 5 detik dan coba lagi.'
+                        'success' => true,
+                        'nickname' => $nickname,
                     ]);
                 }
 
+                /** Rate limit Codashop: tanpa pesan keras di UI; klien bisa coba lagi setelah jeda. */
                 return response()->json([
                     'success' => false,
-                    'message' => 'ID tidak ditemukan. Pastikan User ID dan Zone ID sudah benar.'
+                    'rate_limited' => true,
                 ]);
             }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'ID tidak ditemukan. Pastikan User ID dan Zone ID sudah benar.',
+            ]);
         } catch (\Exception $e) {
             Log::error('CheckID Exception', ['msg' => $e->getMessage()]);
             return response()->json([

@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function isPlaceholderNicknameText(t) {
         if (!t) return true;
         if (t === 'Mengecek...') return true;
+        if (t === '—' || t === '-' || t === '–') return true;
         if (t.startsWith('Mencari')) return true;
         if (t.startsWith('Isi Zone ID')) return true;
         if (t.startsWith('Lengkapi Zone')) return true;
@@ -331,11 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    productRadios.forEach(r => r.addEventListener('change', () => {
-        updateSummary();
-        updatePaymentPrices();
-        checkPlayerId();
-    }));
     paymentRadios.forEach(r => r.addEventListener('change', updateSummary));
     if (customerWhatsappInput) {
         customerWhatsappInput.addEventListener('input', () => {
@@ -380,6 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let checkIdGeneration = 0;
     let checkIdAbort = null;
+    /** Reset saat User/Zone berubah; membatasi auto-retry saat Codashop rate limit. */
+    let checkIdRateLimitKey = '';
+    let checkIdRateLimitRetries = 0;
 
     async function checkPlayerId() {
         const userId = userIdInput ? userIdInput.value.trim() : '';
@@ -390,6 +389,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (userId.length < 3) {
             checkIdGeneration += 1;
+            checkIdRateLimitKey = '';
+            checkIdRateLimitRetries = 0;
             playerLookupInFlight = false;
             clearPlayerNickCache();
             if (checkIdAbort) {
@@ -409,6 +410,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (zoneIdInput && zoneId.length < 1) {
             checkIdGeneration += 1;
+            checkIdRateLimitKey = '';
+            checkIdRateLimitRetries = 0;
             playerLookupInFlight = false;
             clearPlayerNickCache();
             if (checkIdAbort) {
@@ -432,6 +435,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         checkIdGeneration += 1;
         const myGen = checkIdGeneration;
+        const rateKey = userId + '\0' + zoneId + '\0' + (getSelectedProductCode() || '');
+        if (rateKey !== checkIdRateLimitKey) {
+            checkIdRateLimitKey = rateKey;
+            checkIdRateLimitRetries = 0;
+        }
         if (checkIdAbort) {
             checkIdAbort.abort();
         }
@@ -514,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data && (data.success === true || data.success === 1 || data.success === '1')) {
                 if (myGen !== checkIdGeneration) return;
+                checkIdRateLimitRetries = 0;
                 const n = data.nickname != null ? String(data.nickname).trim().slice(0, 128) : '';
                 if (hasNickUi) {
                     playerNickname.textContent = n || '—';
@@ -527,6 +536,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     applyNicknameToSummary(n);
                 } else {
                     clearPlayerNickCache();
+                }
+            } else if (data && data.rate_limited) {
+                if (myGen !== checkIdGeneration) return;
+                clearPlayerNickCache();
+                if (hasNickUi) {
+                    playerNickname.textContent = '—';
+                    playerNickname.classList.remove('text-red-500');
+                }
+                if (playerNicknameInput) {
+                    playerNicknameInput.value = '';
+                }
+                applyNicknameToSummary('');
+                if (checkIdRateLimitRetries < 2) {
+                    checkIdRateLimitRetries += 1;
+                    setTimeout(() => debouncedCheck(), 5600);
                 }
             } else {
                 if (myGen !== checkIdGeneration) return;
@@ -566,24 +590,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const debouncedCheck = debounce(checkPlayerId, 700);
+    const debouncedCheckProduct = debounce(checkPlayerId, 400);
+
+    productRadios.forEach(r => r.addEventListener('change', () => {
+        updateSummary();
+        updatePaymentPrices();
+        debouncedCheckProduct();
+    }));
 
     if (userIdInput) {
         userIdInput.addEventListener('input', debouncedCheck);
-        userIdInput.addEventListener('change', () => checkPlayerId());
+        userIdInput.addEventListener('change', debouncedCheck);
         userIdInput.addEventListener('blur', debouncedCheck);
     }
     if (zoneIdInput) {
         zoneIdInput.addEventListener('input', debouncedCheck);
-        zoneIdInput.addEventListener('change', () => checkPlayerId());
+        zoneIdInput.addEventListener('change', debouncedCheck);
         zoneIdInput.addEventListener('blur', debouncedCheck);
     }
 
     requestAnimationFrame(() => {
-        checkPlayerId();
-    });
-
-    window.addEventListener('load', () => {
-        setTimeout(checkPlayerId, 400);
+        debouncedCheck();
     });
 
     // --- Form Submission Handling ---
