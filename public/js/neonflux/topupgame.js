@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryNominal = document.getElementById('summary-nominal');
     const summaryPayment = document.getElementById('summary-payment');
     const summaryUserId = document.getElementById('summary-userid');
-    const summaryPlayerName = document.getElementById('summary-player-name');
     const summaryWhatsapp = document.getElementById('summary-whatsapp');
     const summaryTotal = document.getElementById('summary-total');
     const playerNicknameInput = document.getElementById('player_nickname_input');
@@ -138,35 +137,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function readVerifiedNicknameFromForm() {
+        const nickEl = document.getElementById('player-nickname');
+        if (nickEl && !nickEl.classList.contains('text-red-500')) {
+            const t = nickEl.textContent.trim();
+            if (t && !isPlaceholderNicknameText(t)) {
+                return t.slice(0, 128);
+            }
+        }
+        if (playerNicknameInput && playerNicknameInput.value.trim()) {
+            return playerNicknameInput.value.trim().slice(0, 128);
+        }
+        return '';
+    }
+
     function reflowSummaryPlayerName() {
-        if (!summaryPlayerName) {
+        const sp = document.getElementById('summary-player-name');
+        if (!sp) {
             return;
         }
         if (playerLookupInFlight) {
             return;
         }
-        let nick = playerNicknameInput && playerNicknameInput.value.trim()
-            ? playerNicknameInput.value.trim()
-            : '';
-        if (!nick) {
-            const nickEl = document.getElementById('player-nickname');
-            if (nickEl && !nickEl.classList.contains('text-red-500')) {
-                const t = nickEl.textContent.trim();
-                if (t && !isPlaceholderNicknameText(t)) {
-                    nick = t;
-                    if (playerNicknameInput) {
-                        playerNicknameInput.value = t.slice(0, 128);
-                    }
-                }
-            }
+        let nick = readVerifiedNicknameFromForm();
+        if (nick && playerNicknameInput && !playerNicknameInput.value.trim()) {
+            playerNicknameInput.value = nick;
         }
-        if (summaryPlayerName.getAttribute('data-sticky-summary') === '1') {
-            summaryPlayerName.textContent = nick ? ('Nama: ' + nick) : '';
-            summaryPlayerName.classList.toggle('hidden', !nick);
+        if (sp.getAttribute('data-sticky-summary') === '1') {
+            sp.textContent = nick ? ('Nama: ' + nick) : '';
+            sp.classList.toggle('hidden', !nick);
         } else {
-            summaryPlayerName.textContent = nick || '—';
+            sp.textContent = nick || '—';
         }
-        summaryPlayerName.classList.remove('animate-pulse', 'opacity-80');
+        sp.classList.remove('animate-pulse', 'opacity-80');
     }
 
     function paintSummaryPlayerLoading() {
@@ -470,6 +473,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (playerNicknameInput && n) {
                     playerNicknameInput.value = n;
                 }
+                if (n) {
+                    applyNicknameToSummary(n);
+                }
             } else {
                 if (myGen !== checkIdGeneration) return;
                 if (hasNickUi) {
@@ -496,6 +502,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (myGen === checkIdGeneration) {
                 playerLookupInFlight = false;
+                const synced = readVerifiedNicknameFromForm();
+                if (synced && playerNicknameInput && !playerNicknameInput.value.trim()) {
+                    playerNicknameInput.value = synced;
+                }
                 updateSummary();
             }
         }
