@@ -51,6 +51,10 @@ return [
     */
     'tokovoucher' => [
         'transaction_base' => rtrim(env('TOKOVOUCHER_TRANSACTION_BASE', 'https://api.tokovoucher.net'), '/'),
+        /** Host cadangan bila utama 502/503/504 (mis. http://trx-ip.tokovoucher.net sesuai panduan TV). */
+        'transaction_fallback' => ($tvFb = trim((string) env('TOKOVOUCHER_TRANSACTION_FALLBACK', ''))) !== ''
+            ? rtrim($tvFb, '/')
+            : null,
         'force_ipv4' => filter_var(env('TOKOVOUCHER_FORCE_IPV4', true), FILTER_VALIDATE_BOOLEAN),
     ],
 

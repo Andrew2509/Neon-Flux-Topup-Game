@@ -51,24 +51,42 @@ class ProcessSupplierOrder implements ShouldQueue
         $productCode = $payloadData['product_code'] ?? '';
         $serverId = $payloadData['server_id'] ?? '';
 
-        $base = config('services.tokovoucher.transaction_base', 'https://api.tokovoucher.net');
-        $url = rtrim((string) $base, '/').'/v1/transaksi';
+        $bases = array_values(array_unique(array_filter([
+            config('services.tokovoucher.transaction_base', 'https://api.tokovoucher.net'),
+            config('services.tokovoucher.transaction_fallback'),
+        ])));
 
         try {
-            $response = $this->tokovoucherHttp()->get($url, [
-                'ref_id' => $this->order->order_id,
-                'produk' => $productCode,
-                'tujuan' => $tujuan,
-                'secret' => $tokovoucher->api_key,
-                'member_code' => $tokovoucher->provider_id,
-                'server_id' => $serverId,
-            ]);
+            $response = null;
+            foreach ($bases as $idx => $base) {
+                $url = rtrim((string) $base, '/').'/v1/transaksi';
+                $response = $this->tokovoucherHttp()->get($url, [
+                    'ref_id' => $this->order->order_id,
+                    'produk' => $productCode,
+                    'tujuan' => $tujuan,
+                    'secret' => $tokovoucher->api_key,
+                    'member_code' => $tokovoucher->provider_id,
+                    'server_id' => $serverId,
+                ]);
+
+                $code = $response->status();
+                $retryable = in_array($code, [502, 503, 504], true);
+                if (! $retryable || $idx === count($bases) - 1) {
+                    break;
+                }
+
+                Log::warning('TokoVoucher: HTTP '.$code.' pada host, mencoba host berikutnya', [
+                    'host' => $base,
+                    'order_id' => $this->order->order_id,
+                ]);
+            }
 
             $decoded = $response->json();
             $resultToko = is_array($decoded) ? $decoded : [];
 
             $tvStatus = $resultToko['status'] ?? null;
-            $tvOk = $tvStatus === 1 || $tvStatus === '1' || $tvStatus === true;
+            $tvOk = $tvStatus === 1 || $tvStatus === '1' || $tvStatus === true
+                || (is_string($tvStatus) && strcasecmp((string) $tvStatus, 'sukses') === 0);
 
             if ($response->successful() && $tvOk) {
                 $merged = $this->order->payload ?? [];
@@ -134,7 +152,11 @@ class ProcessSupplierOrder implements ShouldQueue
         $parts = [];
 
         if (! $response->successful()) {
-            $parts[] = 'HTTP '.$response->status();
+            $code = $response->status();
+            $parts[] = 'HTTP '.$code;
+            if (in_array($code, [502, 503, 504], true)) {
+                $parts[] = 'Server TokoVoucher sibuk atau maintenance (coba lagi nanti; job antrian akan retry jika ada).';
+            }
         }
 
         $textKeys = ['message', 'msg', 'error_msg', 'error', 'pesan', 'keterangan', 'errorMessage'];

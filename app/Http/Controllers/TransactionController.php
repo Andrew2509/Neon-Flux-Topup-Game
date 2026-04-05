@@ -31,10 +31,12 @@ class TransactionController extends Controller
             ])->withInput();
         }
 
-        $tujuan = $request->user_id;
-        if ($request->filled('zone_id')) {
-            $tujuan .= $request->zone_id;
-        }
+        $gameUserId = trim((string) $request->user_id);
+        $zoneId = $request->filled('zone_id') ? trim((string) $request->zone_id) : '';
+
+        // TokoVoucher (dan umumnya supplier game): `tujuan` = User ID saja; Zone di `server_id`.
+        // Menggabung tanpa pemisah (mis. 583756599 + 8336) membuat ID invalid untuk API.
+        $tujuan = $gameUserId;
 
         $playerNickname = trim((string) $request->input('player_nickname', ''));
         if (mb_strlen($playerNickname) > 128) {
@@ -75,7 +77,9 @@ class TransactionController extends Controller
         }
 
         $paymentAmount = (int) ($service->price + $paymentFee);
-        $productDetails = $service->name . " ($tujuan)";
+        $productDetails = $zoneId !== ''
+            ? $service->name.' ('.$gameUserId.' / '.$zoneId.')'
+            : $service->name.' ('.$gameUserId.')';
 
         $userId = \Illuminate\Support\Facades\Auth::id();
 
@@ -89,8 +93,8 @@ class TransactionController extends Controller
             'status' => 'pending_payment',
             'payload' => [
                 'tujuan' => $tujuan,
-                'game_user_id' => (string) $request->user_id,
-                'server_id' => $request->zone_id ?? '',
+                'game_user_id' => $gameUserId,
+                'server_id' => $zoneId,
                 'product_code' => $service->product_code,
                 'cost' => $service->cost ?? $service->price,
                 'customer_whatsapp' => $waDigits,
