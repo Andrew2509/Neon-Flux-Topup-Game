@@ -183,6 +183,56 @@ class PaymentController extends Controller
         return back()->with('success', "Berhasil menambahkan $count metode pembayaran standar Midtrans.");
     }
 
+    public function syncDoku()
+    {
+        $provider = Provider::where('name', 'LIKE', '%DOKU%')->first();
+
+        if (!$provider) {
+            return back()->with('error', 'Provider DOKU tidak ditemukan. Silakan tambahkan provider DOKU terlebih dahulu di Manajemen Provider.');
+        }
+
+        $channels = [
+            // QRIS
+            ['code' => 'DOKU_QRIS', 'name' => 'DOKU QRIS (Semua E-Wallet)', 'type' => 'qris', 'image' => 'https://images.tokopedia.net/img/toppay/sprites/qris-logo-2.png'],
+            // Virtual Account
+            ['code' => 'DOKU_VA_BCA', 'name' => 'DOKU BCA Virtual Account', 'type' => 'bank', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/200px-Bank_Central_Asia.svg.png'],
+            ['code' => 'DOKU_VA_BNI', 'name' => 'DOKU BNI Virtual Account', 'type' => 'bank', 'image' => 'https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/200px-BNI_logo.svg.png'],
+            ['code' => 'DOKU_VA_BRI', 'name' => 'DOKU BRI Virtual Account', 'type' => 'bank', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/BANK_BRI_logo.svg/200px-BANK_BRI_logo.svg.png'],
+            ['code' => 'DOKU_VA_MANDIRI', 'name' => 'DOKU Mandiri Virtual Account', 'type' => 'bank', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/200px-Bank_Mandiri_logo_2016.svg.png'],
+            ['code' => 'DOKU_VA_PERMATA', 'name' => 'DOKU Permata Virtual Account', 'type' => 'bank', 'image' => 'https://upload.wikimedia.org/wikipedia/id/thumb/d/d4/PermataBank_logo.svg/200px-PermataBank_logo.svg.png'],
+            ['code' => 'DOKU_VA_CIMB', 'name' => 'DOKU CIMB Niaga Virtual Account', 'type' => 'bank', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/CIMB_Niaga_logo.svg/200px-CIMB_Niaga_logo.svg.png'],
+            ['code' => 'DOKU_VA_DANAMON', 'name' => 'DOKU Danamon Virtual Account', 'type' => 'bank', 'image' => 'https://upload.wikimedia.org/wikipedia/id/thumb/5/5b/Bank_Danamon_logo.svg/200px-Bank_Danamon_logo.svg.png'],
+            // E-Wallet
+            ['code' => 'DOKU_SHOPEEPAY', 'name' => 'DOKU ShopeePay', 'type' => 'ewallet', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Shopee.svg/200px-Shopee.svg.png'],
+            ['code' => 'DOKU_OVO', 'name' => 'DOKU OVO', 'type' => 'ewallet', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/200px-Logo_ovo_purple.svg.png'],
+            ['code' => 'DOKU_DANA', 'name' => 'DOKU DANA', 'type' => 'ewallet', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Dana_logo.svg/200px-Dana_logo.svg.png'],
+            ['code' => 'DOKU_LINKAJA', 'name' => 'DOKU LinkAja', 'type' => 'ewallet', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/LinkAja.svg/200px-LinkAja.svg.png'],
+            // Retail
+            ['code' => 'DOKU_ALFAMART', 'name' => 'DOKU Alfamart', 'type' => 'retail', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Alfamart_logo.svg/200px-Alfamart_logo.svg.png'],
+            ['code' => 'DOKU_INDOMARET', 'name' => 'DOKU Indomaret', 'type' => 'retail', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Indomaret.svg/200px-Indomaret.svg.png'],
+            // Credit Card
+            ['code' => 'DOKU_CC', 'name' => 'DOKU Credit Card (Visa/MC)', 'type' => 'other', 'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png'],
+        ];
+
+        $count = 0;
+        foreach ($channels as $channel) {
+            PaymentMethod::updateOrCreate(
+                ['code' => $channel['code']],
+                [
+                    'name'     => $channel['name'],
+                    'type'     => $channel['type'],
+                    'image'    => $channel['image'],
+                    'fee'      => 0,
+                    'status'   => 'Aktif',
+                    'provider' => 'DOKU'
+                ]
+            );
+            $count++;
+        }
+
+        return back()->with('success', "Berhasil menambahkan $count metode pembayaran DOKU Checkout.");
+    }
+
     private function determineIPaymuType($code, $categoryCode = null)
     {
         if ($categoryCode) {

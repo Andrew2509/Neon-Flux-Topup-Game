@@ -24,6 +24,21 @@
         </div>
     </div>
 
+    <div class="glass-panel p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 mb-6 flex items-start gap-4">
+        <span class="material-symbols-outlined text-rose-400">info</span>
+        <div class="space-y-1">
+            <h4 class="text-xs font-bold text-rose-400 uppercase">Panduan Integrasi DOKU</h4>
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+                Jika Anda menambahkan <b>DOKU</b>, gunakan format berikut:<br>
+                • <b>Merchant ID / Provider ID</b>: Masukkan <code class="text-slate-200">Client ID</code> dari Dashboard DOKU.<br>
+                • <b>API Key / Secret</b>: Masukkan <code class="text-slate-200">Secret Key</code> dari Dashboard DOKU.<br>
+                • <b>Mode</b>: Pilih <code class="text-slate-200">production</code> untuk live atau <code class="text-slate-200">sandbox</code> untuk testing.<br>
+                • Pastikan Nama Provider mengandung kata <b>"DOKU"</b> agar sistem mengenali delegasi pembayarannya.<br>
+                • <b>Notification URL</b>: Set di Dashboard DOKU → <code class="text-slate-200">https://neonflux.my.id/api/doku/callback</code>
+            </p>
+        </div>
+    </div>
+
     <form action="{{ route('admin.providers.store') }}" method="POST" class="space-y-6">
         @csrf
         <div class="glass-panel p-8 rounded-3xl border border-white/5 space-y-8 relative overflow-hidden">
@@ -98,6 +113,17 @@
                             </div>
                             <p class="text-[9px] text-slate-500 mt-1 ml-1">Nama ID ikon dari Google Material Symbols.</p>
                             @error('icon') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 ml-1">MODE ENVIRONMENT</label>
+                            <select name="mode" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm focus:ring-1 focus:ring-accent-blue focus:border-accent-blue outline-none transition-all appearance-none cursor-pointer">
+                                <option value="" {{ old('mode') == '' ? 'selected' : '' }}>Tidak Berlaku</option>
+                                <option value="sandbox" {{ old('mode') == 'sandbox' ? 'selected' : '' }}>Sandbox (Testing)</option>
+                                <option value="production" {{ old('mode') == 'production' ? 'selected' : '' }}>Production (Live)</option>
+                            </select>
+                            <p class="text-[9px] text-slate-500 mt-1 ml-1">Untuk Payment Gateway seperti DOKU, Duitku, dan Midtrans.</p>
+                            @error('mode') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="space-y-1">

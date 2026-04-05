@@ -101,6 +101,12 @@ class ProviderController extends Controller
             return back()->with('info', 'Saldo Duitku (Payment Gateway) merupakan funds mutasi harian, silakan cek langsung di Dashboard Duitku.');
         }
 
+        // Cek DOKU
+        elseif (str_contains($name, 'doku')) {
+            $provider->update(['status' => 'Aktif']);
+            return back()->with('info', 'DOKU adalah Payment Gateway. Dana Anda akan masuk ke rekening bank sesuai jadwal settlement DOKU. Silakan cek di <a href="https://dashboard.doku.com" target="_blank" class="text-primary underline">Dashboard DOKU</a>.');
+        }
+
         // Cek Midtrans
         elseif (str_contains($name, 'midtrans')) {
             return back()->with('info', 'Midtrans adalah Payment Gateway. Saldo Anda akan tercatat sebagai settlement yang masuk ke rekening bank Anda sesuai jadwal disbursement Midtrans. Silakan cek detail di Dashboard Midtrans.');

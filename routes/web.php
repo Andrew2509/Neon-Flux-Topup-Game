@@ -165,6 +165,7 @@ Route::group(['middleware' => []], function () {
     Route::post('/admin/payments/sync', [App\Http\Controllers\Admin\PaymentController::class, 'syncDuitku'])->name('admin.payments.sync');
     Route::post('/admin/payments/sync-ipaymu', [App\Http\Controllers\Admin\PaymentController::class, 'syncIPaymu'])->name('admin.payments.sync_ipaymu');
     Route::post('/admin/payments/sync-midtrans', [App\Http\Controllers\Admin\PaymentController::class, 'syncMidtrans'])->name('admin.payments.sync_midtrans');
+    Route::post('/admin/payments/sync-doku', [App\Http\Controllers\Admin\PaymentController::class, 'syncDoku'])->name('admin.payments.sync_doku');
     Route::get('/admin/payments/create', [App\Http\Controllers\Admin\PaymentController::class, 'create'])->name('admin.payments.create');
     Route::post('/admin/payments', [App\Http\Controllers\Admin\PaymentController::class, 'store'])->name('admin.payments.store');
     Route::get('/admin/payments/{payment}/edit', [App\Http\Controllers\Admin\PaymentController::class, 'edit'])->name('admin.payments.edit');
