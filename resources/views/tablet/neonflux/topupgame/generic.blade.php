@@ -26,8 +26,6 @@
         </div>
     </div>
 
-    @include('partials.neonflux.category-support-phone', ['category' => $category, 'variant' => 'compact'])
-
     <form action="{{ route('checkout') }}" method="POST" id="topup-form">
         @csrf
         @include('partials.neonflux.topup-customer-whatsapp', ['compact' => true])
