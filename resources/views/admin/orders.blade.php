@@ -111,11 +111,10 @@
                                 <div class="flex items-center justify-center gap-2 flex-wrap">
                                     @if($order->status === 'paid')
                                     <button type="button"
-                                        onclick="fulfillTokovoucher({{ $order->id }}, @js($order->order_id))"
-                                        class="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wide hover:bg-emerald-500/30 transition-all inline-flex items-center gap-1"
-                                        title="Panggil API TokoVoucher (sama seperti antrian otomatis)">
-                                        <span class="material-symbols-outlined text-sm">send</span>
-                                        Kirim ke game
+                                        onclick="fulfillSendDiamond({{ $order->id }}, @js($order->order_id))"
+                                        class="size-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center hover:bg-emerald-500/30 transition-all shrink-0"
+                                        title="Kirim diamond ke ID game (TokoVoucher)">
+                                        <span class="material-symbols-outlined text-lg">flight</span>
                                     </button>
                                     @endif
                                     <a href="{{ route('track.order', ['order_id' => $order->order_id]) }}" target="_blank" rel="noopener"
