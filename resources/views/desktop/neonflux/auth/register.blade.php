@@ -34,15 +34,7 @@
 
         <!-- Left Side: Register Form -->
         <div class="w-full lg:w-1/2 flex flex-col p-6 sm:p-8 lg:p-10 xl:p-12 justify-between bg-black">
-            <!-- Header/Logo -->
-            <div class="flex items-center gap-3 mb-6">
-                <div class="size-9 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                    <svg class="size-6" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                        <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V44" fill="currentColor" fill-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <h2 class="text-white text-2xl font-black tracking-tighter">{{ get_setting('site_name', 'NEON FLUX') }}</h2>
-            </div>
+            @include('partials.neonflux.auth-brand-header')
 
             <!-- Greeting -->
             <div class="mb-4">
