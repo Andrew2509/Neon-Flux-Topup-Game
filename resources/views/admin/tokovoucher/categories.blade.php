@@ -91,8 +91,8 @@
         <div class="glass-panel p-8 rounded-3xl border border-white/10 flex flex-col items-center gap-4 max-w-sm text-center">
             <div class="size-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
             <div>
-                <h4 class="font-bold text-xl text-white">Sinkronisasi Berjalan</h4>
-                <p class="text-sm text-slate-400 mt-1">Mengambil data operator, jenis, dan produk. Mohon tidak menutup halaman ini.</p>
+                <h4 class="font-bold text-xl text-white">Memproses…</h4>
+                <p class="text-sm text-slate-400 mt-1">Mengirim permintaan sinkron. Bila sudah sukses, tunggu 1–5 menit lalu muat ulang halaman.</p>
             </div>
         </div>
     </div>
@@ -130,7 +130,9 @@
                 ? 'Sesi/halaman kadaluarsa (CSRF). Muat ulang halaman lalu coba lagi.'
                 : (response.status === 401 || response.status === 403)
                     ? 'Akses ditolak. Pastikan Anda masih login sebagai admin.'
-                    : 'Server mengembalikan halaman HTML, bukan JSON (kode ' + response.status + ').';
+                    : (response.status === 504)
+                        ? 'Gateway time-out: proses terlalu lama di server. Setelah update terbaru, sinkron TokoVoucher jalan di background — pastikan queue worker aktif dan coba Sinkronkan lagi.'
+                        : 'Server mengembalikan halaman HTML, bukan JSON (kode ' + response.status + ').';
             throw new Error(hint + (snippet ? ' Cuplikan: ' + snippet : ''));
         }
         return data;
@@ -193,7 +195,9 @@
             
             if (result.status === 1) {
                 alert(result.message);
-                location.reload();
+                if (!result.async) {
+                    location.reload();
+                }
             } else {
                 alert('Gagal: ' + (result.error_msg || result.message || 'Tidak diketahui'));
             }

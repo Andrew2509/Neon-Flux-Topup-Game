@@ -11,7 +11,7 @@ Restart=always
 RestartSec=5
 WorkingDirectory=/var/www/PrincePayGaming
 Environment=APP_ENV=production
-ExecStart=/usr/bin/php artisan queue:work database --sleep=3 --tries=5 --max-time=3600 --timeout=120
+ExecStart=/usr/bin/php artisan queue:work database --sleep=3 --tries=5 --max-time=3600 --timeout=900
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=laravel-queue-neonflux
