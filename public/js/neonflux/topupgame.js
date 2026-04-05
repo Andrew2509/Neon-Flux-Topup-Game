@@ -14,8 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryNominal = document.getElementById('summary-nominal');
     const summaryPayment = document.getElementById('summary-payment');
     const summaryUserId = document.getElementById('summary-userid');
+    const summaryPlayerName = document.getElementById('summary-player-name');
     const summaryWhatsapp = document.getElementById('summary-whatsapp');
     const summaryTotal = document.getElementById('summary-total');
+    const playerNicknameInput = document.getElementById('player_nickname_input');
 
     function whatsappDigitsOk() {
         if (!customerWhatsappInput) return true;
@@ -54,6 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 summaryUserId.textContent = zoneId ? `${userId} (${zoneId})` : userId;
             } else {
                 summaryUserId.textContent = 'Belum Diisi';
+            }
+        }
+
+        if (summaryPlayerName) {
+            const nick = playerNicknameInput && playerNicknameInput.value
+                ? playerNicknameInput.value.trim()
+                : '';
+            if (summaryPlayerName.getAttribute('data-sticky-summary') === '1') {
+                summaryPlayerName.textContent = nick ? ('Nama: ' + nick) : '';
+                summaryPlayerName.classList.toggle('hidden', !nick);
+            } else {
+                summaryPlayerName.textContent = nick || '—';
             }
         }
 
@@ -232,15 +246,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Only check if userId has minimum length (e.g. 3 chars)
         if (userId.length < 3) {
-            nicknameArea.classList.add('hidden');
+            if (playerNicknameInput) {
+                playerNicknameInput.value = '';
+            }
+            if (nicknameArea) {
+                nicknameArea.classList.add('hidden');
+            }
+            updateSummary();
             return;
         }
 
+        if (playerNicknameInput) {
+            playerNicknameInput.value = '';
+        }
+
         // Loading state
+        if (!nicknameArea || !playerNickname) {
+            return;
+        }
         nicknameArea.classList.remove('hidden');
         nicknameArea.classList.add('flex', 'animate-pulse');
         playerNickname.textContent = 'Mengecek...';
         playerNickname.classList.remove('text-red-500');
+        updateSummary();
 
         try {
             // Robust slug extraction: find the part after /topup/
@@ -275,26 +303,46 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (parseErr) {
                 playerNickname.textContent = 'Server mengembalikan data bukan JSON. Muat ulang halaman atau cek koneksi.';
                 playerNickname.classList.add('text-red-500');
+                if (playerNicknameInput) {
+                    playerNicknameInput.value = '';
+                }
+                updateSummary();
                 return;
             }
             
             if (!response.ok) {
                 playerNickname.textContent = (data && data.message) ? data.message : ('Gagal mengecek ID (HTTP ' + response.status + ')');
                 playerNickname.classList.add('text-red-500');
+                if (playerNicknameInput) {
+                    playerNicknameInput.value = '';
+                }
+                updateSummary();
                 return;
             }
 
             if (data.success) {
                 playerNickname.textContent = data.nickname;
                 playerNickname.classList.remove('text-red-500');
+                if (playerNicknameInput && data.nickname) {
+                    const n = String(data.nickname).slice(0, 128);
+                    playerNicknameInput.value = n;
+                }
             } else {
                 playerNickname.textContent = data.message || 'Invalid ID';
                 playerNickname.classList.add('text-red-500');
+                if (playerNicknameInput) {
+                    playerNicknameInput.value = '';
+                }
             }
+            updateSummary();
         } catch (error) {
             console.error('Error auto check ID:', error);
             playerNickname.textContent = 'Masalah koneksi: ' + (error.message || '');
             playerNickname.classList.add('text-red-500');
+            if (playerNicknameInput) {
+                playerNicknameInput.value = '';
+            }
+            updateSummary();
         }
     }
 
@@ -307,6 +355,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const topupForm = document.getElementById('topup-form');
     if (topupForm) {
         topupForm.addEventListener('submit', (e) => {
+            const hid = document.getElementById('player_nickname_input');
+            const nickEl = document.getElementById('player-nickname');
+            if (hid && nickEl && !hid.value.trim()) {
+                const t = nickEl.textContent.trim();
+                if (t && t !== 'Mengecek...' && !nickEl.classList.contains('text-red-500')) {
+                    hid.value = t.slice(0, 128);
+                }
+            }
+            updateSummary();
+
             const userId = userIdInput ? userIdInput.value.trim() : '';
             const product = document.querySelector('input[name="product_code"]:checked');
             const payment = document.querySelector('input[name="payment"]:checked');

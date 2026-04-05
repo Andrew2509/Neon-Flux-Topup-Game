@@ -89,6 +89,13 @@
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Waktu</span>
                         <span class="text-xs font-black text-slate-800">{{ $order->created_at->format('d/m/y H:i') }}</span>
                     </div>
+                    @php $op = $order->payload ?? []; @endphp
+                    @if(!empty($op['player_nickname'] ?? ''))
+                    <div class="flex justify-between items-start gap-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Nama pemain</span>
+                        <span class="text-xs font-bold text-slate-800 text-right max-w-[65%] break-words">{{ $op['player_nickname'] }}</span>
+                    </div>
+                    @endif
                 </div>
 
                 @if($order->status === 'success' && !empty($order->payload['tokovoucher']['sn'] ?? ''))

@@ -74,6 +74,13 @@
                             <span class="text-xs font-bold text-slate-400 uppercase">Total Bayar</span>
                             <span class="text-xs font-black text-primary">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                         </div>
+                        @php $op = $order->payload ?? []; @endphp
+                        @if(!empty($op['player_nickname'] ?? ''))
+                        <div class="flex justify-between items-start gap-3">
+                            <span class="text-xs font-bold text-slate-400 uppercase shrink-0">Nama pemain</span>
+                            <span class="text-xs font-black text-white text-right max-w-[60%] break-words">{{ $op['player_nickname'] }}</span>
+                        </div>
+                        @endif
                     </div>
 
                     @if($order->status === 'success' && isset($order->payload['tokovoucher']['sn']))

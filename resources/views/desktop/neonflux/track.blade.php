@@ -92,6 +92,13 @@
                             <span class="text-slate-400">Waktu Transaksi</span>
                             <span class="text-white">{{ $order->created_at->format('d M Y, H:i') }}</span>
                         </div>
+                        @php $op = $order->payload ?? []; @endphp
+                        @if(!empty($op['player_nickname'] ?? ''))
+                        <div class="flex justify-between items-start gap-3 text-sm font-medium">
+                            <span class="text-slate-400 shrink-0">Nama pemain (cek ID)</span>
+                            <span class="text-white max-w-[65%] break-words text-right">{{ $op['player_nickname'] }}</span>
+                        </div>
+                        @endif
                     </div>
 
                     @if($order->status === 'success' && !empty($order->payload['tokovoucher']['sn'] ?? ''))

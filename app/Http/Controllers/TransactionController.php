@@ -20,7 +20,8 @@ class TransactionController extends Controller
             'customer_whatsapp' => ['required', 'string', 'max:32'],
             'user_id' => 'required',
             'product_code' => 'required',
-            'payment' => 'nullable'
+            'payment' => 'nullable',
+            'player_nickname' => ['nullable', 'string', 'max:128'],
         ]);
 
         $waDigits = preg_replace('/\D/', '', $request->customer_whatsapp);
@@ -33,6 +34,11 @@ class TransactionController extends Controller
         $tujuan = $request->user_id;
         if ($request->filled('zone_id')) {
             $tujuan .= $request->zone_id;
+        }
+
+        $playerNickname = trim((string) $request->input('player_nickname', ''));
+        if (mb_strlen($playerNickname) > 128) {
+            $playerNickname = mb_substr($playerNickname, 0, 128);
         }
 
         // 2. Ambil Detail Layanan dari Database dengan pengecekan status bertingkat
@@ -83,15 +89,20 @@ class TransactionController extends Controller
             'status' => 'pending_payment',
             'payload' => [
                 'tujuan' => $tujuan,
+                'game_user_id' => (string) $request->user_id,
                 'server_id' => $request->zone_id ?? '',
                 'product_code' => $service->product_code,
                 'cost' => $service->cost ?? $service->price,
                 'customer_whatsapp' => $waDigits,
+                'player_nickname' => $playerNickname,
             ]
         ]);
 
         // Log initial creation
-        $order->logStatus("Pesanan dibuat untuk produk {$service->name}");
+        $order->logStatus(
+            'Pesanan dibuat untuk produk '.$service->name
+            . ($playerNickname !== '' ? ' — nama pemain (cek ID): '.$playerNickname : '')
+        );
 
         // 3. Get Payment Provider
         $paymentMethod = null;

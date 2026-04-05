@@ -95,6 +95,7 @@
                     <span class="material-icons-round text-primary text-sm">verified_user</span>
                     <span class="text-sm text-slate-600 dark:text-gray-300">Nama Pemain: <span id="player-nickname" class="font-bold text-slate-950 dark:text-white tracking-wide"></span></span>
                 </div>
+                <input type="hidden" name="player_nickname" id="player_nickname_input" value="{{ old('player_nickname') }}">
                 <p class="text-xs text-gray-500 mt-3 flex items-center">
                     <span class="material-icons-round text-sm mr-1">info</span>
                     Untuk menemukan User ID, ketuk avatar Anda di sudut kiri atas layar utama permainan. ID User akan terlihat dibawah nama karakter.
@@ -229,6 +230,10 @@
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">User ID:</span>
                             <span class="text-slate-400 dark:text-gray-500 font-mono text-xs text-right" id="summary-userid">Belum Diisi</span>
+                        </div>
+                        <div class="flex justify-between items-start text-sm">
+                            <span class="text-slate-500 dark:text-gray-400">Nama pemain:</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] break-words" id="summary-player-name">—</span>
                         </div>
                     </div>
                     <div class="border-t border-dashed border-black/10 dark:border-white/20 pt-4 mb-6">
