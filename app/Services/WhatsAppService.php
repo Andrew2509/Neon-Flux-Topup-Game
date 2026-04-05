@@ -16,8 +16,8 @@ class WhatsAppService
             ->orWhere('name', 'like', '%orbit%')
             ->first();
 
-        $this->baseUrl = config('services.orbit_wa.base_url');
-        $this->apiKey = $provider?->api_key ?? config('services.orbit_wa.api_key');
+        $this->baseUrl = env('ORBIT_WA_BASE_URL', 'https://orbit-whatsapp-api.vercel.app/api/v1');
+        $this->apiKey = $provider?->api_key ?? env('ORBIT_WA_API_KEY');
     }
 
     /**

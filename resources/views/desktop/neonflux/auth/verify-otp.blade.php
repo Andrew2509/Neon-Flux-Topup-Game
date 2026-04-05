@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
     {{-- Hanya CSS: halaman ini tidak butuh bundle JS top-up (mengurangi konflik ekstensi browser di konsol) --}}
-    @include('partials.vite-safe', ['entries' => ['resources/css/app.css']])
+    @vite(['resources/css/app.css'])
 
     <style>
         body { font-family: 'Inter', sans-serif; }
