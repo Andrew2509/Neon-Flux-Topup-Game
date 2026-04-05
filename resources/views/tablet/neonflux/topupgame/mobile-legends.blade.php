@@ -38,7 +38,7 @@
         <div class="grid @if($category->has_zone) @else grid-cols-1 @endif gap-2">
             <div class="@if($category->has_zone) col-span-3 @endif space-y-1">
                 <label class="text-[9px] font-bold uppercase text-slate-500 dark:text-white/70 ml-1">{{ $category->input_label ?? 'User ID' }}</label>
-                <input type="text" name="user_id" id="user_id_input" required data-operator-id="{{ $category->ext_id }}" placeholder="{{ $category->input_placeholder ?? 'Masukkan ID' }}"
+                <input type="text" name="user_id" id="user_id_input" required data-operator-id="{{ $category->ext_id }}" data-game-slug="{{ $category->slug }}" data-requires-zone="{{ $category->has_zone ? '1' : '0' }}" placeholder="{{ $category->input_placeholder ?? 'Masukkan ID' }}"
                     class="w-full rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-xs focus:ring-primary focus:border-primary text-slate-950 dark:text-white font-mono">
             </div>
 

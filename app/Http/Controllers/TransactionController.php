@@ -806,42 +806,76 @@ class TransactionController extends Controller
         'honkai-star-rail'  => ['vppId' => 116118, 'vppPrice' => 815000, 'voucherTypeName' => 'HONKAI_STAR_RAIL', 'nicknameKey' => 'username'],
     ];
 
-    public function checkPlayerId(Request $request)
+    /**
+     * Samakan slug kategori (URL / DB) dengan kunci mapping Codashop.
+     *
+     * @return array{0: ?array, 1: string} [config atau null, slug normal untuk log]
+     */
+    private static function resolveCodashopGameConfig(?string $requestGameSlug, ?string $operatorId): array
     {
-        $request->validate([
-            'user_id' => 'required',
-            'operator_id' => 'required',
-            'zone_id' => 'nullable',
-            'game_slug' => 'nullable|string'
-        ]);
+        $slug = $requestGameSlug ? trim((string) $requestGameSlug) : '';
 
-        // Determine game slug from category or request
-        $gameSlug = $request->game_slug;
-        if (!$gameSlug) {
-            // Try to find slug from category ext_id (operator_id)
-            $category = \App\Models\Category::where('ext_id', $request->operator_id)->first();
+        if ($slug === '' && $operatorId) {
+            $category = \App\Models\Category::where('ext_id', $operatorId)->first();
             if ($category) {
-                $gameSlug = \Illuminate\Support\Str::slug($category->name);
+                $slug = (string) ($category->slug ?: \Illuminate\Support\Str::slug($category->name));
             }
         }
 
-        // Check if we have a Codashop mapping for this game
-        $gameConfig = self::$codashopGames[$gameSlug] ?? null;
+        $aliases = [
+            'mlbb' => 'mobile-legends',
+            'ml' => 'mobile-legends',
+            'mobile-legend' => 'mobile-legends',
+            'mobile-legends-bang-bang' => 'mobile-legends',
+            'honkai' => 'honkai-star-rail',
+            'hsr' => 'honkai-star-rail',
+            'genshin' => 'genshin-impact',
+            'pubg' => 'pubg-mobile',
+            'codm' => 'call-of-duty',
+            'aov' => 'arena-of-valor',
+            'wild-rift' => 'league-of-legends',
+            'lol-wild-rift' => 'league-of-legends',
+            'freefire' => 'free-fire',
+            'ff' => 'free-fire',
+        ];
 
-        if (!$gameConfig) {
-            // Fallback: try partial match
-            foreach (self::$codashopGames as $slug => $config) {
-                if (str_contains($gameSlug ?? '', $slug) || str_contains($slug, $gameSlug ?? '')) {
-                    $gameConfig = $config;
-                    break;
+        $lookup = strtolower($slug);
+        $normalized = $aliases[$lookup] ?? $slug;
+
+        if (isset(self::$codashopGames[$normalized])) {
+            return [self::$codashopGames[$normalized], $normalized];
+        }
+
+        if ($normalized !== '') {
+            $ln = strtolower($normalized);
+            foreach (self::$codashopGames as $key => $config) {
+                if (str_contains($ln, $key) || str_contains($key, $ln)) {
+                    return [$config, $key];
                 }
             }
         }
 
-        if (!$gameConfig) {
+        return [null, $slug];
+    }
+
+    public function checkPlayerId(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required',
+            'operator_id' => 'nullable|string',
+            'zone_id' => 'nullable',
+            'game_slug' => 'nullable|string',
+        ]);
+
+        [$gameConfig, $resolvedSlug] = self::resolveCodashopGameConfig(
+            $request->game_slug,
+            $request->operator_id
+        );
+
+        if (! $gameConfig) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi ID belum tersedia untuk game ini.'
+                'message' => 'Validasi ID belum tersedia untuk game ini.',
             ]);
         }
 
@@ -861,7 +895,7 @@ class TransactionController extends Controller
             ];
 
             Log::info('CheckID Codashop Request', [
-                'game_slug' => $gameSlug,
+                'game_slug_resolved' => $resolvedSlug,
                 'voucherTypeName' => $gameConfig['voucherTypeName'],
                 'user_id' => $request->user_id,
                 'zone_id' => $request->zone_id ?? '',

@@ -19,6 +19,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryTotal = document.getElementById('summary-total');
     const playerNicknameInput = document.getElementById('player_nickname_input');
 
+    function isPlaceholderNicknameText(t) {
+        if (!t) return true;
+        if (t === 'Mengecek...') return true;
+        if (t.startsWith('Isi Zone ID')) return true;
+        if (t.startsWith('Lengkapi Zone')) return true;
+        return false;
+    }
+
+    function resolveGameSlug() {
+        const fromData = userIdInput && userIdInput.dataset.gameSlug
+            ? String(userIdInput.dataset.gameSlug).trim()
+            : '';
+        if (fromData) return fromData;
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        const topIdx = parts.indexOf('topup');
+        return (topIdx !== -1 && parts[topIdx + 1]) ? parts[topIdx + 1] : '';
+    }
+
     function whatsappDigitsOk() {
         if (!customerWhatsappInput) return true;
         const d = (customerWhatsappInput.value || '').replace(/\D/g, '');
@@ -60,9 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (summaryPlayerName) {
-            const nick = playerNicknameInput && playerNicknameInput.value
+            let nick = playerNicknameInput && playerNicknameInput.value.trim()
                 ? playerNicknameInput.value.trim()
                 : '';
+            if (!nick) {
+                const nickEl = document.getElementById('player-nickname');
+                if (nickEl && !nickEl.classList.contains('text-red-500')) {
+                    const t = nickEl.textContent.trim();
+                    if (t && !isPlaceholderNicknameText(t)) {
+                        nick = t;
+                        if (playerNicknameInput) {
+                            playerNicknameInput.value = t.slice(0, 128);
+                        }
+                    }
+                }
+            }
             if (summaryPlayerName.getAttribute('data-sticky-summary') === '1') {
                 summaryPlayerName.textContent = nick ? ('Nama: ' + nick) : '';
                 summaryPlayerName.classList.toggle('hidden', !nick);
@@ -240,11 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function checkPlayerId() {
         const userId = userIdInput ? userIdInput.value.trim() : '';
         const zoneId = zoneIdInput ? zoneIdInput.value.trim() : '';
-        
-        // Find operatorId from input or any element that has it
-        const operatorId = userIdInput ? userIdInput.dataset.operatorId : '';
 
-        // Only check if userId has minimum length (e.g. 3 chars)
+        const operatorId = userIdInput ? (userIdInput.dataset.operatorId || '') : '';
+        const gameSlug = resolveGameSlug();
+
         if (userId.length < 3) {
             if (playerNicknameInput) {
                 playerNicknameInput.value = '';
@@ -256,11 +285,25 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (zoneIdInput && zoneId.length < 1) {
+            if (playerNicknameInput) {
+                playerNicknameInput.value = '';
+            }
+            if (nicknameArea && playerNickname) {
+                nicknameArea.classList.remove('hidden');
+                nicknameArea.classList.add('flex');
+                nicknameArea.classList.remove('animate-pulse');
+                playerNickname.textContent = 'Isi Zone ID dulu untuk cek nama pemain';
+                playerNickname.classList.remove('text-red-500');
+            }
+            updateSummary();
+            return;
+        }
+
         if (playerNicknameInput) {
             playerNicknameInput.value = '';
         }
 
-        // Loading state
         if (!nicknameArea || !playerNickname) {
             return;
         }
@@ -271,11 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSummary();
 
         try {
-            // Robust slug extraction: find the part after /topup/
-            const parts = window.location.pathname.split('/');
-            const topupIndex = parts.indexOf('topup');
-            const gameSlug = (topupIndex !== -1 && parts[topupIndex + 1]) ? parts[topupIndex + 1] : '';
-            
             const csrfToken = document.querySelector('meta[name="csrf-token"]');
 
             const response = await fetch('/api/check-id', {
@@ -346,10 +384,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const debouncedCheck = debounce(checkPlayerId, 1000);
+    const debouncedCheck = debounce(checkPlayerId, 600);
 
-    if (userIdInput) userIdInput.addEventListener('input', debouncedCheck);
-    if (zoneIdInput) zoneIdInput.addEventListener('input', debouncedCheck);
+    if (userIdInput) {
+        userIdInput.addEventListener('input', debouncedCheck);
+        userIdInput.addEventListener('change', () => checkPlayerId());
+    }
+    if (zoneIdInput) {
+        zoneIdInput.addEventListener('input', debouncedCheck);
+        zoneIdInput.addEventListener('change', () => checkPlayerId());
+    }
+
+    requestAnimationFrame(() => {
+        checkPlayerId();
+    });
 
     // --- Form Submission Handling ---
     const topupForm = document.getElementById('topup-form');

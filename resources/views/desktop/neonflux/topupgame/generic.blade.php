@@ -78,7 +78,7 @@
                 <div class="grid @if($category->has_zone) grid-cols-1 md:grid-cols-2 @else @endif gap-6 items-end">
                     <div>
                         <label class="block text-sm font-medium text-slate-500 dark:text-gray-400 mb-2">{{ $category->input_label ?? 'User ID' }}</label>
-                        <input type="text" name="user_id" id="user_id_input" data-operator-id="{{ $category->ext_id }}" placeholder="{{ $category->input_placeholder ?? 'Contoh: 12345678' }}" class="w-full rounded-xl glass-input px-4 py-3 focus:ring-0 transition-all font-mono" required>
+                        <input type="text" name="user_id" id="user_id_input" data-operator-id="{{ $category->ext_id }}" data-game-slug="{{ $category->slug }}" data-requires-zone="{{ $category->has_zone ? '1' : '0' }}" placeholder="{{ $category->input_placeholder ?? 'Contoh: 12345678' }}" class="w-full rounded-xl glass-input px-4 py-3 focus:ring-0 transition-all font-mono" required>
                     </div>
 
                     @if($category->has_zone)
