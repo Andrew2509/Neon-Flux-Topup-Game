@@ -17,8 +17,8 @@ class DokuService
     {
         $provider = \App\Models\Provider::where('name', 'DOKU')->first();
 
-        $this->clientId  = $provider->provider_id ?? '';
-        $this->secretKey = $provider->api_key ?? '';
+        $this->clientId  = trim($provider->provider_id ?? '');
+        $this->secretKey = trim($provider->api_key ?? '');
         
         $mode = $provider->mode ?? 'production'; // Defaulting to production for live domain neonflux.my.id
         
