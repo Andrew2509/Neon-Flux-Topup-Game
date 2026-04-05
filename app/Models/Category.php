@@ -9,8 +9,7 @@ class Category extends Model
     protected $fillable = [
         'name', 'slug', 'icon', 'status', 'type',
         'input_label', 'input_placeholder', 'has_zone', 'zone_label', 'zone_placeholder',
-        'ext_id', 'category_ext_id', 'is_popular', 'platform',
-        'support_phone',
+        'ext_id', 'category_ext_id', 'is_popular', 'platform'
     ];
 
     public function services()

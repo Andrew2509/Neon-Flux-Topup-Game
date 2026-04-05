@@ -17,10 +17,18 @@ class TransactionController extends Controller
     {
         // 1. Validasi Input Dasar
         $request->validate([
+            'customer_whatsapp' => ['required', 'string', 'max:32'],
             'user_id' => 'required',
             'product_code' => 'required',
             'payment' => 'nullable'
         ]);
+
+        $waDigits = preg_replace('/\D/', '', $request->customer_whatsapp);
+        if (strlen($waDigits) < 10 || strlen($waDigits) > 15) {
+            return back()->withErrors([
+                'customer_whatsapp' => 'Nomor WhatsApp tidak valid. Gunakan 10–15 digit angka.',
+            ])->withInput();
+        }
 
         $tujuan = $request->user_id;
         if ($request->filled('zone_id')) {
@@ -77,7 +85,8 @@ class TransactionController extends Controller
                 'tujuan' => $tujuan,
                 'server_id' => $request->zone_id ?? '',
                 'product_code' => $service->product_code,
-                'cost' => $service->cost ?? $service->price
+                'cost' => $service->cost ?? $service->price,
+                'customer_whatsapp' => $waDigits,
             ]
         ]);
 

@@ -9,11 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentRadios = document.querySelectorAll('input[name="payment"]');
     const userIdInput = document.getElementById('user_id_input');
     const zoneIdInput = document.getElementById('zone_id_input');
+    const customerWhatsappInput = document.getElementById('customer_whatsapp_input');
 
     const summaryNominal = document.getElementById('summary-nominal');
     const summaryPayment = document.getElementById('summary-payment');
     const summaryUserId = document.getElementById('summary-userid');
+    const summaryWhatsapp = document.getElementById('summary-whatsapp');
     const summaryTotal = document.getElementById('summary-total');
+
+    function whatsappDigitsOk() {
+        if (!customerWhatsappInput) return true;
+        const d = (customerWhatsappInput.value || '').replace(/\D/g, '');
+        return d.length >= 10 && d.length <= 15;
+    }
 
     function updateSummary() {
         let selectedProduct = null;
@@ -108,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateNominalSectionState() {
         if (!nominalSection) return;
         const userId = userIdInput ? userIdInput.value.trim() : '';
-        if (userId.length >= 3) {
+        if (whatsappDigitsOk() && userId.length >= 3) {
             nominalSection.classList.remove('opacity-50', 'is-locked');
             nominalSection.classList.add('transition-opacity', 'duration-500');
         } else {
@@ -146,8 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 const userId = userIdInput ? userIdInput.value.trim() : '';
-                const targetInput = (userId.length < 3) ? userIdInput : zoneIdInput;
-                
+                let targetInput = null;
+                if (!whatsappDigitsOk() && customerWhatsappInput) {
+                    targetInput = customerWhatsappInput;
+                } else if (userId.length < 3) {
+                    targetInput = userIdInput;
+                } else if (zoneIdInput && zoneIdInput.required && !(zoneIdInput.value || '').trim()) {
+                    targetInput = zoneIdInput;
+                }
+
                 if (targetInput) {
                     targetInput.focus();
                     targetInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -167,13 +182,24 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePaymentPrices();
     }));
     paymentRadios.forEach(r => r.addEventListener('change', updateSummary));
+    if (customerWhatsappInput) {
+        customerWhatsappInput.addEventListener('input', () => {
+            updateSummary();
+            updateNominalSectionState();
+        });
+    }
     if (userIdInput) {
         userIdInput.addEventListener('input', () => {
             updateSummary();
             updateNominalSectionState();
         });
     }
-    if (zoneIdInput) zoneIdInput.addEventListener('input', updateSummary);
+    if (zoneIdInput) {
+        zoneIdInput.addEventListener('input', () => {
+            updateSummary();
+            updateNominalSectionState();
+        });
+    }
 
     // Initial update
     updateSummary();
@@ -286,10 +312,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const payment = document.querySelector('input[name="payment"]:checked');
             const submitBtn = topupForm.querySelector('button[type="submit"]');
 
+            if (customerWhatsappInput) {
+                const d = (customerWhatsappInput.value || '').replace(/\D/g, '');
+                if (d.length < 10 || d.length > 15) {
+                    e.preventDefault();
+                    alert('Masukkan nomor WhatsApp yang valid (10–15 digit angka).');
+                    customerWhatsappInput.focus();
+                    return;
+                }
+            }
+
             if (!userId) {
                 e.preventDefault();
                 alert('Silakan masukkan ID Pemain terlebih dahulu.');
-                userIdInput.focus();
+                if (userIdInput) userIdInput.focus();
                 return;
             }
 

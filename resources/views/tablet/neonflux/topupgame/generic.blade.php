@@ -30,6 +30,7 @@
 
     <form action="{{ route('checkout') }}" method="POST" id="topup-form">
         @csrf
+        @include('partials.neonflux.topup-customer-whatsapp', ['compact' => true])
         {{-- Step 1: Account Info --}}
     <div class="glass-panel-mobile dark:bg-white/5 p-4 rounded-2xl space-y-3">
         <div class="flex items-center gap-2">
@@ -147,6 +148,7 @@
 </div>
     <div id="summary-nominal" class="hidden"></div>
     <div id="summary-payment" class="hidden"></div>
+    <div id="summary-whatsapp" class="hidden"></div>
     <div id="summary-userid" class="hidden"></div>
     </form>
 </div>

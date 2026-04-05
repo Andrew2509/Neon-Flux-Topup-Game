@@ -33,7 +33,6 @@
                     Instant Delivery
                 </span>
             </div>
-            @include('partials.neonflux.category-support-phone', ['category' => $category])
         </div>
     </div>
 
@@ -68,6 +67,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Form Area -->
         <div class="lg:col-span-2 space-y-8">
+            @include('partials.neonflux.topup-customer-whatsapp')
             <!-- Step 1: ID -->
             <section class="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden group section-1">
                 <div class="absolute top-0 left-0 w-1 h-full bg-primary shadow-neon-cyan"></div>
@@ -239,6 +239,10 @@
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Metode Bayar:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right" id="summary-payment">Pilih Metode</span>
+                        </div>
+                        <div class="flex justify-between items-start text-sm">
+                            <span class="text-slate-500 dark:text-gray-400">WhatsApp:</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right font-mono text-xs" id="summary-whatsapp">Belum Diisi</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">User ID:</span>
