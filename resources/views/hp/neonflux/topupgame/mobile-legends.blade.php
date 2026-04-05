@@ -53,7 +53,7 @@
 
         <div id="nickname-area" class="hidden items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10">
             <span class="material-icons-round text-primary text-[10px]">verified_user</span>
-            <span class="text-[10px] text-slate-600 dark:text-white font-medium">Player: <span id="player-nickname" class="font-bold text-slate-950 dark:text-white"></span></span>
+            <span class="text-[10px] text-slate-600 dark:text-white font-medium">Player: <span id="player-nickname" class="js-player-nick font-bold text-slate-950 dark:text-white"></span></span>
         </div>
         <input type="hidden" name="player_nickname" id="player_nickname_input" value="{{ old('player_nickname') }}">
     </div>

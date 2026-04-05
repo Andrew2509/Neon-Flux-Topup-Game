@@ -21,6 +21,26 @@ document.addEventListener('DOMContentLoaded', () => {
     /** true saat request /api/check-id sedang berjalan — updateSummary tidak boleh menimpa teks loading / hasil. */
     let playerLookupInFlight = false;
 
+    /** Nama dari respons API sukses terakhir, dikunci ke pasangan User ID + Zone (hidden input dikosongkan lagi saat cek berjalan). */
+    let playerNickCache = { user: '', zone: '', nick: '' };
+
+    function clearPlayerNickCache() {
+        playerNickCache = { user: '', zone: '', nick: '' };
+    }
+
+    function setPlayerNickCache(user, zone, nick) {
+        const n = (nick || '').trim().slice(0, 128);
+        if (!n) {
+            clearPlayerNickCache();
+            return;
+        }
+        playerNickCache = {
+            user: String(user || ''),
+            zone: String(zone || ''),
+            nick: n,
+        };
+    }
+
     function isPlaceholderNicknameText(t) {
         if (!t) return true;
         if (t === 'Mengecek...') return true;
@@ -150,7 +170,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function readVerifiedNicknameFromForm() {
-        const nickEl = document.getElementById('player-nickname');
+        const u = userIdInput ? userIdInput.value.trim() : '';
+        const z = zoneIdInput ? zoneIdInput.value.trim() : '';
+
+        if (playerNickCache.nick && playerNickCache.user === u && playerNickCache.zone === z) {
+            return playerNickCache.nick;
+        }
+
+        const nickEl = document.querySelector('#nickname-area .js-player-nick')
+            || document.getElementById('player-nickname');
         if (nickEl && !nickEl.classList.contains('text-red-500')) {
             const t = nickEl.textContent.trim();
             if (t && !isPlaceholderNicknameText(t)) {
@@ -363,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userId.length < 3) {
             checkIdGeneration += 1;
             playerLookupInFlight = false;
+            clearPlayerNickCache();
             if (checkIdAbort) {
                 checkIdAbort.abort();
                 checkIdAbort = null;
@@ -381,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (zoneIdInput && zoneId.length < 1) {
             checkIdGeneration += 1;
             playerLookupInFlight = false;
+            clearPlayerNickCache();
             if (checkIdAbort) {
                 checkIdAbort.abort();
                 checkIdAbort = null;
@@ -458,6 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = rawText ? JSON.parse(rawText) : null;
             } catch (parseErr) {
                 if (myGen !== checkIdGeneration) return;
+                clearPlayerNickCache();
                 if (hasNickUi) {
                     playerNickname.textContent = 'Server mengembalikan data bukan JSON. Muat ulang halaman atau cek koneksi.';
                     playerNickname.classList.add('text-red-500');
@@ -470,6 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 if (myGen !== checkIdGeneration) return;
+                clearPlayerNickCache();
                 if (hasNickUi) {
                     playerNickname.textContent = (data && data.message) ? data.message : ('Gagal mengecek ID (HTTP ' + response.status + ')');
                     playerNickname.classList.add('text-red-500');
@@ -491,10 +523,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     playerNicknameInput.value = n;
                 }
                 if (n) {
+                    setPlayerNickCache(userId, zoneId, n);
                     applyNicknameToSummary(n);
+                } else {
+                    clearPlayerNickCache();
                 }
             } else {
                 if (myGen !== checkIdGeneration) return;
+                clearPlayerNickCache();
                 if (hasNickUi) {
                     playerNickname.textContent = (data && data.message) ? data.message : 'Invalid ID';
                     playerNickname.classList.add('text-red-500');
@@ -509,6 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             console.error('Error auto check ID:', error);
             if (myGen !== checkIdGeneration) return;
+            clearPlayerNickCache();
             if (hasNickUi) {
                 playerNickname.textContent = 'Masalah koneksi: ' + (error.message || '');
                 playerNickname.classList.add('text-red-500');

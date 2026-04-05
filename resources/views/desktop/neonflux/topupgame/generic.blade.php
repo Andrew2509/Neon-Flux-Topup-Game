@@ -92,7 +92,7 @@
                 </div>
                 <div id="nickname-area" class="mt-4 hidden items-center gap-2 px-4 py-2 bg-primary/5 rounded-lg border border-primary/10 max-w-fit animate-pulse">
                     <span class="material-icons-round text-primary text-sm">verified_user</span>
-                    <span class="text-sm text-slate-600 dark:text-gray-300">Nama Pemain: <span id="player-nickname" class="font-bold text-slate-950 dark:text-white tracking-wide"></span></span>
+                    <span class="text-sm text-slate-600 dark:text-gray-300">Nama Pemain: <span id="player-nickname" class="js-player-nick font-bold text-slate-950 dark:text-white tracking-wide"></span></span>
                 </div>
                 <input type="hidden" name="player_nickname" id="player_nickname_input" value="{{ old('player_nickname') }}">
                 <p class="text-xs text-gray-500 mt-3 flex items-center">
