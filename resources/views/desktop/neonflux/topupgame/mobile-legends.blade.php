@@ -33,6 +33,7 @@
                     Instant Delivery
                 </span>
             </div>
+            @include('partials.neonflux.category-support-phone', ['category' => $category])
         </div>
     </div>
 

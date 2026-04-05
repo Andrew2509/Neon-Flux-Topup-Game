@@ -130,6 +130,8 @@ Route::group(['middleware' => []], function () {
     Route::delete('/admin/members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'destroy'])->name('admin.members.destroy');
     Route::get('/admin/deposits', [App\Http\Controllers\Admin\DepositController::class, 'index'])->name('admin.deposits');
     Route::get('/admin/categories', [App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('admin.categories');
+    Route::get('/admin/categories/{category}/edit', [App\Http\Controllers\Admin\CategoryController::class, 'edit'])->name('admin.categories.edit');
+    Route::put('/admin/categories/{category}', [App\Http\Controllers\Admin\CategoryController::class, 'update'])->name('admin.categories.update');
     Route::get('/admin/services', [App\Http\Controllers\Admin\ServiceController::class, 'index'])->name('admin.services');
     Route::get('/admin/services/ajax-search', [App\Http\Controllers\Admin\ServiceController::class, 'ajaxSearch'])->name('admin.services.ajax_search');
     Route::get('/admin/services/sync-list', [App\Http\Controllers\Admin\ServiceController::class, 'getSyncList'])->name('admin.services.sync_list');

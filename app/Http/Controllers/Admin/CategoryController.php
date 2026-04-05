@@ -25,4 +25,26 @@ class CategoryController extends Controller
 
         return view('admin.categories', compact('categories'));
     }
+
+    public function edit(Category $category)
+    {
+        return view('admin.categories.edit', compact('category'));
+    }
+
+    public function update(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'support_phone' => 'nullable|string|max:64',
+            'input_label' => 'nullable|string|max:120',
+            'input_placeholder' => 'nullable|string|max:120',
+            'zone_label' => 'nullable|string|max:120',
+            'zone_placeholder' => 'nullable|string|max:120',
+        ]);
+
+        $category->update($validated);
+
+        return redirect()
+            ->route('admin.categories', ['type' => $category->type])
+            ->with('success', 'Kategori '.$category->name.' berhasil diperbarui.');
+    }
 }

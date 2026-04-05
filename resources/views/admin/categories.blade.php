@@ -66,7 +66,7 @@
                     <!-- Dropdown Content (Hidden by default, you can implement JS to toggle) -->
                     <div id="dropdown-{{ $category->id }}" class="hidden absolute right-0 top-8 w-36 glass-panel border border-white/10 rounded-xl py-2 z-20 shadow-xl backdrop-blur-xl bg-slate-900/90">
                         <a href="{{ route('admin.services', ['category' => $category->id, 'type' => $category->type]) }}" class="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">visibility</span> Lihat Produk</a>
-                        <a href="#" class="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">edit</span> Edit</a>
+                        <a href="{{ route('admin.categories.edit', $category) }}" class="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">edit</span> Edit</a>
                         <a href="#" class="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">delete</span> Hapus</a>
                     </div>
                 </div>
