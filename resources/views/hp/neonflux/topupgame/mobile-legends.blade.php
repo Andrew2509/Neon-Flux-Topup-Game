@@ -138,7 +138,7 @@
     <div class="w-full max-w-5xl flex items-center justify-between">
         <div class="flex flex-col min-w-0">
             <span class="text-[9px] text-slate-500 dark:text-white/70 font-bold uppercase tracking-widest">Total Bayar</span>
-            <span id="summary-player-name" data-sticky-summary="1" class="hidden text-[8px] text-slate-500 dark:text-white/60 font-medium max-w-[46vw] truncate leading-tight text-left"></span>
+            <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[8px] text-slate-500 dark:text-white/60 font-medium max-w-[46vw] truncate leading-tight text-left"></span>
             <span class="text-base font-display font-black text-secondary leading-none" id="summary-total">Rp 0</span>
         </div>
         <button type="submit" class="px-6 py-3 rounded-xl bg-linear-to-r from-secondary to-pink-600 text-white font-bold font-display tracking-tighter text-[13px] shadow-lg shadow-secondary/30 active:scale-95 transition-all">

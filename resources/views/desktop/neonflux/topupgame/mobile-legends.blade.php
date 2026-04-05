@@ -233,7 +233,7 @@
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nama pemain:</span>
-                            <span class="text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] break-words" id="summary-player-name">—</span>
+                            <span class="js-summary-player-name text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] break-words" id="summary-player-name">—</span>
                         </div>
                     </div>
                     <div class="border-t border-dashed border-black/10 dark:border-white/20 pt-4 mb-6">

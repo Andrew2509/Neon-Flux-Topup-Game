@@ -52,16 +52,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return code;
     }
 
+    function forEachSummaryPlayerNameEl(callback) {
+        const nodes = document.querySelectorAll('.js-summary-player-name');
+        if (nodes.length) {
+            nodes.forEach(callback);
+            return;
+        }
+        const leg = document.getElementById('summary-player-name');
+        if (leg) {
+            callback(leg);
+        }
+    }
+
     function applyNicknameToSummary(nick) {
         const n = (nick || '').trim().slice(0, 128);
-        const sp = document.getElementById('summary-player-name');
-        if (!sp) return;
-        if (sp.getAttribute('data-sticky-summary') === '1') {
-            sp.textContent = n ? ('Nama: ' + n) : '';
-            sp.classList.toggle('hidden', !n);
-        } else {
-            sp.textContent = n || '—';
-        }
+        forEachSummaryPlayerNameEl((sp) => {
+            if (sp.getAttribute('data-sticky-summary') === '1') {
+                sp.textContent = n ? ('Nama: ' + n) : '';
+                sp.classList.toggle('hidden', !n);
+            } else {
+                sp.textContent = n || '—';
+            }
+        });
     }
 
     function whatsappDigitsOk() {
@@ -152,39 +164,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function reflowSummaryPlayerName() {
-        const sp = document.getElementById('summary-player-name');
-        if (!sp) {
+        let hasTarget = false;
+        forEachSummaryPlayerNameEl(() => {
+            hasTarget = true;
+        });
+        if (!hasTarget) {
             return;
         }
-        if (playerLookupInFlight) {
+        const nick = readVerifiedNicknameFromForm();
+        /* Jangan timpa "Mencari…" hanya jika request masih jalan DAN nama belum tampil di form */
+        if (playerLookupInFlight && !nick) {
             return;
         }
-        let nick = readVerifiedNicknameFromForm();
+        /* Jika #player-nickname sudah terisi tapi flag msih true (race), tetap sinkronkan ringkasan */
         if (nick && playerNicknameInput && !playerNicknameInput.value.trim()) {
             playerNicknameInput.value = nick;
         }
-        if (sp.getAttribute('data-sticky-summary') === '1') {
-            sp.textContent = nick ? ('Nama: ' + nick) : '';
-            sp.classList.toggle('hidden', !nick);
-        } else {
-            sp.textContent = nick || '—';
-        }
-        sp.classList.remove('animate-pulse', 'opacity-80');
+        forEachSummaryPlayerNameEl((sp) => {
+            if (sp.getAttribute('data-sticky-summary') === '1') {
+                sp.textContent = nick ? ('Nama: ' + nick) : '';
+                sp.classList.toggle('hidden', !nick);
+            } else {
+                sp.textContent = nick || '—';
+            }
+            sp.classList.remove('animate-pulse', 'opacity-80');
+        });
     }
 
     function paintSummaryPlayerLoading() {
-        const sp = document.getElementById('summary-player-name');
-        if (!sp) {
-            return;
-        }
         const msg = 'Mencari nama pemain...';
-        if (sp.getAttribute('data-sticky-summary') === '1') {
-            sp.textContent = 'Nama: ' + msg;
-            sp.classList.remove('hidden');
-        } else {
-            sp.textContent = msg;
-        }
-        sp.classList.add('animate-pulse', 'opacity-80');
+        forEachSummaryPlayerNameEl((sp) => {
+            if (sp.getAttribute('data-sticky-summary') === '1') {
+                sp.textContent = 'Nama: ' + msg;
+                sp.classList.remove('hidden');
+            } else {
+                sp.textContent = msg;
+            }
+            sp.classList.add('animate-pulse', 'opacity-80');
+        });
     }
 
     function updatePaymentPrices() {
