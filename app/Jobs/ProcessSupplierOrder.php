@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ProcessSupplierOrder implements ShouldQueue
 {
@@ -52,7 +53,7 @@ class ProcessSupplierOrder implements ShouldQueue
         $url = "https://api.tokovoucher.net/v1/transaksi";
         
         try {
-            $response = Http::get($url, [
+            $response = Http::timeout(45)->connectTimeout(15)->get($url, [
                 'ref_id' => $this->order->order_id,
                 'produk' => $productCode,
                 'tujuan' => $tujuan,
@@ -61,7 +62,8 @@ class ProcessSupplierOrder implements ShouldQueue
                 'server_id' => $serverId,
             ]);
 
-            $resultToko = $response->json() ?? [];
+            $decoded = $response->json();
+            $resultToko = is_array($decoded) ? $decoded : [];
 
             $tvStatus = $resultToko['status'] ?? null;
             $tvOk = $tvStatus === 1 || $tvStatus === '1' || $tvStatus === true;
@@ -77,11 +79,19 @@ class ProcessSupplierOrder implements ShouldQueue
                 $this->order->update(['payload' => $merged]);
                 $this->order->logStatus('Sukses: Order berhasil dikirim ke supplier (TokoVoucher).', 'success', $resultToko);
             } else {
-                $msg = $resultToko['message'] ?? 'Error dari supplier.';
-                $this->order->logStatus("Pending: Supplier mengembalikan error: {$msg}. Akan dicoba lagi sesuai jadwal.", null, $resultToko);
-                
-                // Fail the job so it retries
-                throw new \Exception("Supplier API Error: {$msg}");
+                $msg = $this->formatTokovoucherFailureMessage($response, $resultToko, $productCode, $tujuan, $serverId);
+                $this->order->logStatus("Pending: TokoVoucher — {$msg}. Akan dicoba lagi jika masih gagal.", null, $resultToko ?: ['raw' => Str::limit($response->body(), 2000)]);
+
+                Log::warning('TokoVoucher transaksi tidak sukses', [
+                    'order_id' => $this->order->order_id,
+                    'http' => $response->status(),
+                    'produk' => $productCode,
+                    'tujuan' => $tujuan,
+                    'server_id' => $serverId,
+                    'body' => $resultToko ?: Str::limit($response->body(), 1000),
+                ]);
+
+                throw new \Exception('Supplier API Error: '.$msg);
             }
         } catch (\Exception $e) {
             Log::error('Supplier Job Exception', ['order_id' => $this->order->order_id, 'msg' => $e->getMessage()]);
@@ -103,5 +113,50 @@ class ProcessSupplierOrder implements ShouldQueue
         $this->order->logStatus('Gagal: Pengiriman ke supplier gagal setelah beberapa kali percobaan. Mohon hubungi Admin.', 'failed_permanent', [
             'final_error' => $exception->getMessage()
         ]);
+    }
+
+    /**
+     * Gabungkan penjelasan gagal dari berbagai bentuk respons TokoVoucher.
+     */
+    private function formatTokovoucherFailureMessage(\Illuminate\Http\Client\Response $response, array $resultToko, string $productCode, string $tujuan, string $serverId): string
+    {
+        $parts = [];
+
+        if (! $response->successful()) {
+            $parts[] = 'HTTP '.$response->status();
+        }
+
+        $textKeys = ['message', 'msg', 'error_msg', 'error', 'pesan', 'keterangan', 'errorMessage'];
+        foreach ($textKeys as $key) {
+            if (! empty($resultToko[$key]) && is_string($resultToko[$key])) {
+                $parts[] = trim($resultToko[$key]);
+                break;
+            }
+        }
+
+        $st = $resultToko['status'] ?? null;
+        if ($st !== null && $st !== '' && $st !== 1 && $st !== '1' && $st !== true) {
+            $parts[] = 'status='.json_encode($st, JSON_UNESCAPED_UNICODE);
+        }
+
+        if ($resultToko === [] && $response->body() !== '') {
+            $parts[] = 'body: '.Str::limit(trim(strip_tags($response->body())), 400);
+        } elseif ($parts === [] && $resultToko !== []) {
+            $parts[] = Str::limit(json_encode($resultToko, JSON_UNESCAPED_UNICODE), 500);
+        }
+
+        if ($parts === []) {
+            $parts[] = 'Respons kosong atau tidak dikenali. Periksa member_code/secret, kode produk, tujuan, dan saldo TokoVoucher.';
+        }
+
+        $hint = sprintf(
+            ' [ref=%s, produk=%s, tujuan=%s, server_id=%s]',
+            $this->order->order_id,
+            $productCode !== '' ? $productCode : '-',
+            $tujuan !== '' ? $tujuan : '-',
+            $serverId !== '' ? $serverId : '-'
+        );
+
+        return implode(' — ', $parts).$hint;
     }
 }
