@@ -25,6 +25,7 @@ class DokuService
         Log::info('DOKU Config Init:', [
             'provider_name' => $provider->name ?? 'NULL',
             'client_id' => $this->clientId,
+            'secret_key_prefix' => substr($this->secretKey, 0, 8),
             'mode_raw' => $provider->mode ?? 'NULL',
             'mode_used' => $mode
         ]);
