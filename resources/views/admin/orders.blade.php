@@ -6,10 +6,11 @@
 
 @section('content')
 <div class="space-y-6">
-    <p class="text-xs text-slate-500 max-w-3xl leading-relaxed">
-        Pesanan <strong class="text-slate-400">success</strong> biasanya sudah otomatis memanggil TokoVoucher lewat antrian.
-        Tombol <strong class="text-emerald-400/90">Kirim ke game</strong> hanya tampil jika status <strong class="text-cyan-400/90">paid</strong> (pembayaran sudah masuk, belum terkirim ke supplier).
-    </p>
+    <div class="text-xs text-slate-500 max-w-3xl leading-relaxed space-y-2">
+        <p><strong class="text-slate-300">Tombol «Kirim Diamond»</strong> hanya muncul jika status pesanan <strong class="text-cyan-400/90">Paid</strong>. Status lain tidak menampilkan tombol.</p>
+        <p>Saat diklik, sistem mengirim permintaan ke <strong class="text-slate-300">API TokoVoucher</strong>; diamond/top-up dikirim ke <strong class="text-slate-300">ID game</strong> sesuai data pesanan.</p>
+        <p>Jika status berubah menjadi <strong class="text-emerald-400/90">Success</strong> tanpa admin menekan tombol, artinya <strong class="text-slate-300">pengiriman otomatis</strong> (antrian) sudah memanggil TokoVoucher — diamond sudah diproses tanpa klik manual.</p>
+    </div>
     <!-- Filters & Actions -->
     <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-white/5">
         <form action="{{ route('admin.orders') }}" method="GET" class="flex items-center gap-3 w-full md:w-auto">
@@ -103,7 +104,7 @@
                                     };
                                 @endphp
                                 <span class="px-3 py-1 bg-{{ $status_color }}-500/10 text-{{ $status_color }}-400 text-[10px] font-bold rounded-full border border-{{ $status_color }}-500/20">
-                                    {{ str_replace('_', ' ', $order->status) }}
+                                    {{ \Illuminate\Support\Str::title(str_replace('_', ' ', $order->status)) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-center">
@@ -218,15 +219,15 @@
         });
     }
 
-    async function fulfillTokovoucher(orderPk, orderId) {
+    async function fulfillSendDiamond(orderPk, orderId) {
         const ask = await Swal.fire({
-            title: 'Kirim ke TokoVoucher?',
-            html: 'Pesanan <strong>' + orderId + '</strong> akan diproses ke ID game (API transaksi).',
+            title: 'Kirim Diamond?',
+            html: 'TokoVoucher akan dipanggil untuk pesanan <strong>' + orderId + '</strong>. Diamond dikirim ke ID game sesuai data pesanan.',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#10b981',
             cancelButtonColor: '#334155',
-            confirmButtonText: 'Ya, kirim',
+            confirmButtonText: 'Ya, kirim diamond',
             cancelButtonText: 'Batal',
             background: '#0f172a',
             color: '#fff'

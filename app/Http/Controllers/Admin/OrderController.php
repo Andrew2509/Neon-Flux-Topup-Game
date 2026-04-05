@@ -37,13 +37,13 @@ class OrderController extends Controller
     }
 
     /**
-     * Pemanggilan manual API TokoVoucher (/v1/transaksi) untuk pesanan yang sudah paid
-     * (biasanya sudah otomatis lewat antrian; tombol ini untuk jalan ulang / jika antrian sempat gagal).
+     * Tombol admin «Kirim Diamond»: memanggil API TokoVoucher (/v1/transaksi) untuk pesanan paid.
+     * Jika status sudah success tanpa klik, artinya ProcessSupplierOrder otomatis dari antrian sudah jalan.
      */
     public function fulfillTokovoucher(Request $request, Order $order)
     {
         if ($order->status !== 'paid') {
-            $msg = 'Tombol kirim hanya untuk pesanan berstatus paid. Status saat ini: '.$order->status.'.';
+            $msg = 'Kirim Diamond hanya untuk status Paid. Status saat ini: '.$order->status.'.';
 
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 422)
@@ -55,9 +55,9 @@ class OrderController extends Controller
             $order->refresh();
 
             if ($order->status === 'success') {
-                $message = 'Berhasil: TokoVoucher memproses pesanan '.$order->order_id.'.';
+                $message = 'Berhasil: diamond/top-up terkirim lewat TokoVoucher untuk '.$order->order_id.'.';
             } else {
-                $message = 'Proses selesai tetapi status pesanan masih '.$order->status.'. Cek log pesanan atau coba lagi.';
+                $message = 'Permintaan selesai tetapi status masih '.$order->status.'. Cek log atau coba lagi.';
             }
 
             return $request->expectsJson()
