@@ -20,6 +20,11 @@ class WhatsAppService
         $this->apiKey = $provider?->api_key ?? env('ORBIT_WA_API_KEY');
     }
 
+    public function isConfigured(): bool
+    {
+        return $this->apiKey !== null && $this->apiKey !== '';
+    }
+
     /**
      * Send a text message to a WhatsApp number.
      *

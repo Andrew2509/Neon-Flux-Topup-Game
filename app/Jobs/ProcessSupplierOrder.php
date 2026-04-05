@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Models\Provider;
+use App\Services\FailedPermanentOrderWhatsAppNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -113,6 +114,15 @@ class ProcessSupplierOrder implements ShouldQueue
         $this->order->logStatus('Gagal: Pengiriman ke supplier gagal setelah beberapa kali percobaan. Mohon hubungi Admin.', 'failed_permanent', [
             'final_error' => $exception->getMessage()
         ]);
+
+        try {
+            app(FailedPermanentOrderWhatsAppNotifier::class)->notify($this->order->fresh(), $exception->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Failed permanent: notifier WA error', [
+                'order_id' => $this->order->order_id,
+                'msg' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
