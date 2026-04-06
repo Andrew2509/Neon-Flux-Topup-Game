@@ -56,6 +56,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Force WWW redirect (production)
+    |--------------------------------------------------------------------------
+    |
+    | Jika true dan APP_URL memakai host www.example.com, permintaan ke example.com
+    | dialihkan 301 ke www. Set FORCE_WWW=false di lokal.
+    |
+    */
+
+    'force_www' => (bool) env('FORCE_WWW', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

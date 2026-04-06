@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(prepend: [
+            \App\Http\Middleware\RedirectToWww::class,
+        ]);
+
         $middleware->alias([
             'jwt' => \App\Http\Middleware\JwtMiddleware::class,
         ]);
