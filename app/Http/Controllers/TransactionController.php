@@ -769,9 +769,13 @@ class TransactionController extends Controller
                   
         $rawBody = $request->getContent();
 
-
-
-        if (!$ipaymuService->validateCallback($request->all(), $signature, $rawBody)) {
+        if (!$ipaymuService->validateCallback(
+            $request->all(),
+            $signature,
+            $rawBody,
+            $request->header('X-Timestamp') ?? $request->header('x-timestamp'),
+            $request->header('X-External-ID') ?? $request->header('x-external-id')
+        )) {
             Log::error('iPaymu Callback: Invalid Signature', [
                 'signature_received' => $signature,
                 'header_x_sig' => $request->header('x-signature'),
