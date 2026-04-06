@@ -1,7 +1,7 @@
 {{-- ============================================================
     NAVBAR — Fixed top; menu penuh di md+; drawer + bottom bar di HP
     ============================================================ --}}
-<nav class="fixed top-0 w-full z-[200] px-3 sm:px-6 py-3 md:py-4 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-transparent">
+<nav class="fixed top-0 w-full z-[500] px-3 sm:px-6 py-3 md:py-4 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-transparent pointer-events-auto">
     {{-- Logo --}}
     <div class="flex items-center gap-2 min-w-0 flex-shrink">
         @if($logo = get_image_url('site_logo'))
@@ -12,8 +12,8 @@
         </span>
     </div>
 
-    {{-- Nav Links (tablet & desktop) --}}
-    <div class="hidden md:flex flex-1 justify-center max-w-3xl px-4 space-x-6 lg:space-x-8 text-base lg:text-lg font-medium text-slate-500 dark:text-gray-400">
+    {{-- Nav Links (layar lebar lg+; tablet pakai drawer + sentuh) --}}
+    <div class="hidden lg:flex flex-1 justify-center max-w-3xl px-4 space-x-6 lg:space-x-8 text-base lg:text-lg font-medium text-slate-500 dark:text-gray-400">
         <a class="hover:text-primary transition-colors whitespace-nowrap {{ request()->is('/') ? 'text-slate-900 dark:text-white text-glow' : '' }}" href="{{ url('/') }}">Top-Up</a>
         <a class="hover:text-primary transition-colors whitespace-nowrap {{ request()->is('catalog') ? 'text-slate-900 dark:text-white text-glow' : '' }}" href="{{ route('catalog') }}">Games</a>
         <a class="hover:text-primary transition-colors whitespace-nowrap {{ request()->routeIs('track.order') ? 'text-slate-900 dark:text-white text-glow' : '' }}" href="{{ route('track.order') }}">Cek Transaksi</a>
@@ -107,7 +107,7 @@
             </a>
         @endauth
 
-        <button type="button" id="nf-drawer-open" class="md:hidden flex items-center justify-center size-10 rounded-xl border border-white/15 bg-white/10 dark:bg-white/5 text-slate-900 dark:text-white touch-manipulation" aria-label="Buka menu">
+        <button type="button" id="nf-drawer-open" class="lg:hidden flex items-center justify-center size-10 rounded-xl border border-white/15 bg-white/10 dark:bg-white/5 text-slate-900 dark:text-white touch-manipulation relative z-10" aria-label="Buka menu">
             <span class="material-icons-round text-2xl">menu</span>
         </button>
     </div>

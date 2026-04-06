@@ -1,5 +1,5 @@
 {{-- Drawer harus di akhir body (setelah konten/banner) agar tidak ketutup lapisan halaman --}}
-<div id="nf-drawer" class="fixed inset-0 z-[300] hidden md:hidden" aria-hidden="true">
+<div id="nf-drawer" class="fixed inset-0 z-[600] hidden lg:hidden" aria-hidden="true">
     <div class="absolute inset-0 z-0 bg-black/60 backdrop-blur-sm" data-nf-drawer-backdrop></div>
     <div class="absolute top-0 right-0 z-10 h-full w-[min(100%,20rem)] bg-[#0b0e14] border-l border-white/10 shadow-2xl flex flex-col nf-drawer-panel">
         <div class="flex items-center justify-between p-4 border-b border-white/10">
@@ -30,7 +30,7 @@
     }
 </style>
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
     var drawer = document.getElementById('nf-drawer');
     if (!drawer) return;
     var openBtn = document.getElementById('nf-drawer-open');
@@ -46,8 +46,8 @@
         drawer.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
     }
-    openBtn && openBtn.addEventListener('click', openD);
-    closeBtn && closeBtn.addEventListener('click', closeD);
-    backdrop && backdrop.addEventListener('click', closeD);
-})();
+    if (openBtn) openBtn.addEventListener('click', openD);
+    if (closeBtn) closeBtn.addEventListener('click', closeD);
+    if (backdrop) backdrop.addEventListener('click', closeD);
+});
 </script>
