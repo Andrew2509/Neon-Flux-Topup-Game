@@ -397,6 +397,23 @@ class TransactionController extends Controller
         $buyerEmail = $user->email ?? $guestEmail;
         $buyerPhone = $user->phone ?? ('08' . str_pad((string) (abs(crc32($order->order_id . (string) $order->id)) % 1000000000), 9, '0', STR_PAD_LEFT));
 
+        // iPaymu direct VA: bank channel biasanya minimal Rp 10.000; di bawah itu sering gagal generate VA.
+        if ($paymentMethod
+            && ($paymentMethod->type ?? '') === 'bank'
+            && filled($paymentMethod->code)
+            && (int) $order->total_price < 10000) {
+            $order->update([
+                'status' => 'failed',
+                'payload' => array_merge($order->payload ?? [], ['ipaymu_error' => 'below_va_minimum']),
+            ]);
+            $msg = 'Nominal untuk Virtual Account iPaymu minimal Rp 10.000. Pilih nominal lebih besar atau gunakan metode lain (mis. QRIS).';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 400);
+            }
+
+            return back()->with('error', 'Pesanan gagal diinisiasi: ' . $msg);
+        }
+
         $ipaymuService = new \App\Services\IPaymuService();
         $res = $ipaymuService->createPayment([
             'orderId' => $order->order_id,
@@ -423,6 +440,9 @@ class TransactionController extends Controller
         }
         if (stripos((string) $message, 'unauthorized credential') !== false) {
             $message = 'iPaymu menolak kredensial: periksa nomor VA dan API Key di Admin → Provider (salin dari dashboard iPaymu). Pastikan mode Sandbox/Production sama dengan akun Anda (sandbox.ipaymu.com vs my.ipaymu.com). Hapus spasi di awal/akhir kunci jika ada.';
+        }
+        if (stripos((string) $message, 'Failed to generate VA') !== false) {
+            $message = 'iPaymu gagal membuat nomor Virtual Account untuk bank yang dipilih (gangguan channel atau VA belum diaktifkan). Coba bank lain atau QRIS; pastikan channel tersebut aktif di dashboard iPaymu (Konfigurasi Layanan) dan nominal ≥ Rp 10.000. Jika terus gagal, hubungi support iPaymu.';
         }
 
         if ($status == 200 && $data) {
@@ -454,6 +474,14 @@ class TransactionController extends Controller
         }
 
         $order->update(['status' => 'failed', 'payload' => $res]);
+        Log::warning('iPaymu createPayment gagal', [
+            'order_id' => $order->order_id,
+            'amount' => $order->total_price,
+            'channel' => $paymentMethod?->code,
+            'type' => $paymentMethod?->type,
+            'status' => $status,
+            'message' => $res['Message'] ?? $res['message'] ?? null,
+        ]);
         if ($request->expectsJson()) {
             return response()->json(['success' => false, 'message' => $message, 'debug' => $res], 400);
         }
