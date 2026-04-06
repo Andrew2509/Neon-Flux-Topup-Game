@@ -81,9 +81,9 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 <div class="size-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase">
-                                    {{ substr($rating->user->name ?? 'A', 0, 1) }}
+                                    {{ mb_substr($rating->displayName(), 0, 1) }}
                                 </div>
-                                <div class="text-sm font-bold text-slate-100">{{ $rating->user->name ?? 'Guest User' }}</div>
+                                <div class="text-sm font-bold text-slate-100">{{ $rating->displayName() }}</div>
                             </div>
                         </td>
                         <td class="px-6 py-4 text-xs text-slate-400 font-medium">{{ $rating->product_name }}</td>

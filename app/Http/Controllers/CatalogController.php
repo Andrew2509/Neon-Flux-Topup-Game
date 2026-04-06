@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Rating;
 use Illuminate\Http\Request;
 
 class CatalogController extends Controller
@@ -143,9 +144,18 @@ class CatalogController extends Controller
         // 3. Fetch Sliders
         $sliders = \App\Models\Slider::where('status', 'Aktif')->latest()->get();
 
+        $testimonials = Rating::query()
+            ->where('is_visible', true)
+            ->whereNotNull('comment')
+            ->where('comment', '!=', '')
+            ->with('user')
+            ->latest()
+            ->limit(40)
+            ->get();
+
         $view = $this->deviceType().'.neonflux.topup';
 
-        return view($view, compact('popular', 'categories', 'totalCategories', 'activeGroups', 'sliders'));
+        return view($view, compact('popular', 'categories', 'totalCategories', 'activeGroups', 'sliders', 'testimonials'));
     }
 
     public function catalog(Request $request)

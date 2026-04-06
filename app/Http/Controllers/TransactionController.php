@@ -6,6 +6,7 @@ use App\Jobs\ProcessSupplierOrder;
 use App\Jobs\RelayTokovoucherWebhookAfterPaymentJob;
 use App\Models\Order;
 use App\Models\Provider;
+use App\Models\Rating;
 use App\Models\Service;
 use App\Services\IPaymuService;
 use App\Services\TokovoucherOrderSync;
@@ -1600,12 +1601,15 @@ class TransactionController extends Controller
             return redirect()->route('track.order', ['order_id' => $order_id]);
         }
 
+        session(['testimonial_eligible_order_id' => $order->order_id]);
+        $testimonialAlreadySent = Rating::where('order_id', $order->order_id)->exists();
+
         $device = (new CatalogController)->deviceType();
         $view = "{$device}.neonflux.payment.topup-success";
         if (! view()->exists($view)) {
             $view = 'desktop.neonflux.payment.topup-success';
         }
 
-        return view($view, compact('order'));
+        return view($view, compact('order', 'testimonialAlreadySent'));
     }
 }

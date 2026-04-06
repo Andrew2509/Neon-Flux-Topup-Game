@@ -23,6 +23,8 @@
         {{-- Game Grid --}}
         @include('desktop.neonflux.sections.game-grid')
 
+        @include('desktop.neonflux.sections.testimonials-marquee')
+
     </div>
 
 </main>
