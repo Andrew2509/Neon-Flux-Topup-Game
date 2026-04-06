@@ -3,12 +3,12 @@
 @section('title', 'Kalkulator Magic Wheel - ' . get_setting('site_name', 'NEON FLUX'))
 
 @section('content')
-<div class="min-h-[80vh] flex flex-col items-center justify-start px-4 pt-[calc(var(--header-h)+1.25rem)] sm:pt-40 pb-24 md:pb-28 relative overflow-x-hidden isolate scroll-mt-24">
+<div class="min-h-[80vh] flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
     <!-- Background Decor -->
-    <div class="absolute top-1/4 -left-20 size-96 bg-purple-500/10 blur-[120px] rounded-full animate-pulse -z-10 pointer-events-none" aria-hidden="true"></div>
-    <div class="absolute bottom-1/4 -right-20 size-80 bg-primary/10 blur-[120px] rounded-full animate-pulse -z-10 pointer-events-none" style="animation-delay: 2s" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute top-1/4 -left-20 size-96 bg-purple-500/10 blur-[120px] rounded-full animate-pulse" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute bottom-1/4 -right-20 size-80 bg-primary/10 blur-[120px] rounded-full animate-pulse" style="animation-delay: 2s" aria-hidden="true"></div>
 
-    <div class="w-full max-w-2xl relative z-0">
+    <div class="relative z-0 w-full max-w-2xl">
         <div class="glass-panel p-8 md:p-12 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
             <!-- Header -->
             <div class="text-center mb-10 space-y-3">
