@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Deposit;
 use App\Models\Order;
 use App\Models\Provider;
+use App\Services\TokovoucherPostPaymentRelay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +32,10 @@ class WebhookController extends Controller
 
     private function tokovoucherPost(Request $request)
     {
+        if ($request->header('X-Neonflux-Relay') === '1') {
+            return $this->handlePostPaymentRelay($request);
+        }
+
         if ($this->shouldRejectTokovoucherIp($request)) {
             Log::warning('TokoVoucher Webhook POST: IP ditolak', ['ip' => $request->ip()]);
 
@@ -148,6 +153,50 @@ class WebhookController extends Controller
         }
 
         return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * Relay internal setelah gateway bayar: HMAC, tanpa signature TokoVoucher.
+     * Memicu cek status API + retry ProcessSupplierOrder (lihat TokovoucherPostPaymentRelay).
+     */
+    private function handlePostPaymentRelay(Request $request)
+    {
+        $secret = (string) config('services.tokovoucher.internal_relay_secret', '');
+        if ($secret === '' || strlen($secret) < 16) {
+            return response()->json(['status' => 'error', 'message' => 'Relay disabled'], 403);
+        }
+
+        $ts = $request->header('X-Neonflux-Timestamp', '');
+        $sig = $request->header('X-Neonflux-Signature', '');
+        if (! is_string($ts) || ! is_string($sig) || $ts === '' || $sig === '') {
+            return response()->json(['status' => 'error', 'message' => 'Relay auth required'], 403);
+        }
+
+        if (! ctype_digit($ts) || abs(time() - (int) $ts) > 300) {
+            return response()->json(['status' => 'error', 'message' => 'Relay timestamp invalid'], 403);
+        }
+
+        $refId = $request->input('ref_id');
+        if ($refId === null || $refId === '') {
+            return response()->json(['status' => 'error', 'message' => 'ref_id required'], 400);
+        }
+        $refId = (string) $refId;
+
+        $expected = hash_hmac('sha256', $refId.'|'.$ts, $secret);
+        if (! hash_equals($expected, $sig)) {
+            Log::warning('TokoVoucher relay: signature tidak valid', ['ref_id' => $refId]);
+
+            return response()->json(['status' => 'error', 'message' => 'Invalid relay signature'], 403);
+        }
+
+        $order = Order::where('order_id', $refId)->first();
+        if (! $order) {
+            return response()->json(['status' => 'error', 'message' => 'Order not found'], 404);
+        }
+
+        TokovoucherPostPaymentRelay::run($order);
+
+        return response()->json(['status' => 'success', 'message' => 'relay_ok'], 200);
     }
 
     /**
@@ -327,4 +376,3 @@ class WebhookController extends Controller
             : response()->json(['status' => 'success'], 200);
     }
 }
-

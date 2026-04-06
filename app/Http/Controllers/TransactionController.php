@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Jobs\ProcessSupplierOrder;
+use App\Jobs\RelayTokovoucherWebhookAfterPaymentJob;
 use App\Models\Order;
 use App\Models\Provider;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use App\Models\Service;
-use App\Models\SiteSetting;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 use App\Services\IPaymuService;
-use App\Services\TokovoucherService;
-use App\Jobs\ProcessSupplierOrder;
+use App\Services\TokovoucherOrderSync;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class TransactionController extends Controller
 {
@@ -50,26 +50,26 @@ class TransactionController extends Controller
         // 2. Ambil Detail Layanan dari Database dengan pengecekan status bertingkat
         $service = Service::where('product_code', $request->product_code)
             ->where('status', 'Aktif')
-            ->whereHas('category', function($q) {
+            ->whereHas('category', function ($q) {
                 // Pastikan Operator Game Aktif
                 $q->where('status', 'Aktif')
-                  ->where(function($q) {
-                      // Jika terhubung ke Kategori Tokovoucher (Direct/Voucher), pastikan Kategori tersebut Aktif
-                      $q->whereDoesntHave('providerCategory')
-                        ->orWhereHas('providerCategory', function($q) {
-                            $q->where('status', 'Aktif');
-                        });
-                  });
+                    ->where(function ($q) {
+                        // Jika terhubung ke Kategori Tokovoucher (Direct/Voucher), pastikan Kategori tersebut Aktif
+                        $q->whereDoesntHave('providerCategory')
+                            ->orWhereHas('providerCategory', function ($q) {
+                                $q->where('status', 'Aktif');
+                            });
+                    });
             })
             ->first();
 
-        if (!$service) {
+        if (! $service) {
             return back()->with('error', 'Produk tidak ditemukan atau sedang tidak aktif (Operator/Kategori dinonaktifkan).');
         }
 
         // 3. Buat Data Pesanan (Order)
         // Use more robust Order ID: Timestamp + Random (Enterprise Standard)
-        $orderId = 'PRP' . date('ymdHis') . strtoupper(Str::random(4));
+        $orderId = 'PRP'.date('ymdHis').strtoupper(Str::random(4));
 
         $paymentMethod = null;
         if ($request->filled('payment')) {
@@ -102,13 +102,13 @@ class TransactionController extends Controller
                 'cost' => $service->cost ?? $service->price,
                 'customer_whatsapp' => $waDigits,
                 'player_nickname' => $playerNickname,
-            ]
+            ],
         ]);
 
         // Log initial creation
         $order->logStatus(
             'Pesanan dibuat untuk produk '.$service->name
-            . ($playerNickname !== '' ? ' — nama pemain (cek ID): '.$playerNickname : '')
+            .($playerNickname !== '' ? ' — nama pemain (cek ID): '.$playerNickname : '')
         );
 
         $providerName = $paymentMethod ? ($paymentMethod->provider ?? 'Duitku') : 'Duitku';
@@ -140,7 +140,7 @@ class TransactionController extends Controller
     private function checkoutTotalFromProductAndPaymentMethod(float $productPrice, ?\App\Models\PaymentMethod $paymentMethod): int
     {
         $base = (int) round($productPrice);
-        if (!$paymentMethod) {
+        if (! $paymentMethod) {
             return $base;
         }
 
@@ -175,7 +175,7 @@ class TransactionController extends Controller
         /** @var \App\Models\User $user */
         $user = \Illuminate\Support\Facades\Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return back()->with('error', 'Silakan login terlebih dahulu untuk menggunakan saldo.');
         }
 
@@ -189,7 +189,7 @@ class TransactionController extends Controller
                 $user->decrement('balance', $order->total_price);
 
                 // Update Order
-                $order->logStatus("Pembayaran menggunakan saldo berhasil. Sisa saldo: " . number_format($user->balance, 0, ',', '.'), 'paid');
+                $order->logStatus('Pembayaran menggunakan saldo berhasil. Sisa saldo: '.number_format($user->balance, 0, ',', '.'), 'paid');
             });
 
             $this->fulfillSupplierAfterPayment($order);
@@ -200,8 +200,8 @@ class TransactionController extends Controller
                     'message' => 'Pembayaran saldo berhasil.',
                     'data' => [
                         'order_id' => $order->order_id,
-                        'redirect_url' => route('track.order', ['order_id' => $order->order_id])
-                    ]
+                        'redirect_url' => route('track.order', ['order_id' => $order->order_id]),
+                    ],
                 ]);
             }
 
@@ -209,6 +209,7 @@ class TransactionController extends Controller
 
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Balance Payment Error', ['msg' => $e->getMessage()]);
+
             return back()->with('error', 'Terjadi kesalahan sistem saat memproses saldo.');
         }
     }
@@ -216,8 +217,9 @@ class TransactionController extends Controller
     private function processDuitku($order, $paymentMethod, Request $request)
     {
         $duitku = Provider::where('name', 'like', '%Duitku%')->first();
-        if (!$duitku || !$duitku->provider_id || !$duitku->api_key) {
+        if (! $duitku || ! $duitku->provider_id || ! $duitku->api_key) {
             $order->update(['status' => 'failed', 'payload' => ['error' => 'Provider Duitku belum disetting']]);
+
             return back()->with('error', 'Sistem error: Kredensial Duitku tidak ditemukan.');
         }
 
@@ -233,29 +235,30 @@ class TransactionController extends Controller
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Pembayaran gagal: Minimal pembayaran Duitku adalah Rp 10.000'], 400);
             }
+
             return back()->with('error', 'Pesanan gagal diinisiasi: Minimal total pembayaran menggunakan Duitku adalah Rp 10.000.');
         }
 
         // 4. Proses Tembak API Duitku (POST)
-        $signature = md5($merchantCode . $orderId . (int)$paymentAmount . $merchantKey);
+        $signature = md5($merchantCode.$orderId.(int) $paymentAmount.$merchantKey);
 
         // Subdomain Duitku: sandbox | passport (live). Mengikuti ENVIRONMENT MODE admin (sandbox | production).
         $duitkuHostMode = $duitku->usesProductionApi() ? 'passport' : 'sandbox';
         $duitkuUrl = "https://{$duitkuHostMode}.duitku.com/webapi/api/merchant/v2/inquiry";
 
-        $params = array(
+        $params = [
             'merchantCode' => $merchantCode,
-            'paymentAmount' => (int)$paymentAmount,
+            'paymentAmount' => (int) $paymentAmount,
             'merchantOrderId' => $orderId,
             'productDetails' => $productDetails,
             'email' => 'guest@princepay.com',
             'phoneNumber' => '08111222333',
-            'customerVaName' => 'PrincePay ' . $orderId,
+            'customerVaName' => 'PrincePay '.$orderId,
             'callbackUrl' => url('/api/duitku/callback'),
             'returnUrl' => route('home'),
             'signature' => $signature,
-            'expiryPeriod' => 60
-        );
+            'expiryPeriod' => 60,
+        ];
 
         if ($paymentMethod) {
             $params['paymentMethod'] = $paymentMethod->code;
@@ -264,23 +267,23 @@ class TransactionController extends Controller
         try {
             Log::info('Duitku Request', ['url' => $duitkuUrl, 'params' => $params]);
             $response = Http::post($duitkuUrl, $params);
-            
-            if (!$response->successful()) {
+
+            if (! $response->successful()) {
                 $errorBody = $response->body();
                 Log::error('Duitku API Error', ['status' => $response->status(), 'body' => $errorBody]);
-                throw new \Exception("Duitku API error: " . $errorBody);
+                throw new \Exception('Duitku API error: '.$errorBody);
             }
 
             $result = $response->json();
             Log::info('Duitku Response', ['status' => $response->status(), 'body' => $result]);
 
-            if (!$result || !is_array($result)) {
-                 Log::error('Duitku Invalid JSON', ['body' => $response->body()]);
-                 throw new \Exception("Duitku returned invalid response format");
+            if (! $result || ! is_array($result)) {
+                Log::error('Duitku Invalid JSON', ['body' => $response->body()]);
+                throw new \Exception('Duitku returned invalid response format');
             }
 
             if ($response->successful() && isset($result['statusCode']) && $result['statusCode'] == '00') {
-                if (!empty($result['paymentUrl'])) {
+                if (! empty($result['paymentUrl'])) {
                     if ($request->expectsJson()) {
                         return response()->json([
                             'success' => true,
@@ -288,16 +291,18 @@ class TransactionController extends Controller
                             'data' => [
                                 'order_id' => $orderId,
                                 'payment_url' => $result['paymentUrl'],
-                                'reference' => $result['reference'] ?? ''
-                            ]
+                                'reference' => $result['reference'] ?? '',
+                            ],
                         ]);
                     }
+
                     return redirect($result['paymentUrl']);
                 } else {
                     $order->update(['status' => 'failed', 'payload' => $result]);
                     if ($request->expectsJson()) {
                         return response()->json(['success' => false, 'message' => 'Gagal generate URL Pembayaran', 'debug' => $result], 400);
                     }
+
                     return back()->with('error', 'Pesanan gagal diinisiasi: Gagal generate URL Pembayaran.');
                 }
             } else {
@@ -305,63 +310,82 @@ class TransactionController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json(['success' => false, 'message' => $result['statusMessage'] ?? 'Inquiry Failed', 'debug' => $result], 400);
                 }
-                return back()->with('error', 'Pesanan gagal diinisiasi: ' . ($result['statusMessage'] ?? 'Unknown Error Duitku.'));
+
+                return back()->with('error', 'Pesanan gagal diinisiasi: '.($result['statusMessage'] ?? 'Unknown Error Duitku.'));
             }
 
         } catch (\Exception $e) {
             $order->update(['status' => 'failed', 'payload' => ['error_exception' => $e->getMessage()]]);
-            return back()->with('error', 'Gagal terhubung ke Duitku: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal terhubung ke Duitku: '.$e->getMessage());
         }
     }
 
     private function processDoku($order, $paymentMethod, Request $request)
     {
         $user = $order->user ?? \Illuminate\Support\Facades\Auth::user();
-        $dokuService = new \App\Services\DokuService();
+        $dokuService = new \App\Services\DokuService;
 
         // Map payment method code to DOKU payment_method_types
         $paymentMethodTypes = [];
         if ($paymentMethod) {
             $code = strtoupper($paymentMethod->code);
-            if (str_contains($code, 'QRIS')) $paymentMethodTypes = ['QRIS'];
-            elseif (str_contains($code, 'BCA')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BCA'];
-            elseif (str_contains($code, 'BNI')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BNI'];
-            elseif (str_contains($code, 'BRI')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BRI'];
-            elseif (str_contains($code, 'MANDIRI')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_MANDIRI'];
-            elseif (str_contains($code, 'PERMATA')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_PERMATA'];
-            elseif (str_contains($code, 'CIMB')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_CIMB'];
-            elseif (str_contains($code, 'DANAMON')) $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_DANAMON'];
-            elseif (str_contains($code, 'SHOPEEPAY')) $paymentMethodTypes = ['EMONEY_SHOPEE_PAY'];
-            elseif (str_contains($code, 'OVO')) $paymentMethodTypes = ['EMONEY_OVO'];
-            elseif (str_contains($code, 'DANA')) $paymentMethodTypes = ['EMONEY_DANA'];
-            elseif (str_contains($code, 'LINKAJA')) $paymentMethodTypes = ['EMONEY_LINKAJA'];
-            elseif (str_contains($code, 'ALFAMART')) $paymentMethodTypes = ['ONLINE_TO_OFFLINE_ALFA'];
-            elseif (str_contains($code, 'INDOMARET')) $paymentMethodTypes = ['ONLINE_TO_OFFLINE_INDOMARET'];
-            elseif (str_contains($code, 'CC') || str_contains($code, 'CREDIT')) $paymentMethodTypes = ['CREDIT_CARD'];
+            if (str_contains($code, 'QRIS')) {
+                $paymentMethodTypes = ['QRIS'];
+            } elseif (str_contains($code, 'BCA')) {
+                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BCA'];
+            } elseif (str_contains($code, 'BNI')) {
+                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BNI'];
+            } elseif (str_contains($code, 'BRI')) {
+                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BRI'];
+            } elseif (str_contains($code, 'MANDIRI')) {
+                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_MANDIRI'];
+            } elseif (str_contains($code, 'PERMATA')) {
+                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_PERMATA'];
+            } elseif (str_contains($code, 'CIMB')) {
+                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_CIMB'];
+            } elseif (str_contains($code, 'DANAMON')) {
+                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_DANAMON'];
+            } elseif (str_contains($code, 'SHOPEEPAY')) {
+                $paymentMethodTypes = ['EMONEY_SHOPEE_PAY'];
+            } elseif (str_contains($code, 'OVO')) {
+                $paymentMethodTypes = ['EMONEY_OVO'];
+            } elseif (str_contains($code, 'DANA')) {
+                $paymentMethodTypes = ['EMONEY_DANA'];
+            } elseif (str_contains($code, 'LINKAJA')) {
+                $paymentMethodTypes = ['EMONEY_LINKAJA'];
+            } elseif (str_contains($code, 'ALFAMART')) {
+                $paymentMethodTypes = ['ONLINE_TO_OFFLINE_ALFA'];
+            } elseif (str_contains($code, 'INDOMARET')) {
+                $paymentMethodTypes = ['ONLINE_TO_OFFLINE_INDOMARET'];
+            } elseif (str_contains($code, 'CC') || str_contains($code, 'CREDIT')) {
+                $paymentMethodTypes = ['CREDIT_CARD'];
+            }
         }
 
         $res = $dokuService->createCheckoutPayment([
-            'orderId'            => $order->order_id,
-            'amount'             => $order->total_price,
-            'name'               => $user->name ?? 'Guest',
-            'email'              => $user->email ?? 'guest@neonflux.my.id',
-            'phone'              => $user->phone ?? '081122334455',
-            'returnUrl'          => route('track.order', ['order_id' => $order->order_id]),
-            'notifyUrl'          => url('/api/doku/callback'),
+            'orderId' => $order->order_id,
+            'amount' => $order->total_price,
+            'name' => $user->name ?? 'Guest',
+            'email' => $user->email ?? 'guest@neonflux.my.id',
+            'phone' => $user->phone ?? '081122334455',
+            'returnUrl' => route('track.order', ['order_id' => $order->order_id]),
+            'notifyUrl' => url('/api/doku/callback'),
             'paymentMethodTypes' => $paymentMethodTypes,
         ]);
 
-        if (!empty($res['success']) && !empty($res['paymentUrl'])) {
+        if (! empty($res['success']) && ! empty($res['paymentUrl'])) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
-                    'data'    => [
-                        'order_id'    => $order->order_id,
+                    'data' => [
+                        'order_id' => $order->order_id,
                         'payment_url' => $res['paymentUrl'],
-                    ]
+                    ],
                 ]);
             }
+
             return redirect($res['paymentUrl']);
         }
 
@@ -385,7 +409,8 @@ class TransactionController extends Controller
         if ($request->expectsJson()) {
             return response()->json(['success' => false, 'message' => $errorMsgStr], 400);
         }
-        return back()->with('error', 'Pesanan gagal diinisiasi: ' . $errorMsgStr);
+
+        return back()->with('error', 'Pesanan gagal diinisiasi: '.$errorMsgStr);
     }
 
     private function processIPaymu($order, $paymentMethod, Request $request)
@@ -395,11 +420,11 @@ class TransactionController extends Controller
 
         $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'localhost';
         $orderTag = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $order->order_id));
-        $guestEmail = 'guest+' . $orderTag . '@' . $appHost;
+        $guestEmail = 'guest+'.$orderTag.'@'.$appHost;
 
-        $buyerName = $user->name ?? ('Pelanggan ' . $order->order_id);
+        $buyerName = $user->name ?? ('Pelanggan '.$order->order_id);
         $buyerEmail = $user->email ?? $guestEmail;
-        $buyerPhone = $user->phone ?? ('08' . str_pad((string) (abs(crc32($order->order_id . (string) $order->id)) % 1000000000), 9, '0', STR_PAD_LEFT));
+        $buyerPhone = $user->phone ?? ('08'.str_pad((string) (abs(crc32($order->order_id.(string) $order->id)) % 1000000000), 9, '0', STR_PAD_LEFT));
 
         // iPaymu direct VA: bank channel biasanya minimal Rp 10.000; di bawah itu sering gagal generate VA.
         if ($paymentMethod
@@ -415,7 +440,7 @@ class TransactionController extends Controller
                 return response()->json(['success' => false, 'message' => $msg], 400);
             }
 
-            return back()->with('error', 'Pesanan gagal diinisiasi: ' . $msg);
+            return back()->with('error', 'Pesanan gagal diinisiasi: '.$msg);
         }
 
         $ipaymuPayload = [
@@ -432,7 +457,7 @@ class TransactionController extends Controller
             'paymentChannel' => $paymentMethod ? $paymentMethod->code : null,
         ];
 
-        $ipaymuService = new IPaymuService();
+        $ipaymuService = new IPaymuService;
         $res = $ipaymuService->createPayment($ipaymuPayload);
 
         Log::info('iPaymu Response API:', ['res' => $res]);
@@ -503,11 +528,11 @@ class TransactionController extends Controller
             }
 
             // Detect device for proper view folder
-            $device = (new CatalogController())->deviceType();
+            $device = (new CatalogController)->deviceType();
             $view = "{$device}.neonflux.payment.ipaymu";
-            
-            if (!view()->exists($view)) {
-                $view = "desktop.neonflux.payment.ipaymu"; // Fallback to desktop
+
+            if (! view()->exists($view)) {
+                $view = 'desktop.neonflux.payment.ipaymu'; // Fallback to desktop
             }
 
             // Normalize QR Source for QRIS
@@ -516,7 +541,7 @@ class TransactionController extends Controller
                 $qrString = $data['QrString'] ?? $data['qr_string'] ?? $data['PaymentNo'] ?? $data['payment_no'] ?? null;
                 // If it looks like a valid QRIS string (starting with 000201), use external generator as it's more reliable
                 if ($qrString && str_starts_with($qrString, '000201')) {
-                    $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?data=" . urlencode($qrString) . "&size=400x400";
+                    $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?data='.urlencode($qrString).'&size=400x400';
                 } else {
                     $qrUrl = $data['QrImage'] ?? $data['qr_image'] ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
                 }
@@ -525,7 +550,7 @@ class TransactionController extends Controller
             return view($view, [
                 'order' => $order,
                 'ipaymuData' => $data,
-                'qrUrl' => $qrUrl
+                'qrUrl' => $qrUrl,
             ]);
         }
 
@@ -541,9 +566,9 @@ class TransactionController extends Controller
         if ($request->expectsJson()) {
             return response()->json(['success' => false, 'message' => $message, 'debug' => $res], 400);
         }
-        $errMsg = 'Pesanan gagal diinisiasi: ' . $message;
+        $errMsg = 'Pesanan gagal diinisiasi: '.$message;
         if (config('app.debug')) {
-            $errMsg .= ' (Raw: ' . json_encode($res) . ')';
+            $errMsg .= ' (Raw: '.json_encode($res).')';
         }
 
         return back()->with('error', $errMsg);
@@ -552,12 +577,12 @@ class TransactionController extends Controller
     private function processMidtrans($order, $paymentMethod, Request $request)
     {
         $user = $order->user ?? \Illuminate\Support\Facades\Auth::user();
-        $midtransService = new \App\Services\MidtransService();
-        
+        $midtransService = new \App\Services\MidtransService;
+
         $params = [
             'transaction_details' => [
                 'order_id' => $order->order_id,
-                'gross_amount' => (int)$order->total_price,
+                'gross_amount' => (int) $order->total_price,
             ],
             'customer_details' => [
                 'first_name' => $user->name ?? 'Guest',
@@ -567,104 +592,119 @@ class TransactionController extends Controller
             'item_details' => [
                 [
                     'id' => $order->payload['product_code'] ?? 'P001',
-                    'price' => (int)$order->total_price,
+                    'price' => (int) $order->total_price,
                     'quantity' => 1,
                     'name' => $order->product_name,
-                ]
+                ],
             ],
             'callbacks' => [
                 'finish' => route('home'),
             ],
             'expiry' => [
                 'unit' => 'minutes',
-                'duration' => 60
+                'duration' => 60,
             ],
             'metadata' => [
-                'order_id' => $order->order_id
-            ]
+                'order_id' => $order->order_id,
+            ],
         ];
 
         // Map Payment Method Code to Midtrans enabled_payments
         if ($paymentMethod) {
             $code = strtoupper($paymentMethod->code);
             $enabledPayments = [];
-            
-            if (str_contains($code, 'QRIS')) $enabledPayments = ['qris', 'gopay', 'shopeepay'];
-            elseif (str_contains($code, 'GOPAY')) $enabledPayments = ['gopay', 'qris'];
-            elseif (str_contains($code, 'SHOPEEPAY')) $enabledPayments = ['shopeepay', 'qris'];
-            elseif (str_contains($code, 'DANA')) $enabledPayments = ['dana', 'qris'];
-            elseif (str_contains($code, 'BCA')) $enabledPayments = ['bca_va'];
-            elseif (str_contains($code, 'BNI')) $enabledPayments = ['bni_va'];
-            elseif (str_contains($code, 'BRI')) $enabledPayments = ['bri_va'];
-            elseif (str_contains($code, 'MANDIRI')) $enabledPayments = ['echannel', 'mandiri_clickpay'];
-            elseif (str_contains($code, 'PERMATA')) $enabledPayments = ['permata_va'];
-            elseif (str_contains($code, 'ALFAMART')) $enabledPayments = ['alfamart'];
-            elseif (str_contains($code, 'INDOMARET')) $enabledPayments = ['indomaret'];
-            elseif (str_contains($code, 'OVO') || str_contains($code, 'LINKAJA')) $enabledPayments = ['qris'];
 
-            if (!empty($enabledPayments)) {
+            if (str_contains($code, 'QRIS')) {
+                $enabledPayments = ['qris', 'gopay', 'shopeepay'];
+            } elseif (str_contains($code, 'GOPAY')) {
+                $enabledPayments = ['gopay', 'qris'];
+            } elseif (str_contains($code, 'SHOPEEPAY')) {
+                $enabledPayments = ['shopeepay', 'qris'];
+            } elseif (str_contains($code, 'DANA')) {
+                $enabledPayments = ['dana', 'qris'];
+            } elseif (str_contains($code, 'BCA')) {
+                $enabledPayments = ['bca_va'];
+            } elseif (str_contains($code, 'BNI')) {
+                $enabledPayments = ['bni_va'];
+            } elseif (str_contains($code, 'BRI')) {
+                $enabledPayments = ['bri_va'];
+            } elseif (str_contains($code, 'MANDIRI')) {
+                $enabledPayments = ['echannel', 'mandiri_clickpay'];
+            } elseif (str_contains($code, 'PERMATA')) {
+                $enabledPayments = ['permata_va'];
+            } elseif (str_contains($code, 'ALFAMART')) {
+                $enabledPayments = ['alfamart'];
+            } elseif (str_contains($code, 'INDOMARET')) {
+                $enabledPayments = ['indomaret'];
+            } elseif (str_contains($code, 'OVO') || str_contains($code, 'LINKAJA')) {
+                $enabledPayments = ['qris'];
+            }
+
+            if (! empty($enabledPayments)) {
                 $params['enabled_payments'] = $enabledPayments;
             }
         }
-        
+
         // Add dynamic notification URL for reliability (useful for Snap)
         $params['notification_url'] = url('/api/midtrans/callback');
 
         try {
             $paymentUrl = $midtransService->createSnapUrl($params);
-            
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
                     'data' => [
                         'order_id' => $order->order_id,
-                        'payment_url' => $paymentUrl
-                    ]
+                        'payment_url' => $paymentUrl,
+                    ],
                 ]);
             }
-            
+
             return redirect($paymentUrl);
         } catch (\Exception $e) {
             $order->update(['status' => 'failed', 'payload' => ['error_exception' => $e->getMessage()]]);
             if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Gagal terhubung ke Midtrans: ' . $e->getMessage()], 500);
+                return response()->json(['success' => false, 'message' => 'Gagal terhubung ke Midtrans: '.$e->getMessage()], 500);
             }
-            return back()->with('error', 'Gagal terhubung ke Midtrans: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal terhubung ke Midtrans: '.$e->getMessage());
         }
     }
 
     public function midtransCallback(Request $request)
     {
-        $midtransService = new \App\Services\MidtransService();
+        $midtransService = new \App\Services\MidtransService;
         $payload = $request->all();
 
         // 1. Signature Verification (Hardened Security)
-        if (!$midtransService->verifyNotification($payload)) {
+        if (! $midtransService->verifyNotification($payload)) {
             Log::error('Midtrans Callback: Invalid Signature', ['payload' => $payload]);
+
             return response()->json(['error' => 'Invalid signature'], 403);
         }
-        
+
         try {
             // 2. Double-Check status with Midtrans API (Secondary Layer of trust)
             $notification = $midtransService->getStatus($request->order_id ?? $request->id);
-            
+
             if (is_array($notification)) {
-                $notification = (object)$notification;
+                $notification = (object) $notification;
             }
-            
+
             $transaction = $notification->transaction_status;
             $type = $notification->payment_type;
             $orderId = $notification->order_id;
             $fraud = $notification->fraud_status;
 
             $order = Order::where('order_id', $orderId)->first();
-            if (!$order) {
+            if (! $order) {
                 return response()->json(['error' => 'Order not found'], 404);
             }
 
             if ($order->status !== 'pending_payment' && ($transaction == 'settlement' || $transaction == 'capture')) {
-                 return response()->json(['success' => 'already_processed']);
+                return response()->json(['success' => 'already_processed']);
             }
 
             if ($transaction == 'capture') {
@@ -675,21 +715,22 @@ class TransactionController extends Controller
                         $this->finalizeOrder($order, 'Midtrans (CC)');
                     }
                 }
-            } else if ($transaction == 'settlement') {
+            } elseif ($transaction == 'settlement') {
                 $this->finalizeOrder($order, "Midtrans ($type)");
-            } else if ($transaction == 'pending') {
+            } elseif ($transaction == 'pending') {
                 $order->logStatus('Menunggu pembayaran (Midtrans).', 'pending_payment');
-            } else if ($transaction == 'deny') {
+            } elseif ($transaction == 'deny') {
                 $order->logStatus('Pembayaran ditolak (Midtrans).', 'failed');
-            } else if ($transaction == 'expire') {
+            } elseif ($transaction == 'expire') {
                 $order->logStatus('Pembayaran kedaluwarsa (Midtrans).', 'failed');
-            } else if ($transaction == 'cancel') {
+            } elseif ($transaction == 'cancel') {
                 $order->logStatus('Pembayaran dibatalkan (Midtrans).', 'failed');
             }
 
             return response()->json(['success' => 'ok']);
         } catch (\Exception $e) {
             Log::error('Midtrans Callback Error:', ['msg' => $e->getMessage()]);
+
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
@@ -723,6 +764,12 @@ class TransactionController extends Controller
             ]);
             ProcessSupplierOrder::dispatch($fresh->fresh());
         }
+
+        $relaySecret = (string) config('services.tokovoucher.internal_relay_secret', '');
+        $again = $fresh->fresh();
+        if ($again && $again->status === 'paid' && strlen($relaySecret) >= 16) {
+            RelayTokovoucherWebhookAfterPaymentJob::dispatch($again->order_id)->afterResponse();
+        }
     }
 
     /**
@@ -745,7 +792,7 @@ class TransactionController extends Controller
             return;
         }
 
-        $svc = new IPaymuService();
+        $svc = new IPaymuService;
         $res = $svc->getTransactionDetails(trim($tid));
         if (! IPaymuService::isCheckTransactionPaid($res)) {
             Cache::put($throttleKey, 1, 15);
@@ -776,125 +823,6 @@ class TransactionController extends Controller
         }
     }
 
-    /**
-     * Sinkron status ke TokoVoucher lewat POST /v1/transaksi/status (ref_id = order_id).
-     *
-     * @see https://docs.tokovoucher.net/cek-status/post
-     */
-    private function trySyncTokovoucherStatusFromApi(?Order $order): void
-    {
-        if (! $order) {
-            return;
-        }
-
-        if (! in_array($order->status, ['paid', 'processing', 'failed_provider'], true)) {
-            return;
-        }
-
-        if (! TokovoucherService::resolveTokovoucherProvider()) {
-            return;
-        }
-
-        $throttleKey = 'tv_tx_status:'.$order->order_id;
-        if (Cache::has($throttleKey)) {
-            return;
-        }
-
-        $svc = new TokovoucherService();
-        $res = $svc->checkTransactionStatus($order->order_id);
-        $parsed = TokovoucherService::parseStatusResult($res);
-
-        if ($parsed === null || $parsed === 'error') {
-            if ($parsed === 'error') {
-                Log::info('TokoVoucher cek status: respons error', [
-                    'order_id' => $order->order_id,
-                    'error_msg' => $res['error_msg'] ?? null,
-                ]);
-            }
-            Cache::put($throttleKey, 1, 12);
-
-            return;
-        }
-
-        if ($parsed === 'pending') {
-            Cache::put($throttleKey, 1, 12);
-
-            return;
-        }
-
-        if ($parsed === 'sukses' && is_array($res)) {
-            try {
-                \Illuminate\Support\Facades\DB::transaction(function () use ($order, $res) {
-                    $o = Order::whereKey($order->id)->lockForUpdate()->first();
-                    if (! $o || ! in_array($o->status, ['paid', 'processing', 'failed_provider'], true)) {
-                        return;
-                    }
-                    $from = $o->status;
-                    $merged = array_merge($o->payload ?? [], [
-                        'tokovoucher' => array_merge($o->payload['tokovoucher'] ?? [], [
-                            'sn' => (string) ($res['sn'] ?? ''),
-                            'trx_id' => (string) ($res['trx_id'] ?? ''),
-                            'ref_id' => (string) ($res['ref_id'] ?? $o->order_id),
-                            'message' => (string) ($res['message'] ?? ''),
-                            'produk' => $res['produk'] ?? null,
-                            'via_status_api' => true,
-                        ]),
-                    ]);
-                    $o->update(['status' => 'success', 'payload' => $merged]);
-                    $o->logs()->create([
-                        'status_from' => $from,
-                        'status_to' => 'success',
-                        'message' => 'TokoVoucher: sukses (sinkron API cek status).',
-                        'payload' => ['trx_id' => $res['trx_id'] ?? null],
-                    ]);
-                });
-                Log::info('Order diperbarui dari TokoVoucher cek status', ['order_id' => $order->order_id]);
-            } catch (\Throwable $e) {
-                Log::warning('trySyncTokovoucherStatusFromApi (sukses) gagal', [
-                    'order_id' => $order->order_id,
-                    'msg' => $e->getMessage(),
-                ]);
-            }
-
-            return;
-        }
-
-        if ($parsed === 'gagal' && is_array($res)) {
-            try {
-                \Illuminate\Support\Facades\DB::transaction(function () use ($order, $res) {
-                    $o = Order::whereKey($order->id)->lockForUpdate()->first();
-                    if (! $o || ! in_array($o->status, ['paid', 'processing', 'failed_provider'], true)) {
-                        return;
-                    }
-                    $from = $o->status;
-                    $merged = array_merge($o->payload ?? [], [
-                        'tokovoucher' => array_merge($o->payload['tokovoucher'] ?? [], [
-                            'trx_id' => (string) ($res['trx_id'] ?? ''),
-                            'status_api' => 'gagal',
-                            'message' => (string) ($res['message'] ?? ''),
-                        ]),
-                    ]);
-                    $o->update(['status' => 'failed', 'payload' => $merged]);
-                    $o->logs()->create([
-                        'status_from' => $from,
-                        'status_to' => 'failed',
-                        'message' => 'TokoVoucher: gagal (API cek status). '.(string) ($res['message'] ?? ''),
-                        'payload' => ['trx_id' => $res['trx_id'] ?? null],
-                    ]);
-                });
-            } catch (\Throwable $e) {
-                Log::warning('trySyncTokovoucherStatusFromApi (gagal) error', [
-                    'order_id' => $order->order_id,
-                    'msg' => $e->getMessage(),
-                ]);
-            }
-
-            return;
-        }
-
-        Cache::put($throttleKey, 1, 12);
-    }
-
     public function duitkuCallback(Request $request)
     {
         $merchantCode = $request->input('merchantCode');
@@ -905,16 +833,18 @@ class TransactionController extends Controller
         $reference = $request->input('reference');
 
         $duitku = Provider::where('name', 'like', '%Duitku%')->first();
-        if (!$duitku) return response()->json(['error' => 'Provider Duitku tidak ditemukan'], 400);
+        if (! $duitku) {
+            return response()->json(['error' => 'Provider Duitku tidak ditemukan'], 400);
+        }
 
         $merchantKey = $duitku->api_key;
 
         // Normalize: hapus spasi & pastikan amount tanpa desimal (Duitku standard)
-        $cleanAmount = (int)$amount;
+        $cleanAmount = (int) $amount;
         $merchantCode = trim($merchantCode);
         $merchantOrderId = trim($merchantOrderId);
 
-        $rawString = $merchantCode . $cleanAmount . $merchantOrderId . $merchantKey;
+        $rawString = $merchantCode.$cleanAmount.$merchantOrderId.$merchantKey;
         $calcSignature = md5($rawString);
 
         if ($signature !== $calcSignature) {
@@ -924,7 +854,7 @@ class TransactionController extends Controller
                 'string_to_hash' => $rawString, // Copy string ini ke MD5 generator untuk tes
                 'merchantOrderId' => $merchantOrderId,
                 'received_amount' => $amount,
-                'clean_amount_used' => $cleanAmount
+                'clean_amount_used' => $cleanAmount,
             ]);
 
             // Bypass khusus untuk testing jika Anda ingin memaksa sukses (Hapus jika sudah live!)
@@ -934,14 +864,16 @@ class TransactionController extends Controller
         }
 
         $order = Order::where('order_id', $merchantOrderId)->first();
-        if (!$order) {
+        if (! $order) {
             Log::error('Duitku Callback: Order Not Found', ['order_id' => $merchantOrderId]);
+
             return response()->json(['error' => 'Order not found'], 404);
         }
 
         // Idempotency: Jika status bukan pending_payment, berarti sudah diproses
         if ($order->status !== 'pending_payment' && $resultCode === '00') {
             Log::info('Duitku Callback: Order already processed (Idempotency)', ['order_id' => $merchantOrderId]);
+
             return response()->json(['success' => 'already_processed']);
         }
 
@@ -958,10 +890,12 @@ class TransactionController extends Controller
                 return response()->json(['success' => 'ok']);
             } catch (\Exception $e) {
                 Log::error('Duitku Callback Transaction Error', ['order_id' => $order->order_id, 'msg' => $e->getMessage()]);
+
                 return response()->json(['error' => 'Internal Server Error'], 500);
             }
-        } else if ($resultCode === '01') {
+        } elseif ($resultCode === '01') {
             $order->logStatus('Pembayaran gagal atau dibatalkan oleh pengguna.', 'failed');
+
             return response()->json(['success' => 'ok']);
         }
 
@@ -978,7 +912,7 @@ class TransactionController extends Controller
             'raw_content' => $request->getContent(),
         ]);
 
-        $ipaymuService = new IPaymuService();
+        $ipaymuService = new IPaymuService;
 
         // Try multiple header names for signature
         $signature = $request->header('x-signature')
@@ -1070,19 +1004,20 @@ class TransactionController extends Controller
     {
         Log::info('DOKU Callback Received:', [
             'headers' => [
-                'Client-Id'         => $request->header('Client-Id'),
-                'Request-Id'        => $request->header('Request-Id'),
+                'Client-Id' => $request->header('Client-Id'),
+                'Request-Id' => $request->header('Request-Id'),
                 'Request-Timestamp' => $request->header('Request-Timestamp'),
-                'Signature'         => $request->header('Signature') ? '***PRESENT***' : '***MISSING***',
+                'Signature' => $request->header('Signature') ? '***PRESENT***' : '***MISSING***',
             ],
             'body' => $request->all(),
         ]);
 
-        $dokuService = new \App\Services\DokuService();
+        $dokuService = new \App\Services\DokuService;
 
         // 1. Validate Signature
-        if (!$dokuService->validateNotificationSignature($request)) {
+        if (! $dokuService->validateNotificationSignature($request)) {
             Log::error('DOKU Callback: Signature validation FAILED');
+
             return response()->json(['error' => 'Invalid signature'], 403);
         }
 
@@ -1092,26 +1027,29 @@ class TransactionController extends Controller
             $payload = $request->all();
 
             // 2. Extract key fields from notification
-            $invoiceNumber  = $payload['order']['invoice_number'] ?? null;
-            $transStatus    = $payload['transaction']['status'] ?? null;
-            $serviceId      = $payload['service']['id'] ?? 'UNKNOWN';
-            $channelId      = $payload['channel']['id'] ?? 'UNKNOWN';
+            $invoiceNumber = $payload['order']['invoice_number'] ?? null;
+            $transStatus = $payload['transaction']['status'] ?? null;
+            $serviceId = $payload['service']['id'] ?? 'UNKNOWN';
+            $channelId = $payload['channel']['id'] ?? 'UNKNOWN';
 
-            if (!$invoiceNumber) {
+            if (! $invoiceNumber) {
                 Log::error('DOKU Callback: Missing invoice_number', ['payload' => $payload]);
+
                 return response()->json(['error' => 'Missing invoice_number'], 400);
             }
 
             // 3. Find Order
             $order = Order::where('order_id', $invoiceNumber)->first();
-            if (!$order) {
+            if (! $order) {
                 Log::error('DOKU Callback: Order not found', ['invoice' => $invoiceNumber]);
+
                 return response()->json(['error' => 'Order not found'], 404);
             }
 
             // 4. Idempotency check
             if ($order->status !== 'pending_payment' && $transStatus === 'SUCCESS') {
                 Log::info('DOKU Callback: Already processed', ['order_id' => $invoiceNumber]);
+
                 return response()->json(['success' => 'already_processed']);
             }
 
@@ -1120,18 +1058,19 @@ class TransactionController extends Controller
                 $this->finalizeOrder($order, "DOKU ({$serviceId}/{$channelId})");
                 Log::info('DOKU Callback: Order finalized', ['order_id' => $invoiceNumber]);
             } elseif ($transStatus === 'FAILED') {
-                $order->logStatus('Pembayaran gagal (DOKU - ' . $channelId . ').', 'failed');
+                $order->logStatus('Pembayaran gagal (DOKU - '.$channelId.').', 'failed');
                 Log::info('DOKU Callback: Payment failed', ['order_id' => $invoiceNumber]);
             } else {
                 Log::info('DOKU Callback: Unhandled status', [
                     'order_id' => $invoiceNumber,
-                    'status'   => $transStatus,
+                    'status' => $transStatus,
                 ]);
             }
 
             return response()->json(['success' => 'ok']);
         } catch (\Exception $e) {
             Log::error('DOKU Callback Exception:', ['msg' => $e->getMessage()]);
+
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
@@ -1141,15 +1080,15 @@ class TransactionController extends Controller
      * Each entry: 'category_slug' => ['vppId' => ..., 'vppPrice' => ..., 'voucherTypeName' => ..., 'nicknameKey' => ...]
      */
     private static $codashopGames = [
-        'mobile-legends'    => ['vppId' => 27684, 'vppPrice' => 527250, 'voucherTypeName' => 'MOBILE_LEGENDS', 'nicknameKey' => 'username'],
-        'free-fire'         => ['vppId' => 28153, 'vppPrice' => 1000000, 'voucherTypeName' => 'FREEFIRE', 'nicknameKey' => 'roles.0.role'],
-        'genshin-impact'    => ['vppId' => 116118, 'vppPrice' => 815000, 'voucherTypeName' => 'GENSHIN_IMPACT', 'nicknameKey' => 'username'],
-        'call-of-duty'      => ['vppId' => 46251, 'vppPrice' => 2000000, 'voucherTypeName' => 'CALL_OF_DUTY', 'nicknameKey' => 'username'],
-        'valorant'          => ['vppId' => 950605, 'vppPrice' => 739000, 'voucherTypeName' => 'VALORANT', 'nicknameKey' => 'username'],
-        'pubg-mobile'       => ['vppId' => 11568, 'vppPrice' => 1500000, 'voucherTypeName' => 'PUBG_MOBILE', 'nicknameKey' => 'username'],
-        'arena-of-valor'    => ['vppId' => 8003, 'vppPrice' => 300000, 'voucherTypeName' => 'AOV', 'nicknameKey' => 'username'],
+        'mobile-legends' => ['vppId' => 27684, 'vppPrice' => 527250, 'voucherTypeName' => 'MOBILE_LEGENDS', 'nicknameKey' => 'username'],
+        'free-fire' => ['vppId' => 28153, 'vppPrice' => 1000000, 'voucherTypeName' => 'FREEFIRE', 'nicknameKey' => 'roles.0.role'],
+        'genshin-impact' => ['vppId' => 116118, 'vppPrice' => 815000, 'voucherTypeName' => 'GENSHIN_IMPACT', 'nicknameKey' => 'username'],
+        'call-of-duty' => ['vppId' => 46251, 'vppPrice' => 2000000, 'voucherTypeName' => 'CALL_OF_DUTY', 'nicknameKey' => 'username'],
+        'valorant' => ['vppId' => 950605, 'vppPrice' => 739000, 'voucherTypeName' => 'VALORANT', 'nicknameKey' => 'username'],
+        'pubg-mobile' => ['vppId' => 11568, 'vppPrice' => 1500000, 'voucherTypeName' => 'PUBG_MOBILE', 'nicknameKey' => 'username'],
+        'arena-of-valor' => ['vppId' => 8003, 'vppPrice' => 300000, 'voucherTypeName' => 'AOV', 'nicknameKey' => 'username'],
         'league-of-legends' => ['vppId' => 372111, 'vppPrice' => 360000, 'voucherTypeName' => 'WILD_RIFT', 'nicknameKey' => 'username'],
-        'honkai-star-rail'  => ['vppId' => 116118, 'vppPrice' => 815000, 'voucherTypeName' => 'HONKAI_STAR_RAIL', 'nicknameKey' => 'username'],
+        'honkai-star-rail' => ['vppId' => 116118, 'vppPrice' => 815000, 'voucherTypeName' => 'HONKAI_STAR_RAIL', 'nicknameKey' => 'username'],
     ];
 
     /**
@@ -1285,10 +1224,10 @@ class TransactionController extends Controller
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-            'Accept'       => 'application/json',
-            'Origin'       => 'https://www.codashop.com',
-            'Referer'      => 'https://www.codashop.com/',
-            'User-Agent'   => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'Accept' => 'application/json',
+            'Origin' => 'https://www.codashop.com',
+            'Referer' => 'https://www.codashop.com/',
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         ])->connectTimeout(12)->timeout(22)->post('https://order-sg.codashop.com/initPayment.action', $postdata);
 
         $result = $response->json();
@@ -1466,17 +1405,17 @@ class TransactionController extends Controller
             }
 
             $postdata = [
-                'voucherPricePoint.id'            => $gameConfig['vppId'],
-                'voucherPricePoint.price'         => $gameConfig['vppPrice'],
+                'voucherPricePoint.id' => $gameConfig['vppId'],
+                'voucherPricePoint.price' => $gameConfig['vppPrice'],
                 'voucherPricePoint.variablePrice' => 0,
-                'user.userId'                     => $request->user_id,
-                'user.zoneId'                     => $request->zone_id ?? '',
-                'voucherTypeName'                 => $gameConfig['voucherTypeName'],
-                'lvtId'                           => '',
-                'shopLang'                        => 'id_ID',
-                'dynamicSkuToken'                 => '',
-                'pricePointDynamicSkuToken'       => '',
-                'voucherTypeId'                   => ''
+                'user.userId' => $request->user_id,
+                'user.zoneId' => $request->zone_id ?? '',
+                'voucherTypeName' => $gameConfig['voucherTypeName'],
+                'lvtId' => '',
+                'shopLang' => 'id_ID',
+                'dynamicSkuToken' => '',
+                'pricePointDynamicSkuToken' => '',
+                'voucherTypeId' => '',
             ];
 
             Log::info('CheckID Codashop Request', [
@@ -1537,9 +1476,10 @@ class TransactionController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('CheckID Exception', ['msg' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan koneksi. Coba lagi nanti.'
+                'message' => 'Terjadi kesalahan koneksi. Coba lagi nanti.',
             ], 500);
         }
     }
@@ -1553,15 +1493,16 @@ class TransactionController extends Controller
             if ($order) {
                 $this->trySyncIpaymuOrderFromApi($order);
                 $order->refresh();
-                $this->trySyncTokovoucherStatusFromApi($order);
+                TokovoucherOrderSync::syncPaidOrderFromTvStatusApi($order);
                 $order->refresh();
                 $order->load('logs');
             }
 
-            if (!$order && $request->filled('order_id')) {
+            if (! $order && $request->filled('order_id')) {
                 if ($request->expectsJson()) {
                     return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
                 }
+
                 return back()->with('error', 'Nomor Transaksi tidak ditemukan.');
             }
         }
@@ -1576,25 +1517,25 @@ class TransactionController extends Controller
                     'price' => $order->total_price,
                     'method' => $order->payment_method,
                     'created_at' => $order->created_at->format('Y-m-d H:i:s'),
-                    'logs' => $order->logs->map(function($log) {
+                    'logs' => $order->logs->map(function ($log) {
                         return [
                             'time' => $log->created_at->format('H:i:s'),
                             'message' => $log->message,
-                            'status' => $log->status_to
+                            'status' => $log->status_to,
                         ];
-                    })
-                ]
+                    }),
+                ],
             ]);
         }
 
         $latestOrders = Order::latest()->take(10)->get();
 
         // Detect device for proper view folder
-        $device = (new CatalogController())->deviceType();
+        $device = (new CatalogController)->deviceType();
         $view = "{$device}.neonflux.track";
 
-        if (!view()->exists($view)) {
-            $view = "desktop.neonflux.track"; // Fallback to desktop
+        if (! view()->exists($view)) {
+            $view = 'desktop.neonflux.track'; // Fallback to desktop
         }
 
         return view($view, compact('order', 'latestOrders'));
