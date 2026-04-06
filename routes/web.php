@@ -1,22 +1,25 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => []], function () {
-    $isMobile = function() {
+    $isMobile = function () {
         $userAgent = request()->header('User-Agent');
-        $isTablet = (bool) preg_match('/huawei|harmony|mediapad|matepad|mate\s*pad|honor|pad|playbook|silk|kindle|hp-tablet|ipad|tablet/i', $userAgent) || 
-                    ((bool) preg_match('/android/i', $userAgent) && !(bool) preg_match('/mobile/i', $userAgent));
+        $isTablet = (bool) preg_match('/huawei|harmony|mediapad|matepad|mate\s*pad|honor|pad|playbook|silk|kindle|hp-tablet|ipad|tablet/i', $userAgent) ||
+                    ((bool) preg_match('/android/i', $userAgent) && ! (bool) preg_match('/mobile/i', $userAgent));
         $isMobile = (bool) preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i', $userAgent);
+
         return $isTablet || $isMobile;
     };
 
-
-
     Route::get('/', [App\Http\Controllers\CatalogController::class, 'index'])->name('home');
     Route::get('/track', [App\Http\Controllers\TransactionController::class, 'trackOrder'])->name('track.order');
-    Route::get('/cek-transaksi', function() { return redirect()->route('track.order'); });
+    Route::get('/topup/berhasil', [App\Http\Controllers\TransactionController::class, 'topupSuccess'])->name('topup.success');
+    Route::get('/api/order/{order_id}/poll', [App\Http\Controllers\TransactionController::class, 'pollOrderStatus'])->name('order.poll');
+    Route::get('/cek-transaksi', function () {
+        return redirect()->route('track.order');
+    });
     Route::post('/api/checkout', [App\Http\Controllers\TransactionController::class, 'checkout'])
         ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
@@ -38,12 +41,16 @@ Route::group(['middleware' => []], function () {
     Route::get('/topup/{slug}', [App\Http\Controllers\CatalogController::class, 'showTopup'])->name('topup.game');
 
     Route::post('/checkout', [App\Http\Controllers\TransactionController::class, 'checkout'])->name('checkout');
-    Route::get('/checkout', function() { return redirect()->route('home'); });
+    Route::get('/checkout', function () {
+        return redirect()->route('home');
+    });
 
-    Route::get('/debug/duitku', function() {
+    Route::get('/debug/duitku', function () {
         $duitku = \App\Models\Provider::where('name', 'like', '%Duitku%')->first();
-        if (!$duitku) return response()->json(["error" => "Provider Duitku not found in DB."]);
-        
+        if (! $duitku) {
+            return response()->json(['error' => 'Provider Duitku not found in DB.']);
+        }
+
         $hostMode = $duitku->usesProductionApi() ? 'passport' : 'sandbox';
         $url = "https://{$hostMode}.duitku.com/webapi/api/merchant/v2/inquiry";
 
@@ -52,11 +59,11 @@ Route::group(['middleware' => []], function () {
             'duitku_host' => $hostMode,
             'url' => $url,
             'merchantCode' => $duitku->provider_id,
-            'has_api_key' => !empty($duitku->api_key),
+            'has_api_key' => ! empty($duitku->api_key),
             'app_env' => env('APP_ENV'),
-            'app_debug' => env('APP_DEBUG')
+            'app_debug' => env('APP_DEBUG'),
         ];
-        
+
         try {
             // Test 1: Connectivity & Merchant Recognition (POST Inquiry)
             $resp = \Illuminate\Support\Facades\Http::post($url, [
@@ -65,36 +72,36 @@ Route::group(['middleware' => []], function () {
                 'paymentAmount' => 10000,
                 'productDetails' => 'Debug Test',
                 'email' => 'debug@test.com',
-                'signature' => md5($duitku->provider_id . 'DEBUG-'.time() . '10000' . $duitku->api_key)
+                'signature' => md5($duitku->provider_id.'DEBUG-'.time().'10000'.$duitku->api_key),
             ]);
             $data['inquiry_test'] = [
                 'method' => 'POST',
                 'status' => $resp->status(),
-                'body' => $resp->json() ?: $resp->body()
+                'body' => $resp->json() ?: $resp->body(),
             ];
 
             // Test 2: List Payment Methods
             $tz = new \DateTimeZone('Asia/Jakarta');
             $now = new \DateTime('now', $tz);
             $dt = $now->format('Y-m-d H:i:s');
-            
+
             $pmUrl = "https://{$hostMode}.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod";
-            $pmSig = md5($duitku->provider_id . '10000' . $dt . $duitku->api_key);
+            $pmSig = md5($duitku->provider_id.'10000'.$dt.$duitku->api_key);
             $pmResp = \Illuminate\Support\Facades\Http::post($pmUrl, [
                 'merchantCode' => $duitku->provider_id,
                 'amount' => 10000,
                 'datetime' => $dt,
-                'signature' => $pmSig
+                'signature' => $pmSig,
             ]);
             $data['payment_methods_api'] = [
                 'status' => $pmResp->status(),
                 'datetime_sent' => $dt,
-                'body' => $pmResp->json()
+                'body' => $pmResp->json(),
             ];
         } catch (\Exception $e) {
             $data['diagnostic_error'] = $e->getMessage();
         }
-        
+
         return response()->json($data);
     });
     Route::post('/api/check-id', [App\Http\Controllers\TransactionController::class, 'checkPlayerId'])
@@ -107,12 +114,13 @@ Route::group(['middleware' => []], function () {
     Route::match(['get', 'post'], '/api/tokovoucher/webhook', [App\Http\Controllers\Api\WebhookController::class, 'tokovoucher'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
     // Debug Routes
-    Route::get('/debug/ip', function() {
+    Route::get('/debug/ip', function () {
         $response = Http::get('https://api.ipify.org?format=json');
+
         return response()->json([
             'outgoing_ip' => $response->json()['ip'] ?? 'Unknown',
             'user_ip' => request()->ip(),
-            'note' => 'IP iPaymu adalah outgoing_ip'
+            'note' => 'IP iPaymu adalah outgoing_ip',
         ]);
     });
     Route::get('/cron/sync-tokovoucher/{token}', [App\Http\Controllers\Api\CronController::class, 'syncTokovoucher'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
@@ -190,7 +198,7 @@ Route::group(['middleware' => []], function () {
     Route::get('/admin/tokovoucher/categories', [\App\Http\Controllers\Admin\TokovoucherController::class, 'categories'])->name('admin.tokovoucher.categories');
     Route::post('/admin/tokovoucher/categories/{id}/sync', [\App\Http\Controllers\Admin\TokovoucherController::class, 'syncCategory'])->name('admin.tokovoucher.sync');
     Route::post('/admin/tokovoucher/categories/{id}/toggle', [\App\Http\Controllers\Admin\TokovoucherController::class, 'toggleProviderCategory'])->name('admin.tokovoucher.toggle');
-    
+
     Route::get('/admin/logo-generator', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'index'])->name('admin.logo-generator.index');
     Route::post('/admin/logo-generator/generate', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'generate'])->name('admin.logo-generator.generate');
 
@@ -224,20 +232,21 @@ Route::group(['middleware' => []], function () {
     });
 
     // UI Dev Routes (Aliases for backward compatibility if needed)
-    Route::get('/login-ui', fn() => redirect()->route('login'));
-    Route::get('/register-ui', fn() => redirect()->route('register'));
+    Route::get('/login-ui', fn () => redirect()->route('login'));
+    Route::get('/register-ui', fn () => redirect()->route('register'));
 
     // JWT Test Routes
     Route::prefix('api/jwt')->group(function () {
         Route::get('/generate', function (\App\Services\JwtService $jwt) {
             $token = $jwt->generateToken(['user_id' => 1, 'email' => 'admin@princepay.com']);
+
             return response()->json(['token' => $token]);
         });
 
         Route::get('/verify', function (\Illuminate\Http\Request $request) {
             return response()->json([
                 'message' => 'Token is valid!',
-                'data' => $request->attributes->get('jwt_payload')
+                'data' => $request->attributes->get('jwt_payload'),
             ]);
         })->middleware('jwt');
     });

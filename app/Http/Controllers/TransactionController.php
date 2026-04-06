@@ -1542,4 +1542,70 @@ class TransactionController extends Controller
 
         return view($view, compact('order', 'latestOrders'));
     }
+
+    /**
+     * Polling ringan untuk halaman bayar iPaymu: sinkron iPaymu + TokoVoucher lalu kembalikan status.
+     */
+    public function pollOrderStatus(Request $request, string $order_id)
+    {
+        $order_id = trim($order_id);
+        if ($order_id === '' || strlen($order_id) > 64 || ! preg_match('/^[A-Za-z0-9\-]+$/', $order_id)) {
+            return response()->json(['success' => false, 'message' => 'Order tidak valid.'], 400);
+        }
+
+        $order = Order::where('order_id', $order_id)->first();
+        if (! $order) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
+        }
+
+        if (! in_array($order->status, ['success', 'failed', 'failed_permanent'], true)) {
+            if ($order->status === 'pending_payment') {
+                $this->trySyncIpaymuOrderFromApi($order);
+                $order->refresh();
+            }
+            if (in_array($order->status, ['paid', 'processing', 'failed_provider'], true)) {
+                TokovoucherOrderSync::syncPaidOrderFromTvStatusApi($order, true);
+                $order->refresh();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'order_id' => $order->order_id,
+                'status' => $order->status,
+                'product_name' => $order->product_name,
+                'sn' => data_get($order->payload, 'tokovoucher.sn'),
+                'trx_id' => data_get($order->payload, 'tokovoucher.trx_id'),
+            ],
+        ]);
+    }
+
+    /**
+     * Tampilan sukses top-up setelah pembayaran + supplier selesai (hanya jika status success).
+     */
+    public function topupSuccess(Request $request)
+    {
+        $order_id = trim((string) $request->query('order_id', ''));
+        if ($order_id === '' || strlen($order_id) > 64 || ! preg_match('/^[A-Za-z0-9\-]+$/', $order_id)) {
+            return redirect()->route('track.order');
+        }
+
+        $order = Order::where('order_id', $order_id)->first();
+        if (! $order) {
+            return redirect()->route('track.order')->with('error', 'Pesanan tidak ditemukan.');
+        }
+
+        if ($order->status !== 'success') {
+            return redirect()->route('track.order', ['order_id' => $order_id]);
+        }
+
+        $device = (new CatalogController)->deviceType();
+        $view = "{$device}.neonflux.payment.topup-success";
+        if (! view()->exists($view)) {
+            $view = 'desktop.neonflux.payment.topup-success';
+        }
+
+        return view($view, compact('order'));
+    }
 }

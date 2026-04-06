@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Provider;
 use App\Services\FailedPermanentOrderWhatsAppNotifier;
 use App\Services\TokovoucherService;
+use App\Services\TopupSuccessWhatsAppNotifier;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -104,6 +105,7 @@ class ProcessSupplierOrder implements ShouldQueue
                 ];
                 $this->order->update(['payload' => $merged]);
                 $this->order->logStatus('Sukses: Order berhasil dikirim ke supplier (TokoVoucher).', 'success', $resultToko);
+                app(TopupSuccessWhatsAppNotifier::class)->notifyIfNeeded($this->order->fresh());
             } else {
                 $msg = $this->formatTokovoucherFailureMessage($response, $resultToko, $productCode, $tujuan, $serverId);
                 $this->order->logStatus("Pending: TokoVoucher — {$msg}. Akan dicoba lagi jika masih gagal.", null, $resultToko ?: ['raw' => Str::limit($response->body(), 2000)]);

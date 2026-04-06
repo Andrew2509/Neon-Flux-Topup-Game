@@ -89,6 +89,7 @@ class TokovoucherOrderSync
                     ]);
                 });
                 Log::info('Order diperbarui dari TokoVoucher cek status', ['order_id' => $order->order_id]);
+                app(TopupSuccessWhatsAppNotifier::class)->notifyIfNeeded($order->fresh());
             } catch (\Throwable $e) {
                 Log::warning('TokovoucherOrderSync (sukses) gagal', [
                     'order_id' => $order->order_id,

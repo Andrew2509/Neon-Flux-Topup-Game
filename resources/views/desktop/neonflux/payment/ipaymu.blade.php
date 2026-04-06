@@ -277,6 +277,34 @@
             display = document.querySelector('#countdown');
         if(display) startTimer(fifteenMinutes, display);
     };
+
+    (function () {
+        var pollUrl = @json(route('order.poll', ['order_id' => $order->order_id]));
+        var successUrl = @json(route('topup.success', ['order_id' => $order->order_id]));
+        var trackUrl = @json(route('track.order', ['order_id' => $order->order_id]));
+        var intervalMs = 4000;
+        var timer = null;
+        function poll() {
+            fetch(pollUrl, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                    if (!j || !j.success || !j.data) return;
+                    var st = j.data.status;
+                    if (st === 'success') {
+                        if (timer) clearInterval(timer);
+                        window.location.href = successUrl;
+                        return;
+                    }
+                    if (st === 'failed' || st === 'failed_permanent') {
+                        if (timer) clearInterval(timer);
+                        window.location.href = trackUrl;
+                    }
+                })
+                .catch(function () {});
+        }
+        setTimeout(poll, 1200);
+        timer = setInterval(poll, intervalMs);
+    })();
 </script>
 @endpush
 @endsection

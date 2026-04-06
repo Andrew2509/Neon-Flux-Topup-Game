@@ -7,6 +7,7 @@ use App\Models\Deposit;
 use App\Models\Order;
 use App\Models\Provider;
 use App\Services\TokovoucherPostPaymentRelay;
+use App\Services\TopupSuccessWhatsAppNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -121,6 +122,8 @@ class WebhookController extends Controller
                     'produk' => $request->input('produk'),
                 ],
             ]);
+
+            app(TopupSuccessWhatsAppNotifier::class)->notifyIfNeeded($order->fresh());
         } elseif ($statusRaw === 'gagal') {
             if ($order->status === 'failed') {
                 return response()->json(['status' => 'success', 'message' => 'already_processed']);
@@ -267,6 +270,8 @@ class WebhookController extends Controller
                 'message' => 'TokoVoucher (report GET): transaksi sukses.',
                 'payload' => ['serverid' => $trxId, 'clientid' => $refId],
             ]);
+
+            app(TopupSuccessWhatsAppNotifier::class)->notifyIfNeeded($order->fresh());
         } elseif ($statusCode === 2) {
             if ($order->status === 'failed') {
                 return response('OK', 200);
