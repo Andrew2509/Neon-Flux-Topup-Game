@@ -61,6 +61,9 @@ return [
             ? rtrim($tvFb, '/')
             : null,
         'force_ipv4' => filter_var(env('TOKOVOUCHER_FORCE_IPV4', true), FILTER_VALIDATE_BOOLEAN),
+        /** Webhook GET (report IP): tanpa header signature — aktifkan verifikasi IP bila bisa (TrustProxies harus benar di balik CDN). Dok: https://docs.tokovoucher.net/webhook/get */
+        'webhook_verify_ip' => filter_var(env('TOKOVOUCHER_WEBHOOK_VERIFY_IP', false), FILTER_VALIDATE_BOOLEAN),
+        'webhook_allowed_ips' => array_values(array_filter(array_map('trim', explode(',', (string) env('TOKOVOUCHER_WEBHOOK_ALLOWED_IPS', '188.166.243.56'))))),
     ],
 
     /*
