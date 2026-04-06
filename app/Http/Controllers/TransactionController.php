@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use App\Models\Service;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Log;
+use App\Services\IPaymuService;
 
 class TransactionController extends Controller
 {
@@ -429,7 +430,7 @@ class TransactionController extends Controller
             'paymentChannel' => $paymentMethod ? $paymentMethod->code : null,
         ];
 
-        $ipaymuService = new \App\Services\IPaymuService();
+        $ipaymuService = new IPaymuService();
         $res = $ipaymuService->createPayment($ipaymuPayload);
 
         Log::info('iPaymu Response API:', ['res' => $res]);
@@ -761,62 +762,70 @@ class TransactionController extends Controller
 
     public function ipaymuCallback(Request $request)
     {
+        $parsed = IPaymuService::parseNotifyPayload($request);
+
         Log::info('iPaymu Callback Full Info:', [
             'headers' => $request->headers->all(),
-            'body' => $request->all(),
-            'raw_content' => $request->getContent()
+            'body' => $parsed,
+            'raw_content' => $request->getContent(),
         ]);
 
-        $ipaymuService = new \App\Services\IPaymuService();
-        
+        $ipaymuService = new IPaymuService();
+
         // Try multiple header names for signature
         $signature = $request->header('x-signature')
-                  ?? $request->header('signature') 
-                  ?? $request->header('Signature') 
-                  ?? $request->header('X-Ipaymu-Signature') 
-                  ?? $request->input('signature') 
+                  ?? $request->header('signature')
+                  ?? $request->header('Signature')
+                  ?? $request->header('X-Ipaymu-Signature')
+                  ?? IPaymuService::notifyField($parsed, ['signature', 'Signature'])
                   ?? '';
-                  
+
         $rawBody = $request->getContent();
 
-        if (!$ipaymuService->validateCallback(
-            $request->all(),
+        if (! $ipaymuService->validateCallback(
+            $parsed,
             $signature,
             $rawBody,
             $request->header('X-Timestamp') ?? $request->header('x-timestamp'),
             $request->header('X-External-ID') ?? $request->header('x-external-id')
         )) {
             Log::error('iPaymu Callback: Invalid Signature', [
-                'signature_received' => $signature,
-                'header_x_sig' => $request->header('x-signature'),
-                'has_raw_body' => !empty($rawBody)
+                'signature_received' => $signature !== '' ? '(present)' : '(empty)',
+                'header_x_sig' => $request->header('x-signature') ? '(present)' : null,
+                'has_raw_body' => $rawBody !== '',
             ]);
 
             return response()->json(['error' => 'Invalid signature'], 400);
         }
 
+        $trxId = IPaymuService::notifyField($parsed, ['trx_id', 'trxId']);
+        $referenceId = IPaymuService::notifyField($parsed, ['reference_id', 'referenceId']);
+        $status = IPaymuService::notifyField($parsed, ['status', 'Status']);
+        $paid = IPaymuService::isNotifyPaid($parsed);
 
-        $trxId = $request->input('trx_id');
-        $referenceId = $request->input('reference_id');
-        $status = $request->input('status');
-        $statusCode = $request->input('status_code');
+        if ($referenceId === null || $referenceId === '') {
+            Log::error('iPaymu Callback: missing reference_id / referenceId', ['payload_keys' => array_keys($parsed)]);
+
+            return response()->json(['error' => 'Missing reference'], 400);
+        }
 
         $order = Order::where('order_id', $referenceId)->first();
-        if (!$order) {
+        if (! $order) {
             Log::error('iPaymu Callback: Order Not Found', ['order_id' => $referenceId]);
+
             return response()->json(['error' => 'Order not found'], 404);
         }
 
         // Idempotency
-        if ($order->status !== 'pending_payment' && $statusCode == 1) {
+        if ($order->status !== 'pending_payment' && $paid) {
             return response()->json(['success' => 'already_processed']);
         }
 
-        if ($statusCode == 1 && $order->status === 'pending_payment') {
+        if ($paid && $order->status === 'pending_payment') {
             try {
                 \Illuminate\Support\Facades\DB::transaction(function () use ($order, $trxId) {
                     $order->logStatus('Pembayaran berhasil dikonfirmasi oleh iPaymu.', 'paid', [
-                        'ipaymu_trx_id' => $trxId
+                        'ipaymu_trx_id' => $trxId,
                     ]);
 
                     \App\Jobs\ProcessSupplierOrder::dispatch($order);
@@ -825,11 +834,25 @@ class TransactionController extends Controller
                 return response()->json(['success' => 'ok']);
             } catch (\Exception $e) {
                 Log::error('iPaymu Callback Transaction Error', ['order_id' => $order->order_id, 'msg' => $e->getMessage()]);
+
                 return response()->json(['error' => 'Internal Server Error'], 500);
             }
-        } else if ($status === 'cancel' || $status === 'failed') {
+        }
+
+        $st = strtolower((string) $status);
+        if (in_array($st, ['cancel', 'failed', 'gagal', 'batal'], true)) {
             $order->logStatus('Pembayaran gagal atau dibatalkan oleh pengguna (iPaymu).', 'failed');
+
             return response()->json(['success' => 'ok']);
+        }
+
+        if (! $paid) {
+            Log::notice('iPaymu callback: tanda tangan valid, order belum ditandai lunas (bukan status sukses / status_code≠1).', [
+                'order_id' => $referenceId,
+                'status' => $status,
+                'status_code' => IPaymuService::notifyField($parsed, ['status_code', 'statusCode']),
+                'payload_keys' => array_keys($parsed),
+            ]);
         }
 
         return response()->json(['success' => 'ok']);

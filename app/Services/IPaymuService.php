@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -154,6 +155,69 @@ class IPaymuService
         }
 
         return $pending;
+    }
+
+    /**
+     * Payload notify iPaymu: gabungkan JSON mentah bila Laravel belum mem-parse (Content-Type tidak JSON, proxy, dll).
+     */
+    public static function parseNotifyPayload(Request $request): array
+    {
+        $payload = $request->all();
+        $raw = $request->getContent();
+        $trim = ltrim((string) $raw);
+        if ($trim !== '' && $trim[0] === '{') {
+            $j = json_decode($raw, true);
+            if (JSON_ERROR_NONE === json_last_error() && is_array($j)) {
+                $payload = array_replace($payload, $j);
+            }
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Ambil field notify (snake_case atau camelCase).
+     *
+     * @param  array<int, string>  $keys
+     */
+    public static function notifyField(array $payload, array $keys): mixed
+    {
+        foreach ($keys as $k) {
+            if (! array_key_exists($k, $payload)) {
+                continue;
+            }
+            $v = $payload[$k];
+            if ($v !== null && $v !== '') {
+                return $v;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * True jika notifikasi menandakan pembayaran sukses (variasi field iPaymu v2).
+     */
+    public static function isNotifyPaid(array $payload): bool
+    {
+        $sc = self::notifyField($payload, ['status_code', 'statusCode']);
+        if ($sc !== null && (int) $sc === 1) {
+            return true;
+        }
+        $tsc = self::notifyField($payload, ['transaction_status_code', 'transactionStatusCode']);
+        if ($tsc !== null && (int) $tsc === 1) {
+            return true;
+        }
+        $po = self::notifyField($payload, ['paid_off', 'paidOff']);
+        if ($po !== null && (int) $po === 1) {
+            return true;
+        }
+        $st = strtolower((string) self::notifyField($payload, ['status', 'Status']));
+        if ($st !== '' && in_array($st, ['berhasil', 'success', 'sukses', 'settlement', 'lunas'], true)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
