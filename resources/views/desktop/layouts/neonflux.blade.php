@@ -78,6 +78,8 @@
 
     @include('desktop.partials.mobile-bottom-nav')
 
+    @include('desktop.partials.mobile-menu-drawer')
+
     {{-- Removed Theme Toggle Script per user request --}}
 
 
