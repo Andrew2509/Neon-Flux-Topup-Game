@@ -414,8 +414,7 @@ class TransactionController extends Controller
             return back()->with('error', 'Pesanan gagal diinisiasi: ' . $msg);
         }
 
-        $ipaymuService = new \App\Services\IPaymuService();
-        $res = $ipaymuService->createPayment([
+        $ipaymuPayload = [
             'orderId' => $order->order_id,
             'amount' => $order->total_price,
             'product' => $order->product_name,
@@ -427,13 +426,37 @@ class TransactionController extends Controller
             'notifyUrl' => url('/api/ipaymu/callback'),
             'paymentMethod' => $paymentMethod ? $paymentMethod->type : 'va',
             'paymentChannel' => $paymentMethod ? $paymentMethod->code : null,
-        ]);
+        ];
+
+        $ipaymuService = new \App\Services\IPaymuService();
+        $res = $ipaymuService->createPayment($ipaymuPayload);
 
         Log::info('iPaymu Response API:', ['res' => $res]);
 
         // Normalize iPaymu response keys (Case Insensitivity Fix)
         $status = $res['Status'] ?? $res['status'] ?? null;
         $data = $res['Data'] ?? $res['data'] ?? null;
+
+        $directVaFailed = $paymentMethod
+            && filled($paymentMethod->code)
+            && (
+                (int) $status === 406
+                || stripos((string) ($res['Message'] ?? $res['message'] ?? ''), 'Failed to generate VA') !== false
+            );
+
+        if ($directVaFailed) {
+            Log::notice('iPaymu: direct channel gagal, fallback ke hosted checkout (tanpa paymentChannel)', [
+                'order_id' => $order->order_id,
+                'channel' => $paymentMethod->code,
+            ]);
+            $ipaymuPayload['paymentChannel'] = null;
+            $ipaymuPayload['paymentMethod'] = 'va';
+            $res = $ipaymuService->createPayment($ipaymuPayload);
+            Log::info('iPaymu Response API (fallback redirect):', ['res' => $res]);
+            $status = $res['Status'] ?? $res['status'] ?? null;
+            $data = $res['Data'] ?? $res['data'] ?? null;
+        }
+
         $message = $res['Message'] ?? $res['message'] ?? 'Gagal membuat pembayaran iPaymu.';
         if (stripos((string) $message, 'Suspicious buyer') !== false) {
             $message = 'Pembayaran ditolak oleh iPaymu (pembeli terdeteksi risiko). Coba tanpa VPN, jaringan lain, atau login dengan data asli. Jika terus terjadi, hubungi iPaymu atau gunakan metode bayar lain.';
@@ -446,6 +469,11 @@ class TransactionController extends Controller
         }
 
         if ($status == 200 && $data) {
+            $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
+            if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
+                return redirect()->away($hostedUrl);
+            }
+
             // Detect device for proper view folder
             $device = (new CatalogController())->deviceType();
             $view = "{$device}.neonflux.payment.ipaymu";
@@ -485,7 +513,12 @@ class TransactionController extends Controller
         if ($request->expectsJson()) {
             return response()->json(['success' => false, 'message' => $message, 'debug' => $res], 400);
         }
-        return back()->with('error', 'Pesanan gagal diinisiasi: ' . $message . ' (Raw: ' . json_encode($res) . ')');
+        $errMsg = 'Pesanan gagal diinisiasi: ' . $message;
+        if (config('app.debug')) {
+            $errMsg .= ' (Raw: ' . json_encode($res) . ')';
+        }
+
+        return back()->with('error', $errMsg);
     }
 
     private function processMidtrans($order, $paymentMethod, Request $request)
