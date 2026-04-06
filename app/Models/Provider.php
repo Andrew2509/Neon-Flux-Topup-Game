@@ -16,4 +16,13 @@ class Provider extends Model
     {
         return strtolower(trim((string) ($this->mode ?? ''))) === 'production';
     }
+
+    /**
+     * Baris kredensial iPaymu untuk API (nama persis "iPaymu" atau mengandung "ipaymu").
+     */
+    public static function forIpaymu(): ?self
+    {
+        return static::whereRaw('LOWER(TRIM(name)) = ?', ['ipaymu'])->first()
+            ?? static::whereRaw('LOWER(name) LIKE ?', ['%ipaymu%'])->orderBy('id')->first();
+    }
 }

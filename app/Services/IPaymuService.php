@@ -13,7 +13,7 @@ class IPaymuService
 
     public function __construct()
     {
-        $provider = \App\Models\Provider::whereRaw('LOWER(TRIM(name)) = ?', ['ipaymu'])->first();
+        $provider = \App\Models\Provider::forIpaymu();
 
         $this->va = trim((string) ($provider?->provider_id ?? ''));
         $this->apiKey = trim((string) ($provider?->api_key ?? ''));
@@ -22,6 +22,16 @@ class IPaymuService
         $this->baseUrl = ($provider && $provider->usesProductionApi())
             ? 'https://my.ipaymu.com'
             : 'https://sandbox.ipaymu.com';
+
+        if (! $provider) {
+            Log::warning('iPaymu: tidak ada Provider dengan nama iPaymu / mengandung "ipaymu" — sandbox URL dipakai dan kredensial kosong.');
+        } else {
+            Log::debug('iPaymu init', [
+                'provider_name' => $provider->name,
+                'base_url' => $this->baseUrl,
+                'uses_production_api' => $provider->usesProductionApi(),
+            ]);
+        }
     }
 
     /**
