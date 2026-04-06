@@ -90,19 +90,19 @@
         </form>
 
         <!-- Game Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3">
             @forelse($categories as $game)
-            <a href="{{ route('topup.game', $game->slug) }}" class="glass-panel p-3 rounded-2xl transition-all cursor-pointer group border border-black/5 dark:border-white/5 relative overflow-hidden flex flex-col items-center card-hover bg-white dark:bg-transparent shadow-sm dark:shadow-none hover:shadow-xl dark:hover:shadow-none">
-                <div class="relative w-full aspect-3/4 rounded-xl overflow-hidden mb-3">
+            <a href="{{ route('topup.game', $game->slug) }}" class="glass-panel p-1.5 sm:p-2 md:p-2.5 rounded-xl sm:rounded-2xl transition-all cursor-pointer group border border-black/5 dark:border-white/5 relative overflow-hidden flex flex-col items-center card-hover bg-white dark:bg-transparent shadow-sm dark:shadow-none hover:shadow-xl dark:hover:shadow-none">
+                <div class="relative w-full aspect-[4/5] sm:aspect-square rounded-lg sm:rounded-xl overflow-hidden mb-1.5 sm:mb-2 max-h-[6.5rem] sm:max-h-[7.5rem] md:max-h-none">
                     <div class="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent z-10 opacity-60 dark:opacity-100 transition-opacity"></div>
                     <img src="{{ $game->icon ?: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200&auto=format&fit=crop' }}" alt="{{ $game->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($game->name) }}&background=random&color=fff'">
 
-                    <div class="absolute top-2 right-2 z-20 bg-black/40 dark:bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-white/10">
-                        <span class="material-icons-round text-primary text-xs">flash_on</span>
+                    <div class="absolute top-1 right-1 z-20 bg-black/40 dark:bg-black/60 backdrop-blur-md p-1 rounded-md border border-white/10">
+                        <span class="material-icons-round text-primary text-[10px] sm:text-xs">flash_on</span>
                     </div>
                 </div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-white truncate w-full text-center group-hover:text-primary transition-colors">{{ $game->name }}</h3>
-                <p class="text-xs text-slate-500 dark:text-gray-500 mt-1 transition-colors">{{ $game->type }}</p>
+                <h3 class="text-[10px] sm:text-xs md:text-sm font-bold text-slate-900 dark:text-white truncate w-full text-center group-hover:text-primary transition-colors leading-tight">{{ $game->name }}</h3>
+                <p class="text-[8px] sm:text-[9px] md:text-[10px] text-slate-500 dark:text-gray-500 mt-0.5 transition-colors text-center line-clamp-2">{{ $game->type }}</p>
             </a>
             @empty
             <div class="col-span-full py-20 text-center">
