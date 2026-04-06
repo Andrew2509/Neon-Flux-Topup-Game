@@ -471,12 +471,14 @@ class TransactionController extends Controller
             && (
                 (int) $status === 406
                 || stripos((string) ($res['Message'] ?? $res['message'] ?? ''), 'Failed to generate VA') !== false
+                || in_array((int) $status, [500, 502, 503, 504], true)
             );
 
         if ($directVaFailed) {
-            Log::notice('iPaymu: direct channel gagal, fallback ke hosted checkout (tanpa paymentChannel)', [
+            Log::notice('iPaymu: direct gagal (406/VA/5xx), fallback ke hosted checkout (tanpa paymentChannel)', [
                 'order_id' => $order->order_id,
                 'channel' => $paymentMethod->code,
+                'http_status' => $status,
             ]);
             $ipaymuPayload['paymentChannel'] = null;
             $ipaymuPayload['paymentMethod'] = 'va';

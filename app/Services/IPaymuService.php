@@ -10,7 +10,9 @@ use Illuminate\Support\Str;
 class IPaymuService
 {
     protected string $va;
+
     protected string $apiKey;
+
     protected string $baseUrl;
 
     public function __construct()
@@ -55,9 +57,9 @@ class IPaymuService
             ];
         }
 
-        $isDirect = !empty($data['paymentChannel']);
+        $isDirect = ! empty($data['paymentChannel']);
         $path = $isDirect ? '/api/v2/payment/direct' : '/api/v2/payment';
-        $url = $this->baseUrl . $path;
+        $url = $this->baseUrl.$path;
 
         if ($isDirect) {
             // Map internal types to iPaymu paymentMethod types
@@ -66,7 +68,7 @@ class IPaymuService
                 'retail' => 'cstore',
                 'ewallet' => 'ewallet',
                 'qris' => 'qris',
-                'other' => 'va'
+                'other' => 'va',
             ];
             $ipaymuMethod = $methodMap[$data['paymentMethod']] ?? $data['paymentMethod'] ?? 'va';
 
@@ -96,14 +98,45 @@ class IPaymuService
             ];
         }
 
-        $headers = $this->generateHeaders($body, 'POST');
+        $cfg = config('services.ipaymu', []);
+        $extraRetries = max(0, min(5, (int) ($cfg['retry_attempts'] ?? 2)));
+        $maxAttempts = 1 + $extraRetries;
+        $retrySleepUs = min(5_000_000, max(0, (int) ($cfg['retry_sleep_ms'] ?? 800)) * 1000);
+        $retryHttp = [500, 502, 503, 504];
 
-        try {
-            Log::info('iPaymu Request:', ['url' => $url, 'headers' => $headers, 'body' => $body]);
-            $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
-            $result = $response->json();
+        $lastFailure = null;
 
-            if (! $response->successful()) {
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $headers = $this->generateHeaders($body, 'POST');
+
+            try {
+                Log::info('iPaymu Request:', [
+                    'url' => $url,
+                    'attempt' => $attempt,
+                    'max' => $maxAttempts,
+                    'headers' => $headers,
+                    'body' => $body,
+                ]);
+                $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
+                $result = $response->json();
+
+                if ($response->successful()) {
+                    if (! is_array($result)) {
+                        Log::error('iPaymu non-JSON response', ['snippet' => Str::limit($response->body(), 500)]);
+
+                        return [
+                            'Status' => 502,
+                            'Success' => false,
+                            'Message' => 'Respons iPaymu tidak valid (bukan JSON). Periksa koneksi atau status layanan iPaymu.',
+                            'Data' => null,
+                        ];
+                    }
+
+                    Log::info('iPaymu Response:', ['res' => $result, 'attempt' => $attempt]);
+
+                    return $result;
+                }
+
                 $http = $response->status();
                 $payload = is_array($result) ? $result : [];
                 $msg = $payload['Message'] ?? $payload['message'] ?? $payload['error'] ?? $payload['errors'] ?? null;
@@ -119,38 +152,72 @@ class IPaymuService
                     $msg = "API iPaymu mengembalikan HTTP {$http} (gangguan di sisi iPaymu atau permintaan ditolak). Coba lagi beberapa saat, ganti channel bayar, atau hubungi support iPaymu.";
                 }
 
-                Log::warning('iPaymu HTTP non-success', [
-                    'http' => $http,
-                    'url' => $url,
-                    'body_snippet' => Str::limit($response->body(), 1500),
-                ]);
-
-                return [
+                $lastFailure = [
                     'Status' => $http,
                     'Success' => false,
                     'Message' => $msg,
                     'Data' => null,
                 ];
-            }
 
-            if (! is_array($result)) {
-                Log::error('iPaymu non-JSON response', ['snippet' => Str::limit($response->body(), 500)]);
+                Log::warning('iPaymu HTTP non-success', [
+                    'http' => $http,
+                    'attempt' => $attempt,
+                    'url' => $url,
+                    'body_snippet' => Str::limit($response->body(), 1500),
+                ]);
 
-                return [
-                    'Status' => 502,
+                if ($attempt < $maxAttempts && in_array($http, $retryHttp, true)) {
+                    if ($retrySleepUs > 0) {
+                        usleep($retrySleepUs);
+                    }
+
+                    continue;
+                }
+
+                return $lastFailure;
+            } catch (\Throwable $e) {
+                Log::error('IPaymu API Error:', ['msg' => $e->getMessage(), 'attempt' => $attempt]);
+
+                $lastFailure = [
+                    'Status' => 500,
                     'Success' => false,
-                    'Message' => 'Respons iPaymu tidak valid (bukan JSON). Periksa koneksi atau status layanan iPaymu.',
+                    'Message' => $e->getMessage(),
                     'Data' => null,
                 ];
+
+                if ($attempt < $maxAttempts && $this->ipaymuTransportExceptionIsRetryable($e)) {
+                    if ($retrySleepUs > 0) {
+                        usleep($retrySleepUs);
+                    }
+
+                    continue;
+                }
+
+                return ['status' => 500, 'message' => $e->getMessage()];
             }
-
-            Log::info('iPaymu Response:', ['res' => $result]);
-
-            return $result;
-        } catch (\Exception $e) {
-            Log::error('IPaymu API Error:', ['msg' => $e->getMessage()]);
-            return ['status' => 500, 'message' => $e->getMessage()];
         }
+
+        return $lastFailure ?? [
+            'Status' => 500,
+            'Success' => false,
+            'Message' => 'Gagal menghubungi iPaymu.',
+            'Data' => null,
+        ];
+    }
+
+    private function ipaymuTransportExceptionIsRetryable(\Throwable $e): bool
+    {
+        if ($e instanceof \Illuminate\Http\Client\ConnectionException) {
+            return true;
+        }
+
+        $msg = strtolower($e->getMessage());
+
+        return str_contains($msg, 'curl error 28')
+            || str_contains($msg, 'connection timed out')
+            || str_contains($msg, 'operation timed out')
+            || str_contains($msg, 'could not resolve host')
+            || str_contains($msg, 'connection reset');
     }
 
     /**
@@ -165,9 +232,9 @@ class IPaymuService
         // iPaymu expects empty body to be {} in signature calculation
         $jsonBody = empty($body) ? '{}' : json_encode($body, JSON_UNESCAPED_SLASHES);
         $bodyHash = strtolower(hash('sha256', $jsonBody));
-        
+
         // Final signature structure based on official sample
-        $stringToSign = strtoupper($method) . ':' . $this->va . ':' . $bodyHash . ':' . $this->apiKey;
+        $stringToSign = strtoupper($method).':'.$this->va.':'.$bodyHash.':'.$this->apiKey;
         $signature = hash_hmac('sha256', $stringToSign, $this->apiKey);
 
         return [
@@ -175,7 +242,7 @@ class IPaymuService
             'Content-Type' => 'application/json',
             'va' => $this->va,
             'signature' => $signature,
-            'timestamp' => $timestamp
+            'timestamp' => $timestamp,
         ];
     }
 
@@ -211,7 +278,7 @@ class IPaymuService
         $trim = ltrim((string) $raw);
         if ($trim !== '' && $trim[0] === '{') {
             $j = json_decode($raw, true);
-            if (JSON_ERROR_NONE === json_last_error() && is_array($j)) {
+            if (json_last_error() === JSON_ERROR_NONE && is_array($j)) {
                 $payload = array_replace($payload, $j);
             }
         }
@@ -330,17 +397,19 @@ class IPaymuService
      */
     public function getPaymentChannels()
     {
-        $url = $this->baseUrl . '/api/v2/payment-channels';
+        $url = $this->baseUrl.'/api/v2/payment-channels';
         $body = []; // Empty body for GET-like POST in iPaymu channels API
-        
+
         $headers = $this->generateHeaders($body, 'GET');
 
         try {
             // iPaymu recommends GET for channels
             $response = $this->ipaymuHttp()->withHeaders($headers)->get($url);
+
             return $response->json();
         } catch (\Exception $e) {
             Log::error('IPaymu Channels API Error:', ['msg' => $e->getMessage()]);
+
             return ['status' => 500, 'message' => $e->getMessage()];
         }
     }
@@ -629,5 +698,4 @@ class IPaymuService
 
         return $payload;
     }
-
 }

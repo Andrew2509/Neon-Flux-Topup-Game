@@ -86,6 +86,9 @@ return [
         'http_timeout' => max(10, (int) env('IPAYMU_HTTP_TIMEOUT', 90)),
         'http_connect_timeout' => max(5, (int) env('IPAYMU_HTTP_CONNECT_TIMEOUT', 25)),
         'force_ipv4' => filter_var(env('IPAYMU_FORCE_IPV4', true), FILTER_VALIDATE_BOOLEAN),
+        /** Percobaan ulang saat iPaymu mengembalikan 5xx / timeout transport (0 = hanya 1x). */
+        'retry_attempts' => max(0, min(5, (int) env('IPAYMU_RETRY_ATTEMPTS', 2))),
+        'retry_sleep_ms' => max(0, min(5000, (int) env('IPAYMU_RETRY_SLEEP_MS', 800))),
     ],
 
 ];
