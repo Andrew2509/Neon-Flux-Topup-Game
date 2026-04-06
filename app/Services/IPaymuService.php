@@ -63,7 +63,7 @@ class IPaymuService
                 'name' => $data['name'] ?? 'Guest',
                 'email' => $data['email'] ?? 'guest@princepay.com',
                 'phone' => $data['phone'] ?? '081122334455',
-                'amount' => (float) $data['amount'],
+                'amount' => (int) round((float) $data['amount']),
                 'notifyUrl' => $data['notifyUrl'],
                 'returnUrl' => $data['returnUrl'],
                 'cancelUrl' => $data['cancelUrl'],
@@ -76,7 +76,7 @@ class IPaymuService
             $body = [
                 'product' => [$data['product']],
                 'qty' => [1],
-                'price' => [(float) $data['amount']],
+                'price' => [(int) round((float) $data['amount'])],
                 'returnUrl' => $data['returnUrl'],
                 'cancelUrl' => $data['cancelUrl'],
                 'notifyUrl' => $data['notifyUrl'],

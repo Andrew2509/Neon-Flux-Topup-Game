@@ -67,16 +67,15 @@ class TransactionController extends Controller
         // Use more robust Order ID: Timestamp + Random (Enterprise Standard)
         $orderId = 'PRP' . date('ymdHis') . strtoupper(Str::random(4));
 
-        // Relocate Fee: Fetch payment method fee and add to price
-        $paymentFee = 0;
+        $paymentMethod = null;
         if ($request->filled('payment')) {
-            $pm = \App\Models\PaymentMethod::where('code', $request->payment)->first();
-            if ($pm) {
-                $paymentFee = (float)$pm->fee;
-            }
+            $paymentMethod = \App\Models\PaymentMethod::where('code', $request->payment)->first();
         }
 
-        $paymentAmount = (int) ($service->price + $paymentFee);
+        $paymentAmount = $this->checkoutTotalFromProductAndPaymentMethod(
+            (float) $service->price,
+            $paymentMethod
+        );
         $productDetails = $zoneId !== ''
             ? $service->name.' ('.$gameUserId.' / '.$zoneId.')'
             : $service->name.' ('.$gameUserId.')';
@@ -108,12 +107,6 @@ class TransactionController extends Controller
             . ($playerNickname !== '' ? ' — nama pemain (cek ID): '.$playerNickname : '')
         );
 
-        // 3. Get Payment Provider
-        $paymentMethod = null;
-        if ($request->filled('payment')) {
-            $paymentMethod = \App\Models\PaymentMethod::where('code', $request->payment)->first();
-        }
-
         $providerName = $paymentMethod ? ($paymentMethod->provider ?? 'Duitku') : 'Duitku';
 
         if ($providerName === 'Internal' && $request->payment === 'SALDO') {
@@ -134,6 +127,43 @@ class TransactionController extends Controller
 
         // Default to Duitku
         return $this->processDuitku($order, $paymentMethod, $request);
+    }
+
+    /**
+     * Total checkout = harga produk + biaya admin metode bayar.
+     * Selaras dengan public/js/neonflux/topupgame.js (fee persen atau flat Rp, lalu ceil).
+     */
+    private function checkoutTotalFromProductAndPaymentMethod(float $productPrice, ?\App\Models\PaymentMethod $paymentMethod): int
+    {
+        $base = (int) round($productPrice);
+        if (!$paymentMethod) {
+            return $base;
+        }
+
+        $feeRaw = $paymentMethod->fee;
+        if ($feeRaw === null || $feeRaw === '') {
+            return $base;
+        }
+
+        $feeStr = trim((string) $feeRaw);
+        if ($feeStr === '' || $feeStr === '0') {
+            return $base;
+        }
+
+        if (str_contains($feeStr, '%')) {
+            $pctStr = str_replace(['%', ' '], '', $feeStr);
+            $pctStr = str_replace(',', '.', $pctStr);
+            $pct = (float) $pctStr;
+
+            return (int) ceil($base + ($base * $pct / 100));
+        }
+
+        $flat = (float) preg_replace('/[^\d.]/', '', $feeStr);
+        if ($flat <= 0 && is_numeric($feeRaw)) {
+            $flat = (float) $feeRaw;
+        }
+
+        return (int) ceil($base + $flat);
     }
 
     private function processBalancePayment($order, Request $request)
