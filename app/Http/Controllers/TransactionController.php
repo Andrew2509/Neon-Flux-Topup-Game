@@ -467,6 +467,10 @@ class TransactionController extends Controller
         if (stripos((string) $message, 'Failed to generate VA') !== false) {
             $message = 'iPaymu gagal membuat nomor Virtual Account untuk bank yang dipilih (gangguan channel atau VA belum diaktifkan). Coba bank lain atau QRIS; pastikan channel tersebut aktif di dashboard iPaymu (Konfigurasi Layanan) dan nominal ≥ Rp 10.000. Jika terus gagal, hubungi support iPaymu.';
         }
+        if (stripos((string) $message, 'sandbox.ipaymu.com') !== false
+            || (stripos((string) $message, 'test transaksi') !== false && stripos((string) $message, 'ipaymu') !== false)) {
+            $message = 'Kunci/VA iPaymu Anda untuk SANDBOX, tetapi permintaan terkirim ke server PRODUCTION (atau sebaliknya). Di Admin → kelola Provider iPaymu: isi mode **sandbox** jika VA & API Key dari https://sandbox.ipaymu.com; isi **production** (atau live/prod) hanya jika merchant sudah live di https://my.ipaymu.com. Simpan lalu coba checkout lagi.';
+        }
 
         if ($status == 200 && $data) {
             $hostedUrl = $data['Url'] ?? $data['url'] ?? null;

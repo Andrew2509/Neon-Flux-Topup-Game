@@ -18,10 +18,13 @@ class IPaymuService
         $this->va = trim((string) ($provider->provider_id ?? ''));
         $this->apiKey = trim((string) ($provider->api_key ?? ''));
 
-        $mode = strtolower(trim((string) ($provider->mode ?? 'sandbox')));
-        $this->baseUrl = $mode === 'sandbox'
-            ? 'https://sandbox.ipaymu.com'
-            : 'https://my.ipaymu.com';
+        // Hanya gunakan production bila mode diisi eksplisit; selain itu sandbox (aman untuk kunci uji / VA sandbox).
+        $mode = strtolower(trim((string) ($provider->mode ?? '')));
+        $productionModes = ['production', 'live', 'prod', 'produksi'];
+        $isProduction = in_array($mode, $productionModes, true);
+        $this->baseUrl = $isProduction
+            ? 'https://my.ipaymu.com'
+            : 'https://sandbox.ipaymu.com';
     }
 
     /**
