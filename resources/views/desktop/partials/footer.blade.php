@@ -115,6 +115,8 @@
                 <ul class="space-y-4">
                     <li><a href="{{ route('syarat-ketentuan') }}" class="text-slate-600 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors text-sm">Syarat & Ketentuan</a></li>
                     <li><a href="{{ route('kebijakan-privasi') }}" class="text-slate-600 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors text-sm">Kebijakan Privasi</a></li>
+                    <li><a href="{{ route('kebijakan-refund') }}" class="text-slate-600 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors text-sm">Kebijakan Refund</a></li>
+                    <li><a href="{{ route('faq') }}" class="text-slate-600 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors text-sm">FAQ</a></li>
                     <li class="pt-4 border-t border-black/5 dark:border-white/5">
                         <div class="flex items-center gap-3 text-slate-600 dark:text-gray-400 text-sm group">
                             <span class="material-icons-round text-primary text-lg group-hover:scale-110 transition-transform">mail</span>
@@ -155,9 +157,11 @@
             <p class="text-slate-500 dark:text-gray-500 text-xs text-center md:text-left">
                 &copy; {{ date('Y') }} {{ get_setting('site_name', 'Neon Flux Indonesia') }}. All Rights Reserved.
             </p>
-            <div class="flex items-center space-x-6">
+            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                 <a href="{{ route('syarat-ketentuan') }}" class="text-slate-500 dark:text-gray-500 hover:text-primary dark:hover:text-white transition-colors text-xs">Syarat & Ketentuan</a>
                 <a href="{{ route('kebijakan-privasi') }}" class="text-slate-500 dark:text-gray-500 hover:text-primary dark:hover:text-white transition-colors text-xs">Kebijakan Privasi</a>
+                <a href="{{ route('kebijakan-refund') }}" class="text-slate-500 dark:text-gray-500 hover:text-primary dark:hover:text-white transition-colors text-xs">Kebijakan Refund</a>
+                <a href="{{ route('faq') }}" class="text-slate-500 dark:text-gray-500 hover:text-primary dark:hover:text-white transition-colors text-xs">FAQ</a>
             </div>
         </div>
     </div>

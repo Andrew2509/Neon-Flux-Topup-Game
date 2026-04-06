@@ -68,6 +68,28 @@ class StaticPageController extends Controller
         return view($view);
     }
 
+    public function kebijakanRefund()
+    {
+        $view = $this->deviceType() . '.kebijakan-refund';
+
+        if (!view()->exists($view)) {
+            $view = 'hp.kebijakan-refund';
+        }
+
+        return view($view);
+    }
+
+    public function faq()
+    {
+        $view = $this->deviceType() . '.faq';
+
+        if (!view()->exists($view)) {
+            $view = 'hp.faq';
+        }
+
+        return view($view);
+    }
+
     public function caraOrder()
     {
         $view = $this->deviceType() . '.cara-order';

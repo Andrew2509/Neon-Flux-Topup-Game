@@ -45,6 +45,8 @@
         <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
             <a href="{{ route('syarat-ketentuan') }}" class="text-[10px] font-bold text-slate-500">Syarat & Ketentuan</a>
             <a href="{{ route('kebijakan-privasi') }}" class="text-[10px] font-bold text-slate-500">Kebijakan Privasi</a>
+            <a href="{{ route('kebijakan-refund') }}" class="text-[10px] font-bold text-slate-500">Kebijakan Refund</a>
+            <a href="{{ route('faq') }}" class="text-[10px] font-bold text-slate-500">FAQ</a>
             <a href="{{ route('cara-order') }}" class="text-[10px] font-bold text-slate-500">Cara Order</a>
             <a href="{{ route('leaderboard') }}" class="text-[10px] font-bold text-slate-500">Leaderboard</a>
             <a href="{{ route('catalog') }}" class="text-[10px] font-bold text-slate-500">Daftar Game</a>
