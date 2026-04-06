@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Log;
 use App\Services\IPaymuService;
+use App\Jobs\ProcessSupplierOrder;
 
 class TransactionController extends Controller
 {
@@ -184,13 +185,12 @@ class TransactionController extends Controller
             \Illuminate\Support\Facades\DB::transaction(function () use ($user, $order) {
                 // Deduct balance
                 $user->decrement('balance', $order->total_price);
-                
+
                 // Update Order
                 $order->logStatus("Pembayaran menggunakan saldo berhasil. Sisa saldo: " . number_format($user->balance, 0, ',', '.'), 'paid');
-                
-                // Dispatch Job
-                \App\Jobs\ProcessSupplierOrder::dispatch($order);
             });
+
+            $this->fulfillSupplierAfterPayment($order);
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -681,8 +681,31 @@ class TransactionController extends Controller
     {
         \Illuminate\Support\Facades\DB::transaction(function () use ($order, $providerInfo) {
             $order->logStatus("Pembayaran berhasil dikonfirmasi oleh $providerInfo.", 'paid');
-            \App\Jobs\ProcessSupplierOrder::dispatch($order);
         });
+
+        $this->fulfillSupplierAfterPayment($order);
+    }
+
+    /**
+     * Setelah status paid: panggil TokoVoucher langsung (sync) agar SN/status success real-time.
+     * Jika sync gagal (timeout/error), fallback ke antrian agar retry tetap jalan dan callback gateway tidak terkunci.
+     */
+    private function fulfillSupplierAfterPayment(Order $order): void
+    {
+        $fresh = $order->fresh();
+        if (! $fresh || $fresh->status !== 'paid') {
+            return;
+        }
+
+        try {
+            ProcessSupplierOrder::dispatchSync($fresh);
+        } catch (\Throwable $e) {
+            Log::warning('Supplier fulfillment sync gagal, lanjut ke antrian', [
+                'order_id' => $fresh->order_id,
+                'msg' => $e->getMessage(),
+            ]);
+            ProcessSupplierOrder::dispatch($fresh->fresh());
+        }
     }
 
     public function duitkuCallback(Request $request)
@@ -738,14 +761,12 @@ class TransactionController extends Controller
         if ($resultCode === '00' && $order->status === 'pending_payment') {
             try {
                 \Illuminate\Support\Facades\DB::transaction(function () use ($order, $reference) {
-                    // Update Order status and log payment success
                     $order->logStatus('Pembayaran berhasil dikonfirmasi oleh Duitku.', 'paid', [
-                        'duitku_reference' => $reference
+                        'duitku_reference' => $reference,
                     ]);
-
-                    // Dispatch Job to process supplier fulfillment in background
-                    \App\Jobs\ProcessSupplierOrder::dispatch($order);
                 });
+
+                $this->fulfillSupplierAfterPayment($order);
 
                 return response()->json(['success' => 'ok']);
             } catch (\Exception $e) {
@@ -827,9 +848,9 @@ class TransactionController extends Controller
                     $order->logStatus('Pembayaran berhasil dikonfirmasi oleh iPaymu.', 'paid', [
                         'ipaymu_trx_id' => $trxId,
                     ]);
-
-                    \App\Jobs\ProcessSupplierOrder::dispatch($order);
                 });
+
+                $this->fulfillSupplierAfterPayment($order);
 
                 return response()->json(['success' => 'ok']);
             } catch (\Exception $e) {
