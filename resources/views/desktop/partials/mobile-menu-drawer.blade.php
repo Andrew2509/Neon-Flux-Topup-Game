@@ -1,10 +1,10 @@
 {{-- Drawer harus di akhir body (setelah konten/banner) agar tidak ketutup lapisan halaman --}}
 <div id="nf-drawer" class="fixed inset-0 z-[10000] hidden md:hidden" aria-hidden="true">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-nf-drawer-backdrop></div>
-    <div class="absolute top-0 right-0 z-[1] h-full w-[min(100%,20rem)] bg-[#0b0e14] border-l border-white/10 shadow-2xl flex flex-col nf-drawer-panel">
-        <div class="flex items-center justify-between p-4 border-b border-white/10">
+    <div class="absolute top-0 right-0 z-[1] h-full w-[min(100%,20rem)] flex flex-col nf-drawer-panel border-l border-white/15 bg-[rgba(12,14,24,0.72)] backdrop-blur-2xl shadow-2xl supports-[backdrop-filter]:bg-[rgba(12,14,24,0.55)]">
+        <div class="flex items-center justify-between p-4 border-b border-white/10 bg-white/[0.04]">
             <span class="font-display font-bold text-white text-sm tracking-wide">Menu</span>
-            <button type="button" id="nf-drawer-close" class="size-10 rounded-xl bg-white/5 flex items-center justify-center text-white touch-manipulation" aria-label="Tutup">
+            <button type="button" id="nf-drawer-close" class="size-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white touch-manipulation" aria-label="Tutup">
                 <span class="material-icons-round">close</span>
             </button>
         </div>

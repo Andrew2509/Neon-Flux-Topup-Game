@@ -1,7 +1,7 @@
 {{-- ============================================================
     NAVBAR — Fixed top; menu penuh di md+; drawer + bottom bar di HP
     ============================================================ --}}
-<nav class="fixed top-0 w-full z-[2000] px-3 sm:px-6 py-3 md:py-4 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-transparent">
+<nav class="fixed top-0 w-full z-[2000] px-3 sm:px-6 py-3 md:py-4 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-[rgba(20,20,35,0.55)] backdrop-blur-xl supports-[backdrop-filter]:dark:bg-[rgba(20,20,35,0.45)]">
     {{-- Logo --}}
     <div class="flex items-center gap-2 min-w-0 flex-shrink">
         @if($logo = get_image_url('site_logo'))
@@ -114,7 +114,7 @@
             </a>
         @endauth
 
-        <button type="button" id="nf-drawer-open" class="relative z-[2100] md:hidden flex items-center justify-center size-10 rounded-xl border border-white/15 bg-white/10 dark:bg-white/5 text-slate-900 dark:text-white touch-manipulation" aria-label="Buka menu">
+        <button type="button" id="nf-drawer-open" class="relative z-[2100] md:hidden flex items-center justify-center size-10 rounded-xl glass-panel border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white touch-manipulation shadow-sm" aria-label="Buka menu">
             <span class="material-icons-round text-2xl">menu</span>
         </button>
     </div>
