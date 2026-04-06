@@ -72,4 +72,14 @@ return [
         'codashop_fallback' => filter_var(env('CHECK_ID_CODASHOP_FALLBACK', true), FILTER_VALIDATE_BOOLEAN),
     ],
 
+    /*
+    | HTTP client ke API iPaymu (direct / redirect / payment-channels).
+    | force_ipv4: banyak VPS punya IPv6 rusak/tidak ke luar — cURL bisa hang lalu timeout (~30s, 0 bytes).
+    */
+    'ipaymu' => [
+        'http_timeout' => max(10, (int) env('IPAYMU_HTTP_TIMEOUT', 90)),
+        'http_connect_timeout' => max(5, (int) env('IPAYMU_HTTP_CONNECT_TIMEOUT', 25)),
+        'force_ipv4' => filter_var(env('IPAYMU_FORCE_IPV4', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
 ];

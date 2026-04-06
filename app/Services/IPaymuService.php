@@ -98,7 +98,7 @@ class IPaymuService
 
         try {
             Log::info('iPaymu Request:', ['url' => $url, 'headers' => $headers, 'body' => $body]);
-            $response = Http::withHeaders($headers)->post($url, $body);
+            $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
             $result = $response->json();
             Log::info('iPaymu Response:', ['res' => $result]);
             return $result;
@@ -135,6 +135,28 @@ class IPaymuService
     }
 
     /**
+     * Client HTTP untuk iPaymu: timeout lebih panjang + opsi IPv4-only (hindari hang di VPS tanpa route IPv6).
+     *
+     * @return \Illuminate\Http\Client\PendingRequest
+     */
+    protected function ipaymuHttp()
+    {
+        $cfg = config('services.ipaymu', []);
+        $pending = Http::timeout((int) ($cfg['http_timeout'] ?? 90))
+            ->connectTimeout((int) ($cfg['http_connect_timeout'] ?? 25));
+
+        if (! empty($cfg['force_ipv4']) && defined('CURL_IPRESOLVE_V4')) {
+            $pending = $pending->withOptions([
+                'curl' => [
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                ],
+            ]);
+        }
+
+        return $pending;
+    }
+
+    /**
      * Get Available Payment Channels
      */
     public function getPaymentChannels()
@@ -146,7 +168,7 @@ class IPaymuService
 
         try {
             // iPaymu recommends GET for channels
-            $response = Http::withHeaders($headers)->get($url);
+            $response = $this->ipaymuHttp()->withHeaders($headers)->get($url);
             return $response->json();
         } catch (\Exception $e) {
             Log::error('IPaymu Channels API Error:', ['msg' => $e->getMessage()]);

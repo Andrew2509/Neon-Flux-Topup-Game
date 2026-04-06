@@ -472,6 +472,11 @@ class TransactionController extends Controller
             || (stripos((string) $message, 'test transaksi') !== false && stripos((string) $message, 'ipaymu') !== false)) {
             $message = 'Kunci/VA iPaymu Anda untuk SANDBOX, tetapi permintaan terkirim ke server PRODUCTION (atau sebaliknya). Di Admin → kelola Provider iPaymu: isi mode **sandbox** jika VA & API Key dari https://sandbox.ipaymu.com; isi **production** (atau live/prod) hanya jika merchant sudah live di https://my.ipaymu.com. Simpan lalu coba checkout lagi.';
         }
+        if (stripos((string) $message, 'Operation timed out') !== false
+            || stripos((string) $message, 'cURL error 28') !== false
+            || stripos((string) $message, 'Connection timed out') !== false) {
+            $message = 'Server tidak mendapat balasan dari iPaymu dalam batas waktu (timeout). Biasanya karena jaringan VPS/firewall atau IPv6. Pastikan outbound HTTPS ke my.ipaymu.com tidak diblokir; aplikasi memaksa IPv4 secara default (IPAYMU_FORCE_IPV4 di .env). Coba lagi; dari VPS uji: curl -4 -m 15 -I https://my.ipaymu.com';
+        }
 
         if ($status == 200 && $data) {
             $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
