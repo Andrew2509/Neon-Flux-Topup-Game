@@ -15,14 +15,11 @@ class IPaymuService
     {
         $provider = \App\Models\Provider::whereRaw('LOWER(TRIM(name)) = ?', ['ipaymu'])->first();
 
-        $this->va = trim((string) ($provider->provider_id ?? ''));
-        $this->apiKey = trim((string) ($provider->api_key ?? ''));
+        $this->va = trim((string) ($provider?->provider_id ?? ''));
+        $this->apiKey = trim((string) ($provider?->api_key ?? ''));
 
-        // Hanya gunakan production bila mode diisi eksplisit; selain itu sandbox (aman untuk kunci uji / VA sandbox).
-        $mode = strtolower(trim((string) ($provider->mode ?? '')));
-        $productionModes = ['production', 'live', 'prod', 'produksi'];
-        $isProduction = in_array($mode, $productionModes, true);
-        $this->baseUrl = $isProduction
+        // Mengikuti ENVIRONMENT MODE di Admin → Provider (sandbox | production).
+        $this->baseUrl = ($provider && $provider->usesProductionApi())
             ? 'https://my.ipaymu.com'
             : 'https://sandbox.ipaymu.com';
     }

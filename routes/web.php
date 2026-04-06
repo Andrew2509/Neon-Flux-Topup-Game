@@ -44,11 +44,12 @@ Route::group(['middleware' => []], function () {
         $duitku = \App\Models\Provider::where('name', 'like', '%Duitku%')->first();
         if (!$duitku) return response()->json(["error" => "Provider Duitku not found in DB."]);
         
-        $mode = env('DUITKU_MODE', (env('APP_ENV') === 'local' ? 'sandbox' : 'passport'));
-        $url = "https://{$mode}.duitku.com/webapi/api/merchant/v2/inquiry";
-        
+        $hostMode = $duitku->usesProductionApi() ? 'passport' : 'sandbox';
+        $url = "https://{$hostMode}.duitku.com/webapi/api/merchant/v2/inquiry";
+
         $data = [
-            'mode' => $mode,
+            'provider_mode' => $duitku->mode,
+            'duitku_host' => $hostMode,
             'url' => $url,
             'merchantCode' => $duitku->provider_id,
             'has_api_key' => !empty($duitku->api_key),
@@ -77,7 +78,7 @@ Route::group(['middleware' => []], function () {
             $now = new \DateTime('now', $tz);
             $dt = $now->format('Y-m-d H:i:s');
             
-            $pmUrl = "https://{$mode}.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod";
+            $pmUrl = "https://{$hostMode}.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod";
             $pmSig = md5($duitku->provider_id . '10000' . $dt . $duitku->api_key);
             $pmResp = \Illuminate\Support\Facades\Http::post($pmUrl, [
                 'merchantCode' => $duitku->provider_id,

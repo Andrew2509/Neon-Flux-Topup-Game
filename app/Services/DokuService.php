@@ -17,23 +17,23 @@ class DokuService
     {
         $provider = \App\Models\Provider::where('name', 'DOKU')->first();
 
-        $this->clientId  = trim($provider->provider_id ?? '');
-        $this->secretKey = trim($provider->api_key ?? '');
-        
-        $mode = $provider->mode ?? 'production'; // Defaulting to production for live domain neonflux.my.id
-        
+        $this->clientId  = trim((string) ($provider?->provider_id ?? ''));
+        $this->secretKey = trim((string) ($provider?->api_key ?? ''));
+
+        $usesProd = $provider && $provider->usesProductionApi();
+
         Log::info('DOKU Config Init:', [
-            'provider_name' => $provider->name ?? 'NULL',
+            'provider_name' => $provider?->name ?? 'NULL',
             'client_id' => $this->clientId,
             'secret_key_prefix' => substr($this->secretKey, 0, 8),
-            'mode_raw' => $provider->mode ?? 'NULL',
-            'mode_used' => $mode
+            'mode_raw' => $provider?->mode ?? 'NULL',
+            'uses_production_api' => $usesProd,
         ]);
-        
-        // If they explicitly chose sandbox, use sandbox, otherwise use production.
-        $this->baseUrl = $mode === 'sandbox'
-            ? 'https://api-sandbox.doku.com'
-            : 'https://api.doku.com';
+
+        // Mengikuti ENVIRONMENT MODE di Admin → Provider (sandbox | production).
+        $this->baseUrl = $usesProd
+            ? 'https://api.doku.com'
+            : 'https://api-sandbox.doku.com';
     }
 
     /**

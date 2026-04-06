@@ -46,19 +46,15 @@ class PaymentController extends Controller
         $amount = 10000; // Standar inquiry
         $signature = hash('sha256', $merchantCode . $amount . $datetime . $apiKey);
 
-        // Auto-detect Sandbox vs Production
-        // 1. Check if name contains "Sandbox"
-        // 2. Check if Merchant Code starts with 'D' (common for Duitku Sandbox)
-        $isSandbox = str_contains(strtolower($provider->name), 'sandbox') || str_starts_with(strtoupper($merchantCode), 'D');
-
-        $url = $isSandbox
-            ? 'https://sandbox.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod'
-            : 'https://passport.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod';
+        // Mengikuti ENVIRONMENT MODE di Admin → Provider (sandbox | production).
+        $url = $provider->usesProductionApi()
+            ? 'https://passport.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod'
+            : 'https://sandbox.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod';
 
         try {
             Log::info('Duitku Sync Request:', [
                 'url' => $url,
-                'isSandbox' => $isSandbox,
+                'uses_production_api' => $provider->usesProductionApi(),
                 'merchantcode' => $merchantCode,
                 'datetime' => $datetime,
                 'signature' => $signature,

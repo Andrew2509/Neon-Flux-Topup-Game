@@ -236,8 +236,9 @@ class TransactionController extends Controller
         // 4. Proses Tembak API Duitku (POST)
         $signature = md5($merchantCode . $orderId . (int)$paymentAmount . $merchantKey);
 
-        $mode = $duitku->mode ?? env('DUITKU_MODE', (env('APP_ENV') === 'local' ? 'sandbox' : 'passport'));
-        $duitkuUrl = "https://{$mode}.duitku.com/webapi/api/merchant/v2/inquiry";
+        // Subdomain Duitku: sandbox | passport (live). Mengikuti ENVIRONMENT MODE admin (sandbox | production).
+        $duitkuHostMode = $duitku->usesProductionApi() ? 'passport' : 'sandbox';
+        $duitkuUrl = "https://{$duitkuHostMode}.duitku.com/webapi/api/merchant/v2/inquiry";
 
         $params = array(
             'merchantCode' => $merchantCode,

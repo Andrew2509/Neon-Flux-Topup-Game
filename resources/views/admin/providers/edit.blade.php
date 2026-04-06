@@ -107,6 +107,7 @@
                                 <option value="sandbox" {{ old('mode', $provider->mode) == 'sandbox' ? 'selected' : '' }}>Sandbox / Development</option>
                                 <option value="production" {{ old('mode', $provider->mode) == 'production' ? 'selected' : '' }}>Production / Live</option>
                             </select>
+                            <p class="text-[9px] text-slate-500 mt-1 ml-1 leading-relaxed">Mengatur URL API untuk iPaymu, DOKU, Duitku, dan Midtrans pada provider ini (sandbox vs production).</p>
                             @error('mode') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
                         </div>
 

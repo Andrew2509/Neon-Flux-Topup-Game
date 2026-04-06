@@ -27,7 +27,7 @@ class MidtransService
         
         if ($midtrans) {
             Config::$serverKey = $midtrans->api_key;
-            Config::$isProduction = ($midtrans->mode === 'production');
+            Config::$isProduction = $midtrans->usesProductionApi();
             Config::$isSanitized = true;
             Config::$is3ds = true;
             
