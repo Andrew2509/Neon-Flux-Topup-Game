@@ -187,7 +187,53 @@ class IPaymuService
             $this->ipaymuSortedFormBody($data, PHP_QUERY_RFC3986),
         ]));
 
-        // Strategy 1: HMAC-SHA256( hex(SHA256(raw_body)), secret ) — variasi body & secret
+        // Strategy 0: iPaymu API v2 (sama seperti request payment) — POST:VA:sha256(body):apiKey lalu HMAC-SHA256(..., apiKey)
+        // Lihat contoh resmi: https://gist.githubusercontent.com/iogias/7470dbcd586df1b45613e6a9c67c717c/raw
+        if ($this->va !== '' && $this->apiKey !== '') {
+            $jsonBodiesForHash = [];
+            foreach ([false, true] as $normalizeNumerics) {
+                $payload = $data;
+                unset($payload['signature']);
+                if ($normalizeNumerics) {
+                    $payload = $this->normalizeIpaymuCallbackNumerics($payload);
+                }
+                // Urutan kunci seperti diterima PHP (bisa sama dengan JSON yang ditandatangani simulator)
+                foreach ([JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE, 0] as $jf) {
+                    $j = json_encode($payload, $jf);
+                    if ($j !== false) {
+                        $jsonBodiesForHash[] = $j;
+                    }
+                }
+                $this->ksortRecursive($payload);
+                foreach ([JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE, 0] as $jf) {
+                    $j = json_encode($payload, $jf);
+                    if ($j !== false) {
+                        $jsonBodiesForHash[] = $j;
+                    }
+                }
+            }
+            $bodyStrings = array_unique(array_filter(array_merge($rawCandidates, $jsonBodiesForHash)));
+
+            foreach ($bodyStrings as $bodyStr) {
+                $bodyHash = strtolower(hash('sha256', $bodyStr));
+                foreach (['POST', 'post'] as $method) {
+                    $variants = [
+                        $method.':'.$this->va.':'.$bodyHash.':'.$this->apiKey,
+                        $method.':'.$this->va.':'.$bodyHash,
+                    ];
+                    foreach ($variants as $stringToSign) {
+                        $gen = strtolower(hash_hmac('sha256', $stringToSign, $this->apiKey));
+                        if (hash_equals($receivedSignature, $gen)) {
+                            Log::info('iPaymu Validation Success: Strategy 0 (v2 stringToSign)');
+
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Strategy 1: HMAC-SHA256( hex(SHA256(raw_body)), secret ) — variasi body & secret (legacy / varian)
         foreach ($rawCandidates as $rb) {
             $shaHex = hash('sha256', $rb);
             $shaBin = hash('sha256', $rb, true);
