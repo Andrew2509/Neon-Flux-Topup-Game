@@ -391,6 +391,9 @@ class TransactionController extends Controller
         if (stripos((string) $message, 'Suspicious buyer') !== false) {
             $message = 'Pembayaran ditolak oleh iPaymu (pembeli terdeteksi risiko). Coba tanpa VPN, jaringan lain, atau login dengan data asli. Jika terus terjadi, hubungi iPaymu atau gunakan metode bayar lain.';
         }
+        if (stripos((string) $message, 'unauthorized credential') !== false) {
+            $message = 'iPaymu menolak kredensial: periksa nomor VA dan API Key di Admin → Provider (salin dari dashboard iPaymu). Pastikan mode Sandbox/Production sama dengan akun Anda (sandbox.ipaymu.com vs my.ipaymu.com). Hapus spasi di awal/akhir kunci jika ada.';
+        }
 
         if ($status == 200 && $data) {
             // Detect device for proper view folder

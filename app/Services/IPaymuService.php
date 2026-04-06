@@ -13,12 +13,14 @@ class IPaymuService
 
     public function __construct()
     {
-        $provider = \App\Models\Provider::where('name', 'iPaymu')->first();
-        
-        $this->va = $provider->provider_id ?? '';
-        $this->apiKey = $provider->api_key ?? '';
-        $this->baseUrl = ($provider->mode ?? 'sandbox') === 'sandbox' 
-            ? 'https://sandbox.ipaymu.com' 
+        $provider = \App\Models\Provider::whereRaw('LOWER(TRIM(name)) = ?', ['ipaymu'])->first();
+
+        $this->va = trim((string) ($provider->provider_id ?? ''));
+        $this->apiKey = trim((string) ($provider->api_key ?? ''));
+
+        $mode = strtolower(trim((string) ($provider->mode ?? 'sandbox')));
+        $this->baseUrl = $mode === 'sandbox'
+            ? 'https://sandbox.ipaymu.com'
             : 'https://my.ipaymu.com';
     }
 
@@ -30,6 +32,17 @@ class IPaymuService
      */
     public function createPayment(array $data)
     {
+        if ($this->va === '' || $this->apiKey === '') {
+            Log::warning('iPaymu: VA atau API Key kosong — pastikan ada baris provider iPaymu di admin.');
+
+            return [
+                'Status' => 401,
+                'Success' => false,
+                'Message' => 'Kredensial iPaymu belum lengkap (VA atau API Key kosong di pengaturan provider).',
+                'Data' => null,
+            ];
+        }
+
         $isDirect = !empty($data['paymentChannel']);
         $path = $isDirect ? '/api/v2/payment/direct' : '/api/v2/payment';
         $url = $this->baseUrl . $path;
