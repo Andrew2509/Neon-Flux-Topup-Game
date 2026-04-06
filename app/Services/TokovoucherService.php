@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
  *
  * @see https://docs.tokovoucher.net/cek-status/post
  * @see https://docs.tokovoucher.net/cek-status/get (GET ekuivalen; kami pakai POST JSON)
+ * @see https://docs.tokovoucher.net/transaksi/get-text (jalur IP: GET /trx, respons teks)
  */
 class TokovoucherService
 {
@@ -77,6 +78,97 @@ class TokovoucherService
     /**
      * @param  array<string, mixed>|null  $result
      */
+    /**
+     * Host trx-ip.tokovoucher.net memakai GET /trx (teks), bukan /v1/transaksi (JSON).
+     *
+     * @see https://docs.tokovoucher.net/transaksi/get-text
+     */
+    public static function transactionPathForBase(string $base): string
+    {
+        $host = strtolower((string) parse_url($base, PHP_URL_HOST));
+
+        if ($host !== '' && str_contains($host, 'trx-ip')) {
+            return '/trx';
+        }
+
+        return '/v1/transaksi';
+    }
+
+    /**
+     * Parse baris respons teks jalur IP, mis.:
+     * TRXID:.... REFID:.... PENDING. ...
+     * TRXID:.... REFID:.... SUKSES, SN:.... ...
+     * TRXID:.... REFID:.... GAGAL, pesan. ...
+     *
+     * @return array{raw: string, trx_id: string, ref_id: string, status: string, sn: string, message: string}
+     */
+    public static function parseTrxIpTextResponse(string $body): array
+    {
+        $body = trim($body);
+        $out = [
+            'raw' => $body,
+            'trx_id' => '',
+            'ref_id' => '',
+            'status' => 'unknown',
+            'sn' => '',
+            'message' => '',
+        ];
+
+        if ($body === '') {
+            return $out;
+        }
+
+        if (preg_match('/TRXID:([^.]*)\./i', $body, $m)) {
+            $out['trx_id'] = trim($m[1]);
+        }
+        if (preg_match('/REFID:([^.]*)\./i', $body, $m)) {
+            $out['ref_id'] = trim($m[1]);
+        }
+
+        if (preg_match('/\bPENDING\b/i', $body)) {
+            $out['status'] = 'pending';
+        } elseif (preg_match('/\bSUKSES\b/i', $body)) {
+            $out['status'] = 'sukses';
+            if (preg_match('/SN:([^\s.]+)/i', $body, $m)) {
+                $out['sn'] = trim($m[1]);
+            }
+        } elseif (preg_match('/\bGAGAL\b/i', $body)) {
+            $out['status'] = 'gagal';
+            if (preg_match('/GAGAL,\s*([^.]+)\./is', $body, $m)) {
+                $out['message'] = trim($m[1]);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Samakan bentuk hasil parse teks IP ke struktur mirip JSON /v1/transaksi untuk satu alur di job.
+     *
+     * @param  array{raw: string, trx_id: string, ref_id: string, status: string, sn: string, message: string}  $parsed
+     * @return array<string, mixed>
+     */
+    public static function trxIpTextToTransactionArray(array $parsed, string $fallbackRefId): array
+    {
+        $st = $parsed['status'] ?? 'unknown';
+        $status = match ($st) {
+            'sukses' => 1,
+            'pending' => 'pending',
+            'gagal' => 0,
+            default => null,
+        };
+
+        return [
+            'status' => $status,
+            'sn' => $parsed['sn'] ?? '',
+            'trx_id' => $parsed['trx_id'] ?? '',
+            'ref_id' => ($parsed['ref_id'] ?? '') !== '' ? $parsed['ref_id'] : $fallbackRefId,
+            'message' => $parsed['message'] ?? '',
+            'trx_ip_text' => true,
+            'trx_ip_raw' => Str::limit($parsed['raw'] ?? '', 2000),
+        ];
+    }
+
     public static function parseStatusResult(?array $result): ?string
     {
         if ($result === null) {

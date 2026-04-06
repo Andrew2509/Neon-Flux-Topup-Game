@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Order;
 use App\Models\Provider;
 use App\Services\FailedPermanentOrderWhatsAppNotifier;
+use App\Services\TokovoucherService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -16,10 +17,10 @@ class ProcessSupplierOrder implements ShouldQueue
     use Queueable;
 
     public $tries = 5;
+
     public $backoff = [60, 300, 600, 1200, 3600]; // Exponential backoff
 
-    public function __construct(public Order $order)
-    {}
+    public function __construct(public Order $order) {}
 
     public function handle(): void
     {
@@ -41,8 +42,9 @@ class ProcessSupplierOrder implements ShouldQueue
             $tokovoucher = Provider::where('name', 'like', '%Digiflazz%')->first();
         }
 
-        if (!$tokovoucher || !$tokovoucher->provider_id || !$tokovoucher->api_key) {
+        if (! $tokovoucher || ! $tokovoucher->provider_id || ! $tokovoucher->api_key) {
             $this->order->logStatus('Gagal: Konfigurasi supplier tidak lengkap.', 'failed_provider');
+
             return;
         }
 
@@ -58,8 +60,12 @@ class ProcessSupplierOrder implements ShouldQueue
 
         try {
             $response = null;
+            $lastTransactionPath = '/v1/transaksi';
             foreach ($bases as $idx => $base) {
-                $url = rtrim((string) $base, '/').'/v1/transaksi';
+                $baseTrim = rtrim((string) $base, '/');
+                $path = TokovoucherService::transactionPathForBase($baseTrim);
+                $lastTransactionPath = $path;
+                $url = $baseTrim.$path;
                 $response = $this->tokovoucherHttp()->get($url, [
                     'ref_id' => $this->order->order_id,
                     'produk' => $productCode,
@@ -77,12 +83,12 @@ class ProcessSupplierOrder implements ShouldQueue
 
                 Log::warning('TokoVoucher: HTTP '.$code.' pada host, mencoba host berikutnya', [
                     'host' => $base,
+                    'path' => $path,
                     'order_id' => $this->order->order_id,
                 ]);
             }
 
-            $decoded = $response->json();
-            $resultToko = is_array($decoded) ? $decoded : [];
+            $resultToko = $this->normalizeTokovoucherTransactionResponse($response, $lastTransactionPath);
 
             $tvStatus = $resultToko['status'] ?? null;
             $tvOk = $tvStatus === 1 || $tvStatus === '1' || $tvStatus === true
@@ -163,6 +169,24 @@ class ProcessSupplierOrder implements ShouldQueue
         }
     }
 
+    /**
+     * JSON dari /v1/transaksi atau teks dari /trx (jalur IP).
+     *
+     * @return array<string, mixed>
+     */
+    private function normalizeTokovoucherTransactionResponse(\Illuminate\Http\Client\Response $response, string $path): array
+    {
+        if (str_ends_with($path, '/trx')) {
+            $parsed = TokovoucherService::parseTrxIpTextResponse((string) $response->body());
+
+            return TokovoucherService::trxIpTextToTransactionArray($parsed, $this->order->order_id);
+        }
+
+        $decoded = $response->json();
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
     private function isTokovoucherTransientTransportError(string $message): bool
     {
         if (preg_match('/\bHTTP\s*(502|503|504)\b/i', $message)) {
@@ -199,6 +223,10 @@ class ProcessSupplierOrder implements ShouldQueue
         $st = $resultToko['status'] ?? null;
         if ($st !== null && $st !== '' && $st !== 1 && $st !== '1' && $st !== true) {
             $parts[] = 'status='.json_encode($st, JSON_UNESCAPED_UNICODE);
+        }
+
+        if (! empty($resultToko['trx_ip_raw']) && is_string($resultToko['trx_ip_raw'])) {
+            $parts[] = 'Respons IP (/trx): '.Str::limit(trim($resultToko['trx_ip_raw']), 500);
         }
 
         if ($resultToko === [] && $response->body() !== '') {
