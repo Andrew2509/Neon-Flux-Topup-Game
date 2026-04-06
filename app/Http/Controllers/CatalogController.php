@@ -10,7 +10,7 @@ class CatalogController extends Controller
     public function deviceType()
     {
         $userAgent = request()->header('User-Agent') ?: '';
-        
+
         // 1. Session Factor (Allow user to force via URL ?force_device=tablet)
         if (request()->has('force_device')) {
             $force = request('force_device');
@@ -20,35 +20,43 @@ class CatalogController extends Controller
                 session(['forced_device' => $force]);
             }
         }
-        
+
         if (session()->has('forced_device')) {
             $forced = session('forced_device');
             view()->share('debugUA', $userAgent);
-            view()->share('debugDevice', $forced . ' (forced)');
+            view()->share('debugDevice', $forced.' (forced)');
+
             return $forced;
         }
 
         view()->share('debugUA', $userAgent);
-        
+
+        if (config('neonflux.unified_desktop_views', true)) {
+            view()->share('debugDevice', 'desktop (unified)');
+
+            return 'desktop';
+        }
+
         // 2. Is this a known Desktop OS? (High confidence skip for Mobile/Tablet checks)
         // If it's Windows, Mac (not iPad), or Linux (not Android), it's Desktop.
         $isDesktopOS = (bool) preg_match('/windows|macintosh|linux(?!.*android)/i', $userAgent);
 
         // 3. Tablet Check (Huawei, iPad, Pro-specific UAs)
         $isPriorityTablet = (bool) preg_match('/huawei|harmony|mediapad|matepad|mate\s*pad|honor|pad|playbook|silk|kindle|pppleweb|tablet|ipad|AGS[3-9]|BAH[3-9]|KOB[3-9]|edga\/144/i', $userAgent);
-        
+
         $isAndroid = (bool) preg_match('/android/i', $userAgent);
         $hasMobile = (bool) preg_match('/mobile/i', $userAgent);
-        
+
         // 4. Tablet conditions
-        if ($isPriorityTablet || ($isAndroid && !$hasMobile)) {
+        if ($isPriorityTablet || ($isAndroid && ! $hasMobile)) {
             view()->share('debugDevice', 'tablet');
+
             return 'tablet';
         }
 
         // 5. Generic Mobile Patterns - Only if NOT Desktop OS
         $result = 'desktop'; // Default
-        if (!$isDesktopOS) {
+        if (! $isDesktopOS) {
             $isMobile = (bool) preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i', $userAgent);
             if ($isMobile) {
                 $result = 'hp';
@@ -56,22 +64,23 @@ class CatalogController extends Controller
         }
 
         view()->share('debugDevice', $result);
+
         return $result;
     }
 
     public function index()
     {
         $popular = Category::where('status', 'Aktif')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereDoesntHave('providerCategory')
-                  ->orWhereHas('providerCategory', function($q) {
-                      $q->where('status', 'Aktif');
-                  });
+                    ->orWhereHas('providerCategory', function ($q) {
+                        $q->where('status', 'Aktif');
+                    });
             })
-            ->whereHas('services', function($q) {
+            ->whereHas('services', function ($q) {
                 $q->where('status', 'Aktif');
             })
-            ->withCount(['services' => function($q) {
+            ->withCount(['services' => function ($q) {
                 $q->where('status', 'Aktif');
             }])
             ->orderBy('services_count', 'desc')
@@ -79,13 +88,13 @@ class CatalogController extends Controller
             ->get();
 
         $categories = Category::where('status', 'Aktif')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereDoesntHave('providerCategory')
-                  ->orWhereHas('providerCategory', function($q) {
-                      $q->where('status', 'Aktif');
-                  });
+                    ->orWhereHas('providerCategory', function ($q) {
+                        $q->where('status', 'Aktif');
+                    });
             })
-            ->whereHas('services', function($q) {
+            ->whereHas('services', function ($q) {
                 $q->where('status', 'Aktif');
             })
             ->orderBy('name', 'asc')
@@ -93,10 +102,10 @@ class CatalogController extends Controller
 
         // 1. Define UI Groups for Tabs
         $groupMaps = [
-            'topup'     => ['types' => ['Topup Game', 'Topup Game (Global)'], 'name' => 'Top Up Games', 'icon' => 'videogame_asset'],
-            'joki'      => ['types' => ['Joki'], 'name' => 'Joki MLBB', 'icon' => 'military_tech'],
-            'voucher'   => ['types' => ['Voucher Game', 'Voucher Data'], 'name' => 'Voucher', 'icon' => 'confirmation_number'],
-            'pulsa'     => ['types' => ['Pulsa', 'Paket Data', 'Telpon & SMS', 'Pulsa Transfer'], 'name' => 'Pulsa & Data', 'icon' => 'signal_cellular_alt'],
+            'topup' => ['types' => ['Topup Game', 'Topup Game (Global)'], 'name' => 'Top Up Games', 'icon' => 'videogame_asset'],
+            'joki' => ['types' => ['Joki'], 'name' => 'Joki MLBB', 'icon' => 'military_tech'],
+            'voucher' => ['types' => ['Voucher Game', 'Voucher Data'], 'name' => 'Voucher', 'icon' => 'confirmation_number'],
+            'pulsa' => ['types' => ['Pulsa', 'Paket Data', 'Telpon & SMS', 'Pulsa Transfer'], 'name' => 'Pulsa & Data', 'icon' => 'signal_cellular_alt'],
             'streaming' => ['types' => ['Hiburan', 'TV', 'Lainnya'], 'name' => 'Hiburan', 'icon' => 'live_tv'],
         ];
 
@@ -115,7 +124,7 @@ class CatalogController extends Controller
                 }
             }
             // Special check for Joki in name if type mismatch
-            if ($key === 'joki' && !$hasItems) {
+            if ($key === 'joki' && ! $hasItems) {
                 foreach ($categoryNames as $n) {
                     if (stripos($n, 'Joki') !== false) {
                         $hasItems = true;
@@ -134,26 +143,26 @@ class CatalogController extends Controller
         // 3. Fetch Sliders
         $sliders = \App\Models\Slider::where('status', 'Aktif')->latest()->get();
 
-        $view = $this->deviceType() . '.neonflux.topup';
+        $view = $this->deviceType().'.neonflux.topup';
 
         return view($view, compact('popular', 'categories', 'totalCategories', 'activeGroups', 'sliders'));
     }
 
     public function catalog(Request $request)
     {
-        $search   = $request->input('search');
-        $type     = $request->input('type');
-        $popular  = $request->input('popular');
+        $search = $request->input('search');
+        $type = $request->input('type');
+        $popular = $request->input('popular');
         $platform = $request->input('platform');
 
         $query = Category::where('status', 'Aktif')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereDoesntHave('providerCategory')
-                  ->orWhereHas('providerCategory', function($q) {
-                      $q->where('status', 'Aktif');
-                  });
+                    ->orWhereHas('providerCategory', function ($q) {
+                        $q->where('status', 'Aktif');
+                    });
             })
-            ->whereHas('services', function($q) {
+            ->whereHas('services', function ($q) {
                 $q->where('status', 'Aktif');
             });
 
@@ -174,17 +183,17 @@ class CatalogController extends Controller
         }
 
         $categories = $query->orderBy('name', 'asc')->paginate(100)->withQueryString();
-        
+
         // Dynamic counts for sidebar labels
         $counts = [
-            'all'     => Category::where('status', 'Aktif')->whereHas('services', fn($q) => $q->where('status', 'Aktif'))->count(),
-            'popular' => Category::where('status', 'Aktif')->where('is_popular', true)->whereHas('services', fn($q) => $q->where('status', 'Aktif'))->count(),
-            'mobile'  => Category::where('status', 'Aktif')->where('platform', 'like', '%mobile%')->whereHas('services', fn($q) => $q->where('status', 'Aktif'))->count(),
-            'pc'      => Category::where('status', 'Aktif')->where('platform', 'like', '%pc%')->whereHas('services', fn($q) => $q->where('status', 'Aktif'))->count(),
-            'console' => Category::where('status', 'Aktif')->where('platform', 'like', '%console%')->whereHas('services', fn($q) => $q->where('status', 'Aktif'))->count(),
+            'all' => Category::where('status', 'Aktif')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
+            'popular' => Category::where('status', 'Aktif')->where('is_popular', true)->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
+            'mobile' => Category::where('status', 'Aktif')->where('platform', 'like', '%mobile%')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
+            'pc' => Category::where('status', 'Aktif')->where('platform', 'like', '%pc%')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
+            'console' => Category::where('status', 'Aktif')->where('platform', 'like', '%console%')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
         ];
 
-        $view = $this->deviceType() . '.neonflux.catalog';
+        $view = $this->deviceType().'.neonflux.catalog';
 
         return view($view, compact('categories', 'counts'));
     }
@@ -193,21 +202,21 @@ class CatalogController extends Controller
     {
         $category = Category::where('slug', $slug)
             ->where('status', 'Aktif')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereDoesntHave('providerCategory')
-                  ->orWhereHas('providerCategory', function($q) {
-                      $q->where('status', 'Aktif');
-                  });
+                    ->orWhereHas('providerCategory', function ($q) {
+                        $q->where('status', 'Aktif');
+                    });
             })
             ->firstOrFail();
 
         $services = \App\Models\Service::where('category_id', $category->id)
             ->where('status', 'Aktif')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('product_jenis_id')
-                  ->orWhereHas('productJenis', function($q) {
-                      $q->where('status', 'Aktif');
-                  });
+                    ->orWhereHas('productJenis', function ($q) {
+                        $q->where('status', 'Aktif');
+                    });
             })
             ->orderBy('price', 'asc')
             ->get();
@@ -225,7 +234,7 @@ class CatalogController extends Controller
         $viewFolder = $this->deviceType();
         $viewPath = "{$viewFolder}.neonflux.topupgame.{$slug}";
 
-        if (!view()->exists($viewPath)) {
+        if (! view()->exists($viewPath)) {
             $viewPath = "{$viewFolder}.neonflux.topupgame.generic";
         }
 
