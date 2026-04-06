@@ -3,12 +3,12 @@
 @section('title', 'Kalkulator Zodiac - ' . get_setting('site_name', 'NEON FLUX'))
 
 @section('content')
-<div class="min-h-[80vh] flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden">
+<div class="min-h-[80vh] flex flex-col items-center justify-center px-4 pt-32 pb-20 relative overflow-hidden isolate">
     <!-- Background Decor -->
-    <div class="absolute top-1/4 -left-20 size-96 bg-amber-500/10 blur-[120px] rounded-full animate-pulse"></div>
-    <div class="absolute bottom-1/4 -right-20 size-80 bg-primary/10 blur-[120px] rounded-full animate-pulse" style="animation-delay: 2s"></div>
+    <div class="absolute top-1/4 -left-20 size-96 bg-amber-500/10 blur-[120px] rounded-full animate-pulse -z-10 pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute bottom-1/4 -right-20 size-80 bg-primary/10 blur-[120px] rounded-full animate-pulse -z-10 pointer-events-none" style="animation-delay: 2s" aria-hidden="true"></div>
 
-    <div class="w-full max-w-2xl z-10">
+    <div class="w-full max-w-2xl relative z-0">
         <div class="glass-panel p-8 md:p-12 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
             <!-- Header -->
             <div class="text-center mb-10 space-y-3">

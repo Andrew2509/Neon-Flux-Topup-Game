@@ -1,7 +1,7 @@
 {{-- ============================================================
     NAVBAR — Fixed top; menu penuh di md+; drawer + bottom bar di HP
     ============================================================ --}}
-<nav class="fixed top-0 w-full z-50 px-3 sm:px-6 py-3 md:py-4 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-transparent">
+<nav class="fixed top-0 w-full z-[200] px-3 sm:px-6 py-3 md:py-4 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-transparent">
     {{-- Logo --}}
     <div class="flex items-center gap-2 min-w-0 flex-shrink">
         @if($logo = get_image_url('site_logo'))

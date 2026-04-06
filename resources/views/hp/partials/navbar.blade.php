@@ -1,5 +1,5 @@
 <nav
-    class="fixed top-0 inset-x-0 z-50 px-3 py-2.5 glass-panel-mobile border-b shadow-sm dark:shadow-none flex justify-between items-center bg-white/80 dark:bg-background-dark/80">
+    class="fixed top-0 inset-x-0 z-[200] px-3 py-2.5 glass-panel-mobile border-b shadow-sm dark:shadow-none flex justify-between items-center bg-white/80 dark:bg-background-dark/80">
     <div class="flex items-center gap-2">
         @if($logo = get_image_url('site_logo'))
             <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'Neon Flux') }}" class="h-10 w-auto">

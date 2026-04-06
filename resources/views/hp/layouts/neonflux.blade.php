@@ -62,7 +62,7 @@
     @include('hp.partials.navbar')
 
     {{-- Content --}}
-    <div class="max-w-5xl mx-auto px-4 md:px-8 pt-20">
+    <div class="max-w-5xl mx-auto px-4 md:px-8 pt-20 relative z-0">
         @yield('content')
     </div>
 
