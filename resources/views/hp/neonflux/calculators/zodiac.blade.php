@@ -3,7 +3,7 @@
 @section('title', 'Kalkulator Zodiac')
 
 @section('content')
-<div class="space-y-6 pb-20 relative z-0 isolate">
+<div class="space-y-6 pb-20">
     <!-- Header Card -->
     <div class="glass-panel-mobile p-6 rounded-3xl border-slate-200 shadow-sm overflow-hidden relative text-center space-y-3">
         <div class="absolute -top-10 -right-10 size-40 bg-amber-500/10 blur-3xl rounded-full"></div>

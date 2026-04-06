@@ -26,7 +26,7 @@
             --border-color: rgba(0, 0, 0, 0.05);
             --hero-overlay: #ffffff;
             --grid-color: rgba(0, 0, 0, 0.03);
-            --header-h: 88px;
+            --header-h: 80px;
         }
 
         :root.dark {
@@ -57,11 +57,6 @@
         .dark .glass-panel {
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
-
-        /* Jarak scroll agar judul tidak lenyap di bawah navbar fixed */
-        html {
-            scroll-padding-top: calc(var(--header-h) + 0.75rem);
-        }
     </style>
 
     {{-- Custom CSS --}}
@@ -70,7 +65,7 @@
 
     @stack('styles')
 </head>
-<body class="neonflux min-h-screen font-body overflow-x-hidden selection:bg-secondary selection:text-white pb-[4.5rem] lg:pb-0">
+<body class="neonflux min-h-screen font-body overflow-x-hidden selection:bg-secondary selection:text-white pb-[4.5rem] md:pb-0">
 
     {{-- Navbar --}}
     @include('desktop.partials.navbar')

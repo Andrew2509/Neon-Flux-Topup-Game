@@ -1,7 +1,7 @@
 {{-- Drawer harus di akhir body (setelah konten/banner) agar tidak ketutup lapisan halaman --}}
-<div id="nf-drawer" class="fixed inset-0 z-[600] hidden lg:hidden" aria-hidden="true">
-    <div class="absolute inset-0 z-0 bg-black/60 backdrop-blur-sm" data-nf-drawer-backdrop></div>
-    <div class="absolute top-0 right-0 z-10 h-full w-[min(100%,20rem)] bg-[#0b0e14] border-l border-white/10 shadow-2xl flex flex-col nf-drawer-panel">
+<div id="nf-drawer" class="fixed inset-0 z-[10000] hidden md:hidden" aria-hidden="true">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-nf-drawer-backdrop></div>
+    <div class="absolute top-0 right-0 z-[1] h-full w-[min(100%,20rem)] bg-[#0b0e14] border-l border-white/10 shadow-2xl flex flex-col nf-drawer-panel">
         <div class="flex items-center justify-between p-4 border-b border-white/10">
             <span class="font-display font-bold text-white text-sm tracking-wide">Menu</span>
             <button type="button" id="nf-drawer-close" class="size-10 rounded-xl bg-white/5 flex items-center justify-center text-white touch-manipulation" aria-label="Tutup">
@@ -30,7 +30,7 @@
     }
 </style>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+(function () {
     var drawer = document.getElementById('nf-drawer');
     if (!drawer) return;
     var openBtn = document.getElementById('nf-drawer-open');
@@ -46,8 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
         drawer.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
     }
-    if (openBtn) openBtn.addEventListener('click', openD);
-    if (closeBtn) closeBtn.addEventListener('click', closeD);
-    if (backdrop) backdrop.addEventListener('click', closeD);
-});
+    openBtn && openBtn.addEventListener('click', openD);
+    closeBtn && closeBtn.addEventListener('click', closeD);
+    backdrop && backdrop.addEventListener('click', closeD);
+})();
 </script>
