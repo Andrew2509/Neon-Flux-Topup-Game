@@ -125,23 +125,52 @@ class ProcessSupplierOrder implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
+        $msg = $exception->getMessage();
+
+        // 502/503/504 = gangguan sementara di sisi TokoVoucher — bukan "voucher gagal".
+        // Jangan set failed_permanent; biarkan status paid + user bisa refresh / cek status / admin retry job.
+        if ($this->isTokovoucherTransientTransportError($msg)) {
+            Log::warning('Supplier job habis retry karena HTTP 502/503/504 (sementara); order tetap paid', [
+                'order_id' => $this->order->order_id,
+                'message' => Str::limit($msg, 800),
+            ]);
+
+            $this->order->logStatus(
+                'TokoVoucher sempat tidak tersedia (server sibuk/maintenance) setelah beberapa percobaan otomatis. Pembayaran Anda tetap tercatat — silakan tunggu lalu buka lagi halaman cek transaksi, atau hubungi admin bila lama tidak berubah.',
+                null,
+                ['transient_http' => true, 'detail' => Str::limit($msg, 600)]
+            );
+
+            return;
+        }
+
         Log::error('Supplier Job Permanently Failed', [
             'order_id' => $this->order->order_id,
-            'message' => $exception->getMessage()
+            'message' => $msg,
         ]);
 
         $this->order->logStatus('Gagal: Pengiriman ke supplier gagal setelah beberapa kali percobaan. Mohon hubungi Admin.', 'failed_permanent', [
-            'final_error' => $exception->getMessage()
+            'final_error' => $msg,
         ]);
 
         try {
-            app(FailedPermanentOrderWhatsAppNotifier::class)->notify($this->order->fresh(), $exception->getMessage());
+            app(FailedPermanentOrderWhatsAppNotifier::class)->notify($this->order->fresh(), $msg);
         } catch (\Throwable $e) {
             Log::error('Failed permanent: notifier WA error', [
                 'order_id' => $this->order->order_id,
                 'msg' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function isTokovoucherTransientTransportError(string $message): bool
+    {
+        if (preg_match('/\bHTTP\s*(502|503|504)\b/i', $message)) {
+            return true;
+        }
+
+        return str_contains($message, 'Server TokoVoucher sibuk')
+            || str_contains($message, 'Service Temporarily Unavailable');
     }
 
     /**
