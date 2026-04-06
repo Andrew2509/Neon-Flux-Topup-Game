@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class IPaymuService
 {
@@ -101,7 +102,50 @@ class IPaymuService
             Log::info('iPaymu Request:', ['url' => $url, 'headers' => $headers, 'body' => $body]);
             $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
             $result = $response->json();
+
+            if (! $response->successful()) {
+                $http = $response->status();
+                $payload = is_array($result) ? $result : [];
+                $msg = $payload['Message'] ?? $payload['message'] ?? $payload['error'] ?? $payload['errors'] ?? null;
+                if (is_array($msg)) {
+                    $msg = json_encode($msg, JSON_UNESCAPED_UNICODE);
+                }
+                $msg = $msg !== null ? trim((string) $msg) : '';
+                if ($msg === '') {
+                    $raw = trim(strip_tags($response->body()));
+                    $msg = $raw !== '' ? Str::limit($raw, 400) : '';
+                }
+                if ($msg === '' || strcasecmp($msg, 'Server Error') === 0 || strcasecmp($msg, 'Internal Server Error') === 0) {
+                    $msg = "API iPaymu mengembalikan HTTP {$http} (gangguan di sisi iPaymu atau permintaan ditolak). Coba lagi beberapa saat, ganti channel bayar, atau hubungi support iPaymu.";
+                }
+
+                Log::warning('iPaymu HTTP non-success', [
+                    'http' => $http,
+                    'url' => $url,
+                    'body_snippet' => Str::limit($response->body(), 1500),
+                ]);
+
+                return [
+                    'Status' => $http,
+                    'Success' => false,
+                    'Message' => $msg,
+                    'Data' => null,
+                ];
+            }
+
+            if (! is_array($result)) {
+                Log::error('iPaymu non-JSON response', ['snippet' => Str::limit($response->body(), 500)]);
+
+                return [
+                    'Status' => 502,
+                    'Success' => false,
+                    'Message' => 'Respons iPaymu tidak valid (bukan JSON). Periksa koneksi atau status layanan iPaymu.',
+                    'Data' => null,
+                ];
+            }
+
             Log::info('iPaymu Response:', ['res' => $result]);
+
             return $result;
         } catch (\Exception $e) {
             Log::error('IPaymu API Error:', ['msg' => $e->getMessage()]);

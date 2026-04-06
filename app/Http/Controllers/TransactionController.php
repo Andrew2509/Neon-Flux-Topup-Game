@@ -478,6 +478,11 @@ class TransactionController extends Controller
             || stripos((string) $message, 'Connection timed out') !== false) {
             $message = 'Server tidak mendapat balasan dari iPaymu dalam batas waktu (timeout). Biasanya karena jaringan VPS/firewall atau IPv6. Pastikan outbound HTTPS ke my.ipaymu.com tidak diblokir; aplikasi memaksa IPv4 secara default (IPAYMU_FORCE_IPV4 di .env). Coba lagi; dari VPS uji: curl -4 -m 15 -I https://my.ipaymu.com';
         }
+        $msgTrim = trim((string) $message);
+        if ($msgTrim === 'Server Error' || strcasecmp($msgTrim, 'Internal Server Error') === 0) {
+            $httpLabel = ($status !== null && $status !== '' && is_numeric($status)) ? (string) (int) $status : 'tidak diketahui';
+            $message = 'Layanan iPaymu mengembalikan error server (HTTP '.$httpLabel.'). Ini biasanya gangguan sementara di sisi iPaymu. Tunggu sebentar, coba lagi, atau pilih metode pembayaran lain. Jika berulang, hubungi support iPaymu.';
+        }
 
         if ($status == 200 && $data) {
             $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
