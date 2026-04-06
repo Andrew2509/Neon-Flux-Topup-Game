@@ -48,10 +48,11 @@ return [
     | TokoVoucher — dok: error HTTP/timeout dianggap pending hingga callback atau cek status berkala.
     | Host transaksi: https://api.tokovoucher.net atau http://trx-ip.tokovoucher.net (jalur IP, bila diarahkan TokoVoucher).
     | IP 188.166.243.56: biasanya untuk whitelist callback masuk ke server/firewall Anda (bukan IP outbound).
+    | Cek status transaksi: POST/GET .../v1/transaksi/status (dok: https://docs.tokovoucher.net/cek-status/post ).
     */
     'tokovoucher' => [
         /**
-         * Host untuk JSON API: pascabayar-inq, POST transaksi, cek status (dok: https://api.tokovoucher.net).
+         * Host untuk JSON API: pascabayar-inq, POST transaksi, cek status /v1/transaksi/status (dok: https://api.tokovoucher.net).
          * Jangan samakan dengan trx-ip — jalur IP sering tidak mendukung endpoint ini → HTTP 503 HTML.
          */
         'api_base' => rtrim(env('TOKOVOUCHER_API_BASE', 'https://api.tokovoucher.net'), '/'),
