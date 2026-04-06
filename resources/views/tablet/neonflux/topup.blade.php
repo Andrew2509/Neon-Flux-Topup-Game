@@ -165,10 +165,10 @@
         <div class="flex items-center gap-2 mb-3">
             <h3 class="text-base font-display font-bold text-white">Semua Game</h3>
         </div>
-        @php $mobileGridCollapsible = isset($categories) && $categories->count() > 16; @endphp
+        @php $mobileGridCollapsible = isset($categories) && $categories->count() > 15; @endphp
         <div id="game-grid-mobile-viewport"
              class="@if($mobileGridCollapsible) relative overflow-hidden transition-[max-height] duration-500 ease-out @endif"
-             @if($mobileGridCollapsible) style="max-height: min(48vh, 22rem);" @endif>
+             @if($mobileGridCollapsible) style="max-height: min(82vh, 42rem);" @endif>
         <div id="game-grid-mobile" class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
             @forelse ($categories as $item)
             @php
