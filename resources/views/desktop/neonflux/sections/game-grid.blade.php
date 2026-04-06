@@ -1,7 +1,14 @@
 {{-- ============================================================
     GAME GRID — Large grid of available games
+    (Lebih dari 18 item: tinggi dibatasi + tombol "Lihat semua")
     ============================================================ --}}
-<div id="game-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-2.5 lg:gap-2">
+@php
+    $gameGridCollapsible = isset($categories) && $categories->count() > 18;
+@endphp
+<div id="game-grid-viewport"
+     class="@if($gameGridCollapsible) relative overflow-hidden transition-[max-height] duration-500 ease-out @endif"
+     @if($gameGridCollapsible) style="max-height: min(52vh, 26rem);" @endif>
+    <div id="game-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-2.5 lg:gap-2">
 @foreach($categories as $game)
     @php
         $gameGroup = 'topup'; // Default to topup if unknown
@@ -9,10 +16,10 @@
         elseif (in_array($game->type, ['Voucher Game', 'Voucher Data'])) $gameGroup = 'voucher';
         elseif (in_array($game->type, ['Pulsa', 'Paket Data', 'Telpon & SMS', 'Pulsa Transfer'])) $gameGroup = 'pulsa';
         elseif (in_array($game->type, ['Hiburan', 'TV', 'Lainnya'])) $gameGroup = 'streaming';
-        
+
         if (stripos($game->name, 'Joki') !== false) $gameGroup = 'joki';
     @endphp
-    <a href="{{ route('topup.game', $game->slug) }}" 
+    <a href="{{ route('topup.game', $game->slug) }}"
        data-group="{{ $gameGroup }}"
        class="game-card flex flex-col items-center glass-panel p-1.5 sm:p-2 lg:p-1.5 rounded-xl sm:rounded-2xl lg:rounded-xl card-hover transition-all cursor-pointer group relative overflow-hidden shadow-sm hover:shadow-xl dark:shadow-none">
         <div class="relative w-full aspect-square rounded-lg sm:rounded-xl lg:rounded-lg overflow-hidden mb-1.5 sm:mb-2 lg:mb-1 max-h-[5.25rem] sm:max-h-[6rem] md:max-h-[6.5rem] lg:max-h-[3.75rem]">
@@ -23,4 +30,17 @@
         <p class="text-[8px] sm:text-[9px] lg:text-[7px] text-slate-500 dark:text-gray-500 mt-0.5 lg:mt-0 text-center line-clamp-2 leading-snug">{{ $game->type }}</p>
     </a>
 @endforeach
+    </div>
+    @if($gameGridCollapsible)
+    <div id="game-grid-fade" class="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-28 bg-linear-to-t from-[var(--bg-color)] via-[var(--bg-color)]/85 to-transparent" aria-hidden="true"></div>
+    @endif
 </div>
+@if($gameGridCollapsible)
+<div class="flex justify-center mt-5 mb-1" id="game-grid-expand-wrap">
+    <button type="button" id="game-grid-expand-btn"
+            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl font-bold text-sm bg-primary text-slate-900 shadow-neon-cyan hover:brightness-110 active:scale-[0.98] transition-all border border-primary/30">
+        Lihat semua
+        <span class="material-icons-round text-base" aria-hidden="true">expand_more</span>
+    </button>
+</div>
+@endif

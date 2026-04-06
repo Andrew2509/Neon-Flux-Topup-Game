@@ -165,6 +165,10 @@
         <div class="flex items-center gap-2 mb-3">
             <h3 class="text-base font-display font-bold text-white">Semua Game</h3>
         </div>
+        @php $mobileGridCollapsible = isset($categories) && $categories->count() > 16; @endphp
+        <div id="game-grid-mobile-viewport"
+             class="@if($mobileGridCollapsible) relative overflow-hidden transition-[max-height] duration-500 ease-out @endif"
+             @if($mobileGridCollapsible) style="max-height: min(48vh, 22rem);" @endif>
         <div id="game-grid-mobile" class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
             @forelse ($categories as $item)
             @php
@@ -188,6 +192,19 @@
             <div class="col-span-3 text-center py-4 text-[10px] text-slate-500 dark:text-white/50">Belum ada game tersedia.</div>
             @endforelse
         </div>
+        @if($mobileGridCollapsible)
+        <div id="game-grid-mobile-fade" class="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24 bg-linear-to-t from-[var(--bg-color)] via-[var(--bg-color)]/85 to-transparent" aria-hidden="true"></div>
+        @endif
+        </div>
+        @if($mobileGridCollapsible)
+        <div class="flex justify-center mt-4 mb-1" id="game-grid-mobile-expand-wrap">
+            <button type="button" id="game-grid-mobile-expand-btn"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs bg-primary text-slate-900 shadow-neon-cyan active:scale-[0.98] transition-all">
+                Lihat semua
+                <span class="material-icons-round text-sm" aria-hidden="true">expand_more</span>
+            </button>
+        </div>
+        @endif
     </section>
 </div>
 @push('scripts')
@@ -223,6 +240,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trigger first category on load
     const firstTab = document.querySelector('.category-tab-mobile');
     if (firstTab) firstTab.click();
+
+    const mViewport = document.getElementById('game-grid-mobile-viewport');
+    const mBtn = document.getElementById('game-grid-mobile-expand-btn');
+    const mFade = document.getElementById('game-grid-mobile-fade');
+    const mWrap = document.getElementById('game-grid-mobile-expand-wrap');
+    if (mBtn && mViewport) {
+        mBtn.addEventListener('click', () => {
+            const fullH = mViewport.scrollHeight;
+            mViewport.style.transition = 'max-height 0.45s ease-out';
+            mViewport.style.maxHeight = fullH + 'px';
+            const finish = () => {
+                mViewport.style.maxHeight = 'none';
+                mViewport.style.overflow = 'visible';
+            };
+            mViewport.addEventListener('transitionend', finish, { once: true });
+            mFade?.classList.add('hidden');
+            mWrap?.classList.add('hidden');
+            window.setTimeout(() => {
+                if (mViewport.style.maxHeight !== 'none') {
+                    finish();
+                }
+            }, 480);
+        });
+    }
 });
 </script>
 @endpush

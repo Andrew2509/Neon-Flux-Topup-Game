@@ -62,6 +62,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trigger first category on load
     const firstTab = document.querySelector('.category-tab');
     if (firstTab) firstTab.click();
+
+    // Game grid: expand "Lihat semua"
+    const gridViewport = document.getElementById('game-grid-viewport');
+    const gridExpandBtn = document.getElementById('game-grid-expand-btn');
+    const gridFade = document.getElementById('game-grid-fade');
+    const gridExpandWrap = document.getElementById('game-grid-expand-wrap');
+    if (gridExpandBtn && gridViewport) {
+        gridExpandBtn.addEventListener('click', () => {
+            const fullH = gridViewport.scrollHeight;
+            gridViewport.style.transition = 'max-height 0.45s ease-out';
+            gridViewport.style.maxHeight = fullH + 'px';
+            const finish = () => {
+                gridViewport.style.maxHeight = 'none';
+                gridViewport.style.overflow = 'visible';
+            };
+            gridViewport.addEventListener('transitionend', finish, { once: true });
+            gridFade?.classList.add('hidden');
+            gridExpandWrap?.classList.add('hidden');
+            window.setTimeout(() => {
+                if (gridViewport.style.maxHeight !== 'none') {
+                    finish();
+                }
+            }, 480);
+        });
+    }
 });
 </script>
 @endpush
