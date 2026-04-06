@@ -265,6 +265,67 @@ class IPaymuService
     }
 
     /**
+     * ID transaksi iPaymu dari respons create payment (direct / redirect) untuk POST /api/v2/transaction.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function extractTransactionIdFromPaymentData(array $data): ?string
+    {
+        $keys = [
+            'TrxId', 'trx_id', 'TransactionId', 'transaction_id',
+            'SessionID', 'sessionId', 'session_id',
+        ];
+        foreach ($keys as $k) {
+            if (! empty($data[$k]) && is_scalar($data[$k])) {
+                $s = trim((string) $data[$k]);
+
+                return $s !== '' ? $s : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * True jika respons POST /api/v2/transaction menandakan pembayaran sukses (Status Data 1, 6, atau 7 — sesuai ringkasan dok. iPaymu v2).
+     *
+     * @param  array<string, mixed>|null  $result
+     */
+    public static function isCheckTransactionPaid(?array $result): bool
+    {
+        if ($result === null || $result === []) {
+            return false;
+        }
+
+        $topStatus = $result['Status'] ?? $result['status'] ?? null;
+        if ($topStatus !== null && is_numeric($topStatus) && (int) $topStatus !== 200) {
+            return false;
+        }
+
+        $data = $result['Data'] ?? $result['data'] ?? null;
+        if (! is_array($data)) {
+            return false;
+        }
+
+        $st = $data['Status'] ?? $data['status'] ?? null;
+        if ($st !== null && is_numeric($st)) {
+            $n = (int) $st;
+            if (in_array($n, [1, 6, 7], true)) {
+                return true;
+            }
+        }
+
+        $tsc = $data['transaction_status_code'] ?? $data['transactionStatusCode'] ?? null;
+        if ($tsc !== null && (int) $tsc === 1) {
+            return true;
+        }
+
+        $ts = strtolower((string) ($data['transactionStatus'] ?? $data['transaction_status'] ?? $data['TransactionStatus'] ?? ''));
+
+        return $ts !== '' && in_array($ts, ['paid', 'success', 'berhasil', 'sukses', 'lunas'], true);
+    }
+
+    /**
      * Get Available Payment Channels
      */
     public function getPaymentChannels()
@@ -281,6 +342,49 @@ class IPaymuService
         } catch (\Exception $e) {
             Log::error('IPaymu Channels API Error:', ['msg' => $e->getMessage()]);
             return ['status' => 500, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Cek status transaksi real-time: POST /api/v2/transaction (transactionId).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getTransactionDetails(string $transactionId): ?array
+    {
+        $transactionId = trim($transactionId);
+        if ($transactionId === '' || $this->va === '' || $this->apiKey === '') {
+            return null;
+        }
+
+        $url = $this->baseUrl.'/api/v2/transaction';
+        $body = ['transactionId' => $transactionId];
+        $headers = $this->generateHeaders($body, 'POST');
+
+        try {
+            $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
+            $result = $response->json();
+            if (! is_array($result)) {
+                Log::warning('iPaymu getTransactionDetails: respons bukan JSON', [
+                    'http' => $response->status(),
+                    'snippet' => Str::limit($response->body(), 400),
+                ]);
+
+                return null;
+            }
+
+            if (! $response->successful()) {
+                Log::info('iPaymu getTransactionDetails: HTTP non-2xx', [
+                    'http' => $response->status(),
+                    'snippet' => Str::limit($response->body(), 800),
+                ]);
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::error('iPaymu getTransactionDetails exception', ['msg' => $e->getMessage()]);
+
+            return null;
         }
     }
 

@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use App\Models\Service;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Services\IPaymuService;
 use App\Jobs\ProcessSupplierOrder;
 
@@ -485,6 +486,16 @@ class TransactionController extends Controller
         }
 
         if ($status == 200 && $data) {
+            $ipaymuTid = IPaymuService::extractTransactionIdFromPaymentData($data);
+            if ($ipaymuTid !== null) {
+                $p = $order->payload ?? [];
+                $p['ipaymu'] = array_merge($p['ipaymu'] ?? [], [
+                    'transaction_id' => $ipaymuTid,
+                    'created_via' => 'payment_api',
+                ]);
+                $order->update(['payload' => $p]);
+            }
+
             $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
                 return redirect()->away($hostedUrl);
@@ -710,6 +721,57 @@ class TransactionController extends Controller
                 'msg' => $e->getMessage(),
             ]);
             ProcessSupplierOrder::dispatch($fresh->fresh());
+        }
+    }
+
+    /**
+     * Bila pembayaran iPaymu sudah sukses di sisi iPaymu tetapi callback belum masuk: cek POST /api/v2/transaction lalu paid + TokoVoucher.
+     * Lihat dokumentasi: https://documenter.getpostman.com/view/40296808/2sB3WtseBT
+     */
+    private function trySyncIpaymuOrderFromApi(?Order $order): void
+    {
+        if (! $order || $order->status !== 'pending_payment') {
+            return;
+        }
+
+        $tid = data_get($order->payload, 'ipaymu.transaction_id');
+        if (! is_string($tid) || trim($tid) === '') {
+            return;
+        }
+
+        $throttleKey = 'ipaymu_check_tx:'.$order->order_id;
+        if (Cache::has($throttleKey)) {
+            return;
+        }
+
+        $svc = new IPaymuService();
+        $res = $svc->getTransactionDetails(trim($tid));
+        if (! IPaymuService::isCheckTransactionPaid($res)) {
+            Cache::put($throttleKey, 1, 15);
+
+            return;
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($order, $tid) {
+                $o = Order::whereKey($order->id)->lockForUpdate()->first();
+                if (! $o || $o->status !== 'pending_payment') {
+                    return;
+                }
+                $o->logStatus('Pembayaran berhasil (verifikasi API cek transaksi iPaymu).', 'paid', [
+                    'ipaymu_trx_id' => $tid,
+                    'ipaymu_api_check' => true,
+                ]);
+            });
+
+            Log::info('iPaymu order disinkron dari API cek transaksi', ['order_id' => $order->order_id, 'transaction_id' => $tid]);
+
+            $this->fulfillSupplierAfterPayment($order->fresh());
+        } catch (\Throwable $e) {
+            Log::warning('trySyncIpaymuOrderFromApi gagal', [
+                'order_id' => $order->order_id,
+                'msg' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -1367,6 +1429,12 @@ class TransactionController extends Controller
         $order = null;
         if ($request->has('order_id')) {
             $order = Order::with('logs')->where('order_id', $request->order_id)->first();
+
+            if ($order) {
+                $this->trySyncIpaymuOrderFromApi($order);
+                $order->refresh();
+                $order->load('logs');
+            }
 
             if (!$order && $request->filled('order_id')) {
                 if ($request->expectsJson()) {
