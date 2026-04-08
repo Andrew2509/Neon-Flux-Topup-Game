@@ -65,6 +65,30 @@
             <h3 class="font-bold text-sm text-white">Pilih Nominal</h3>
         </div>
 
+        {{-- ── Banner Batas Saldo TokoVoucher (Tablet) ─────────────────────── --}}
+        @if(isset($maxNominal) && $maxNominal !== null)
+            @if($maxNominal <= 0)
+            <div class="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-400/30">
+                <span class="material-icons-round text-red-400 text-sm mt-0.5 shrink-0">error_outline</span>
+                <div>
+                    <p class="text-[11px] font-bold text-red-400">Saldo Supplier Habis</p>
+                    <p class="text-[10px] text-white/60 mt-0.5">Produk tidak tersedia saat ini. Silakan coba lagi nanti.</p>
+                </div>
+            </div>
+            @else
+            <div class="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/30">
+                <span class="material-icons-round text-yellow-400 text-sm mt-0.5 shrink-0">info</span>
+                <div>
+                    <p class="text-[11px] font-bold text-yellow-300">Nominal Dibatasi Otomatis</p>
+                    <p class="text-[10px] text-white/60 mt-0.5">
+                        Produk maks. <strong class="text-yellow-300">Rp {{ number_format($maxNominal, 0, ',', '.') }}</strong> untuk keamanan transaksi.
+                    </p>
+                </div>
+            </div>
+            @endif
+        @endif
+        {{-- ────────────────────────────────────────────────────────────────── --}}
+
         @if($activeJenis->count() > 0)
         <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             @foreach($activeJenis as $aj)
@@ -85,8 +109,12 @@
                 </label>
             </div>
             @empty
-            <div class="col-span-2 text-center py-4 text-[10px] text-slate-500 dark:text-white/50">
-                Produk sedang tidak tersedia.
+            <div class="col-span-6 text-center py-4 text-[10px] text-white/50">
+                @if(isset($maxNominal) && $maxNominal === 0.0)
+                    Saldo supplier habis. Produk tidak tersedia.
+                @else
+                    Produk sedang tidak tersedia.
+                @endif
             </div>
             @endforelse
         </div>
