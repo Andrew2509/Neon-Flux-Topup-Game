@@ -270,7 +270,11 @@
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nominal:</span>
-                            <span class="font-medium text-right font-mono text-lg text-primary" id="summary-nominal">Pilih Produk</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right" id="summary-nominal">Pilih Produk</span>
+                        </div>
+                        <div class="flex justify-between items-start text-sm">
+                            <span class="text-slate-500 dark:text-gray-400">Harga:</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-product-price">Rp 0</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Metode Bayar:</span>

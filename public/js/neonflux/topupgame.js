@@ -145,11 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
         reflowSummaryPlayerName();
 
         const summaryFeeEl = document.getElementById('summary-fee');
+        const summaryProductPriceEl = document.getElementById('summary-product-price');
         
         if (selectedProduct && summaryTotal) {
             let basePrice = parseInt(selectedProduct.dataset.price.replace(/\./g, ''), 10);
             let fee = 0;
             let total = basePrice;
+
+            if (summaryProductPriceEl) {
+                summaryProductPriceEl.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
+            }
 
             if (selectedPayment) {
                 const feeStr = selectedPayment.dataset.fee;
@@ -166,6 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (summaryFeeEl) {
                 summaryFeeEl.textContent = 'Rp ' + Math.ceil(fee).toLocaleString('id-ID');
             }
+            const summaryProductPriceMobile = document.getElementById('summary-product-price-mobile');
+            if (summaryProductPriceMobile) {
+                summaryProductPriceMobile.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
+            }
             const summaryFeeMobile = document.getElementById('summary-fee-mobile');
             if (summaryFeeMobile) {
                 summaryFeeMobile.textContent = (fee > 0) ? '(+Rp ' + Math.ceil(fee).toLocaleString('id-ID') + ')' : '';
@@ -173,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             summaryTotal.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
         } else if (summaryTotal) {
             if (summaryFeeEl) summaryFeeEl.textContent = 'Rp 0';
+            if (summaryProductPriceEl) summaryProductPriceEl.textContent = 'Rp 0';
             summaryTotal.textContent = 'Rp 0';
         }
     }
@@ -252,24 +262,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!totalEl) return;
 
             if (!selectedProduct) {
-                totalEl.classList.add('hidden');
-                totalEl.textContent = '';
+                // totalEl.classList.add('hidden');
+                // totalEl.textContent = '';
                 return;
             }
 
-            const basePrice = parseInt(selectedProduct.dataset.price.replace(/\./g, ''));
-            const feeStr = radio.dataset.fee;
-            let total = basePrice;
-
-            if (feeStr.includes('%')) {
-                const feePercent = parseFloat(feeStr.replace('%', ''));
-                total += basePrice * (feePercent / 100);
-            } else {
-                total += parseInt(feeStr.replace(/[^\d]/g, '')) || 0;
-            }
-
-            totalEl.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
-            totalEl.classList.remove('hidden');
+            // Hiding the total in the payment card as requested by the user.
+            // "saya mau untuk harga nominal topup tetap menggunakan harga sebelumnya (base price)"
+            totalEl.classList.add('hidden');
+            totalEl.textContent = '';
+            
+            // The rest of the logic can remain if needed for other side effects, 
+            // but we stop updating the UI here.
         });
     }
 

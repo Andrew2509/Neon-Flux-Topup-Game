@@ -191,12 +191,13 @@
 <div class="fixed bottom-[52px] inset-x-0 z-40 bg-white/80 backdrop-blur-xl border-t border-black/5 p-3 pb-safe flex items-center justify-center shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
     <div class="w-full max-w-5xl flex items-center justify-between">
         <div class="flex flex-col min-w-0">
-            <span class="text-[9px] text-slate-500 dark:text-white/70 font-bold uppercase tracking-widest">Total Bayar</span>
+            <span class="text-[9px] text-slate-500 dark:text-white/70 font-bold uppercase tracking-widest text-left">Total Bayar</span>
             <div class="flex items-center gap-1.5 leading-none mb-0.5">
-                <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[8px] text-slate-500 dark:text-white/60 font-medium max-w-[30vw] truncate text-left"></span>
+                <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[8px] text-slate-500 dark:text-white/60 font-medium max-w-[25vw] truncate text-left"></span>
+                <span id="summary-product-price-mobile" class="text-[8px] text-slate-400 dark:text-gray-500 font-mono"></span>
                 <span id="summary-fee-mobile" class="text-[8px] text-primary font-bold"></span>
             </div>
-            <span class="text-base font-display font-black text-secondary leading-none" id="summary-total">Rp 0</span>
+            <span class="text-base font-display font-black text-secondary leading-none text-left" id="summary-total">Rp 0</span>
         </div>
         <button type="submit" class="px-6 py-3 rounded-xl bg-linear-to-r from-secondary to-pink-600 text-white font-bold font-display tracking-tighter text-[13px] shadow-lg shadow-secondary/30 active:scale-95 transition-all">
             BELI SEKARANG
