@@ -231,6 +231,20 @@ class CatalogController extends Controller
             ->orderBy('price', 'asc')
             ->get();
 
+        // [Filter Tokovoucher Balance]
+        // Menghindari user membeli produk yang melebihi batas aman saldo provider.
+        $tokovoucherProvider = \App\Models\Provider::forTokovoucher();
+        if ($tokovoucherProvider && $tokovoucherProvider->status === 'Aktif') {
+            $limit = $tokovoucherProvider->getSafeNominalLimit();
+            $services = $services->filter(function ($service) use ($limit) {
+                // Hanya filter layanan yang berasal dari Tokovoucher
+                if (str_contains(strtolower($service->provider), 'tokovoucher')) {
+                    return $service->price <= $limit;
+                }
+                return true;
+            });
+        }
+
         $activeJenis = \App\Models\ProductJenis::where('category_id', $category->id)
             ->where('status', 'Aktif')
             ->orderBy('id', 'asc')

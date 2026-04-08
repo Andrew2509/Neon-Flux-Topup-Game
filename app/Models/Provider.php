@@ -25,4 +25,37 @@ class Provider extends Model
         return static::whereRaw('LOWER(TRIM(name)) = ?', ['ipaymu'])->first()
             ?? static::whereRaw('LOWER(name) LIKE ?', ['%ipaymu%'])->orderBy('id')->first();
     }
+
+    /**
+     * Baris kredensial TokoVoucher.
+     */
+    public static function forTokovoucher(): ?self
+    {
+        return static::where('name', 'like', '%Toko%')
+            ->orWhere('name', 'like', '%tokovoucher%')
+            ->orderBy('id')
+            ->first();
+    }
+
+    /**
+     * Calculate safe nominal limit based on available balance.
+     * Logic:
+     * - < 1M: 50%
+     * - 1M - 2M: Balance - 500k
+     * - > 2M: 75%
+     */
+    public function getSafeNominalLimit(): float
+    {
+        $balance = (float) $this->balance;
+
+        if ($balance >= 2000000) {
+            return $balance * 0.75;
+        }
+
+        if ($balance >= 1000000) {
+            return $balance - 500000;
+        }
+
+        return $balance * 0.5;
+    }
 }
