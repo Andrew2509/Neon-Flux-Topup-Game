@@ -155,20 +155,27 @@ class TransactionController extends Controller
             return $base;
         }
 
-        if (str_contains($feeStr, '%')) {
-            $pctStr = str_replace(['%', ' '], '', $feeStr);
-            $pctStr = str_replace(',', '.', $pctStr);
-            $pct = (float) $pctStr;
-
-            return (int) ceil($base + ($base * $pct / 100));
+        // Support for multi-component fees, e.g. "2.5%+2000"
+        $totalFee = 0;
+        $parts = explode('+', $feeStr);
+        
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (str_contains($part, '%')) {
+                $pctStr = str_replace(['%', ' '], '', $part);
+                $pctStr = str_replace(',', '.', $pctStr);
+                $pct = (float) $pctStr;
+                $totalFee += ($base * $pct / 100);
+            } else {
+                $flat = (float) preg_replace('/[^\d.]/', '', $part);
+                if ($flat <= 0 && is_numeric($part)) {
+                    $flat = (float) $part;
+                }
+                $totalFee += $flat;
+            }
         }
 
-        $flat = (float) preg_replace('/[^\d.]/', '', $feeStr);
-        if ($flat <= 0 && is_numeric($feeRaw)) {
-            $flat = (float) $feeRaw;
-        }
-
-        return (int) ceil($base + $flat);
+        return (int) ceil($base + $totalFee);
     }
 
     private function processBalancePayment($order, Request $request)

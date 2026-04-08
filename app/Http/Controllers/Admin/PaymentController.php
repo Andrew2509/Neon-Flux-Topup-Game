@@ -117,15 +117,36 @@ class PaymentController extends Controller
             if (isset($result['Status']) && $result['Status'] == 200) {
                 $count = 0;
                 foreach ($result['Data'] as $group) {
+                    $groupCode = strtolower($group['Code'] ?? '');
+                    $groupName = strtolower($group['Name'] ?? '');
                     $channels = $group['Channels'] ?? [];
+                    
                     foreach ($channels as $channel) {
+                        $code = $channel['Code'];
+                        
+                        // Determinate Fee from iPaymu Pricing (Standard Settlement)
+                        $fee = 0;
+                        if ($groupCode === 'qris' || str_contains($groupName, 'qris')) {
+                            $fee = '0.7%';
+                        } elseif ($groupCode === 'va' || str_contains($groupName, 'virtual account')) {
+                            $fee = 3500;
+                        } elseif (in_array($groupCode, ['cstore', 'retail']) || str_contains($groupName, 'convenience store')) {
+                            $fee = 4000;
+                        } elseif ($groupCode === 'ewallet' || str_contains($groupName, 'ewallet')) {
+                            $fee = '3.5%';
+                        } elseif (str_contains($groupCode, 'creditcard') || str_contains($groupName, 'credit card')) {
+                            $fee = '2.5%+2000';
+                        } elseif (in_array($groupCode, ['debit', 'direct_debit']) || str_contains($groupName, 'debit')) {
+                            $fee = '1.4%+2000';
+                        }
+
                         PaymentMethod::updateOrCreate(
-                            ['code' => $channel['Code']],
+                            ['code' => $code],
                             [
                                 'name' => $channel['Name'],
-                                'type' => $this->determineIPaymuType($channel['Code'], $group['Code'] ?? null),
+                                'type' => $this->determineIPaymuType($code, $groupCode),
                                 'image' => $channel['Logo'] ?? null,
-                                'fee' => 0, // iPaymu doesn't always provide fee in this API, default to 0
+                                'fee' => $fee,
                                 'status' => 'Aktif',
                                 'provider' => 'iPaymu'
                             ]
@@ -133,7 +154,7 @@ class PaymentController extends Controller
                         $count++;
                     }
                 }
-                return back()->with('success', "Berhasil menyinkronkan $count metode pembayaran dari iPaymu.");
+                return back()->with('success', "Berhasil menyinkronkan $count metode pembayaran dari iPaymu dengan fee terbaru.");
             }
 
             $msg = $result['Message'] ?? 'Unknown Error';
