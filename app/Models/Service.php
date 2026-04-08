@@ -24,47 +24,25 @@ class Service extends Model
     }
     
     /**
-     * Calculate price based on cost, margin settings, and gateway fees.
-     * Formula: MAX( (Cost * Margin) + FlatFee, (Cost * Margin) / (1 - PercentFee) )
-     * This ensures the merchant receives (Cost * Margin) net after gateway fees.
+     * Calculate price based on cost and global settings.
      */
     public static function calculatePrice($cost, $marginPercent)
     {
-        $marginMultiplier = 1 + ($marginPercent / 100);
-        $desiredNet = $cost * $marginMultiplier;
-
-        // Fetch gateway fees from settings or use defaults based on iPaymu structure
-        $feeFlat = SiteSetting::where('key', 'gateway_fee_flat')->value('value') ?? 4500;
-        $feePercent = SiteSetting::where('key', 'gateway_fee_percent')->value('value') ?? 2.5;
-        
-        $priceWithFlat = $desiredNet + $feeFlat;
-        $priceWithPercent = $desiredNet / (1 - ($feePercent / 100));
-
-        // Use the higher price to ensure cost + profit are covered
-        $finalPrice = max($priceWithFlat, $priceWithPercent);
-
-        return (float)ceil($finalPrice);
+        return (float)ceil($cost * (1 + ($marginPercent / 100)));
     }
 
     /**
-     * Recalculate all service prices based on current margin and gateway fee settings.
+     * Recalculate all service prices based on current margin settings.
      */
     public static function recalculateAllPrices()
     {
         $marginPublic = SiteSetting::where('key', 'margin_public')->value('value') ?? 10;
-        $feeFlat = SiteSetting::where('key', 'gateway_fee_flat')->value('value') ?? 4500;
-        $feePercent = SiteSetting::where('key', 'gateway_fee_percent')->value('value') ?? 2.5;
 
-        $marginMultiplier = 1 + ($marginPublic / 100);
-        $divisor = 1 - ($feePercent / 100);
-
-        // Optimization: Use GREATEST in SQL to choose the higher price between flat fee and percentage fee paths.
-        // Formula: CEIL(GREATEST( (cost * margin) + flat, (cost * margin) / percent_divisor ))
+        // Optimization: Use a single raw SQL query to update all prices at once.
+        // Formula: CEIL(cost * (1 + margin/100)) - REMOVED transaction_fee
         \Illuminate\Support\Facades\DB::statement(
-            "UPDATE services 
-             SET price = CEIL(GREATEST( (cost * ?) + ?, (cost * ?) / ? )) 
-             WHERE status != 'Nonaktif'",
-            [$marginMultiplier, $feeFlat, $marginMultiplier, $divisor]
+            "UPDATE services SET price = CEIL(cost * (1 + (? / 100))) WHERE status != 'Nonaktif'",
+            [$marginPublic]
         );
     }
 }

@@ -66,33 +66,6 @@
             <h3 class="font-bold text-sm text-slate-950 dark:text-white">Pilih Nominal</h3>
         </div>
 
-        {{-- ── Banner Batas Saldo TokoVoucher (Mobile) ──────────────────────── --}}
-        @if(isset($maxNominal) && $maxNominal !== null)
-            @if($maxNominal <= 0)
-            <div class="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-400/30">
-                <span class="material-icons-round text-red-400 text-sm mt-0.5 shrink-0">error_outline</span>
-                <div>
-                    <p class="text-[11px] font-bold text-red-400">Saldo Supplier Habis</p>
-                    <p class="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-                        Produk tidak tersedia saat ini. Silakan coba lagi nanti.
-                    </p>
-                </div>
-            </div>
-            @else
-            <div class="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/30">
-                <span class="material-icons-round text-yellow-400 text-sm mt-0.5 shrink-0">info</span>
-                <div>
-                    <p class="text-[11px] font-bold text-yellow-500 dark:text-yellow-300">Nominal Dibatasi Otomatis</p>
-                    <p class="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-                        Produk yang tampil maks. <strong class="text-yellow-600 dark:text-yellow-300">Rp {{ number_format($maxNominal, 0, ',', '.') }}</strong>
-                        untuk keamanan transaksi.
-                    </p>
-                </div>
-            </div>
-            @endif
-        @endif
-        {{-- ─────────────────────────────────────────────────────────────── --}}
-
         @if($activeJenis->count() > 0)
         <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             @foreach($activeJenis as $aj)
@@ -113,12 +86,8 @@
                 </label>
             </div>
             @empty
-            <div class="col-span-3 text-center py-4 text-[10px] text-slate-500 dark:text-white/50">
-                @if(isset($maxNominal) && $maxNominal === 0.0)
-                    Saldo supplier habis. Produk tidak tersedia.
-                @else
-                    Produk sedang tidak tersedia.
-                @endif
+            <div class="col-span-2 text-center py-4 text-[10px] text-slate-500 dark:text-white/50">
+                Produk sedang tidak tersedia.
             </div>
             @endforelse
         </div>
@@ -171,8 +140,8 @@
                             <span class="text-[12px] font-bold text-slate-950 dark:text-white">{{ $p->name }}</span>
                         </div>
                         <div class="text-right">
-                            <div class="text-[10px] font-bold text-primary">Biaya Admin: +{{ $p->fee }}</div>
-                            <div class="text-[8px] text-slate-400 dark:text-white/60">Proses Otomatis</div>
+                            <div class="text-[10px] font-bold text-primary">{{ $p->fee }}</div>
+                            <div class="text-[8px] text-slate-400 dark:text-white/60">Biaya Layanan</div>
                         </div>
                     </label>
                 </div>
@@ -191,13 +160,9 @@
 <div class="fixed bottom-[52px] inset-x-0 z-40 bg-white/80 backdrop-blur-xl border-t border-black/5 p-3 pb-safe flex items-center justify-center shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
     <div class="w-full max-w-5xl flex items-center justify-between">
         <div class="flex flex-col min-w-0">
-            <span class="text-[9px] text-slate-500 dark:text-white/70 font-bold uppercase tracking-widest text-left">Total Bayar</span>
-            <div class="flex items-center gap-1.5 leading-none mb-0.5">
-                <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[8px] text-slate-500 dark:text-white/60 font-medium max-w-[25vw] truncate text-left"></span>
-                <span id="summary-product-price-mobile" class="text-[8px] text-slate-400 dark:text-gray-500 font-mono"></span>
-                <span id="summary-fee-mobile" class="text-[8px] text-primary font-bold"></span>
-            </div>
-            <span class="text-base font-display font-black text-secondary leading-none text-left" id="summary-total">Rp 0</span>
+            <span class="text-[9px] text-slate-500 dark:text-white/70 font-bold uppercase tracking-widest">Total Bayar</span>
+            <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[8px] text-slate-500 dark:text-white/60 font-medium max-w-[46vw] truncate leading-tight text-left"></span>
+            <span class="text-base font-display font-black text-secondary leading-none" id="summary-total">Rp 0</span>
         </div>
         <button type="submit" class="px-6 py-3 rounded-xl bg-linear-to-r from-secondary to-pink-600 text-white font-bold font-display tracking-tighter text-[13px] shadow-lg shadow-secondary/30 active:scale-95 transition-all">
             BELI SEKARANG

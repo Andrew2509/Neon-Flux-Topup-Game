@@ -108,35 +108,6 @@
                     <h2 class="text-xl font-display font-bold text-slate-950 dark:text-white">Pilih Nominal Top-Up</h2>
                 </div>
 
-                {{-- ── Banner Batas Saldo TokoVoucher ─────────────────────────────── --}}
-                @if(isset($maxNominal) && $maxNominal !== null)
-                    @if($maxNominal <= 0)
-                    {{-- Saldo nol / provider tidak bisa melayani --}}
-                    <div class="mb-5 flex items-start gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-400/30">
-                        <span class="material-icons-round text-red-400 text-lg mt-0.5 shrink-0">error_outline</span>
-                        <div>
-                            <p class="text-sm font-bold text-red-400">Saldo Supplier Tidak Mencukupi</p>
-                            <p class="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
-                                Produk untuk kategori ini sedang tidak tersedia karena saldo supplier habis. Silakan coba lagi nanti atau hubungi admin.
-                            </p>
-                        </div>
-                    </div>
-                    @else
-                    {{-- Ada batasan nominal --}}
-                    <div class="mb-5 flex items-start gap-3 px-4 py-3 rounded-xl bg-yellow-400/10 border border-yellow-400/30">
-                        <span class="material-icons-round text-yellow-400 text-lg mt-0.5 shrink-0">info</span>
-                        <div>
-                            <p class="text-sm font-bold text-yellow-500 dark:text-yellow-300">Nominal Produk Dibatasi Otomatis</p>
-                            <p class="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
-                                Hanya produk hingga <strong class="text-yellow-600 dark:text-yellow-300">Rp {{ number_format($maxNominal, 0, ',', '.') }}</strong>
-                                yang ditampilkan untuk memastikan transaksi Anda berhasil diproses.
-                            </p>
-                        </div>
-                    </div>
-                    @endif
-                @endif
-                {{-- ─────────────────────────────────────────────────────────────── --}}
-
                 @if($activeJenis->count() > 0)
                 <div class="relative flex items-center mb-6 group/nav">
                     <!-- Left Arrow -->
@@ -178,13 +149,7 @@
                         </div>
                     </label>
                     @empty
-                    <div class="col-span-full py-10 text-center opacity-50">
-                        @if(isset($maxNominal) && $maxNominal === 0.0)
-                            Semua produk tidak tersedia saat ini karena saldo supplier habis.
-                        @else
-                            Produk tidak tersedia.
-                        @endif
-                    </div>
+                    <div class="col-span-full py-10 text-center opacity-50">Produk tidak tersedia.</div>
                     @endforelse
                 </div>
             </section>
@@ -241,7 +206,7 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="payment-total text-sm font-bold font-mono text-primary hidden"></div>
-                                        <div class="text-[10px] text-slate-500 dark:text-gray-400 font-medium">Biaya Admin: +{{ $p->fee }}</div>
+                                        <div class="text-[10px] text-slate-500 dark:text-gray-400">Biaya: {{ $p->fee }}</div>
                                     </div>
                                 </div>
                             </label>
@@ -270,19 +235,11 @@
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nominal:</span>
-                            <span class="text-slate-950 dark:text-white font-medium text-right" id="summary-nominal">Pilih Produk</span>
-                        </div>
-                        <div class="flex justify-between items-start text-sm">
-                            <span class="text-slate-500 dark:text-gray-400">Harga:</span>
-                            <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-product-price">Rp 0</span>
+                            <span class="font-medium text-right font-mono text-lg text-primary" id="summary-nominal">Pilih Produk</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Metode Bayar:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right" id="summary-payment">Pilih Metode</span>
-                        </div>
-                        <div class="flex justify-between items-start text-sm">
-                            <span class="text-slate-500 dark:text-gray-400">Biaya Admin:</span>
-                            <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-fee">Rp 0</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">WhatsApp:</span>
@@ -294,7 +251,7 @@
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nama pemain:</span>
-                            <span class="js-summary-player-name text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] wrap-break-word" id="summary-player-name">—</span>
+                            <span class="js-summary-player-name text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] break-words" id="summary-player-name">—</span>
                         </div>
                     </div>
                     <div class="border-t border-dashed border-black/10 dark:border-white/20 pt-4 mb-6">
