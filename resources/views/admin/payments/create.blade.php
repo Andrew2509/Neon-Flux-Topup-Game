@@ -79,8 +79,8 @@
                         <div class="space-y-1">
                             <label class="text-xs font-bold text-slate-500 ml-1">BIAYA ADMIN (FEE)</label>
                             <div class="relative group">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold group-focus-within:text-accent-blue transition-colors">Rp</span>
-                                <input type="number" name="fee" required placeholder="0" value="{{ old('fee', 0) }}" min="0" step="0.01"
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg group-focus-within:text-accent-blue transition-colors">payments</span>
+                                <input type="text" name="fee" required placeholder="0 atau 2.5%+2000" value="{{ old('fee', 0) }}"
                                     class="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm focus:ring-1 focus:ring-accent-blue focus:border-accent-blue outline-none transition-all font-mono">
                             </div>
                             @error('fee') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
