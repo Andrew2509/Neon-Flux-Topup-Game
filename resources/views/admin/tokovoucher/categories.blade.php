@@ -24,13 +24,30 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-lg">Daftar Kategori Produk</h3>
-                    <p class="text-xs text-slate-400">Data real-time dari vendor TokoVoucher</p>
+                    <div class="flex items-center gap-3 mt-1">
+                        <p class="text-xs text-slate-400">Data real-time dari vendor TokoVoucher</p>
+                        <div class="h-1 w-1 rounded-full bg-slate-700"></div>
+                        <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            Auto-Sync Active
+                        </div>
+                    </div>
                 </div>
             </div>
-            <a href="{{ route('admin.tokovoucher.categories') }}" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-xs font-bold flex items-center gap-2 border border-white/10">
-                <span class="material-symbols-outlined text-sm">refresh</span>
-                Refresh Data
-            </a>
+            <div class="flex flex-col items-end gap-1">
+                <a href="{{ route('admin.tokovoucher.categories') }}" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-xs font-bold flex items-center gap-2 border border-white/10">
+                    <span class="material-symbols-outlined text-sm">refresh</span>
+                    Refresh Halaman
+                </a>
+                @if($lastSync)
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    Last Sync: {{ \Carbon\Carbon::parse($lastSync)->diffForHumans() }}
+                </p>
+                @endif
+            </div>
         </div>
         
         <div class="overflow-x-auto">

@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Jadwalkan sinkronisasi TokoVoucher setiap jam
-Schedule::command('sync:tokovoucher')->hourly();
+// Jadwalkan sinkronisasi TokoVoucher setiap 15 menit agar data harga & produk selalu up-to-date
+Schedule::command('sync:tokovoucher')->everyFifteenMinutes();

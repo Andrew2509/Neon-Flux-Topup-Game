@@ -9,6 +9,8 @@ use App\Models\Service;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Models\SiteSetting;
+
 
 class SyncTokovoucher extends Command
 {
@@ -54,6 +56,26 @@ class SyncTokovoucher extends Command
         }
 
         $signature = md5($memberCode . ":" . $secret);
+        
+        // --- STEP 0: SYNC BALANCE FIRST ---
+        $this->line('Menyinkronkan saldo provider...');
+        try {
+            $balResponse = Http::timeout(10)->get("https://api.tokovoucher.net/member", [
+                'member_code' => $memberCode,
+                'signature' => $signature,
+            ]);
+
+            if ($balResponse->successful()) {
+                $balData = $balResponse->json();
+                if (isset($balData['data']['saldo'])) {
+                    $newBalance = $balData['data']['saldo'];
+                    $provider->update(['balance' => $newBalance, 'status' => 'Aktif']);
+                    $this->info("Saldo berhasil diperbarui: Rp " . number_format($newBalance, 0, ',', '.'));
+                }
+            }
+        } catch (\Exception $e) {
+            $this->warn('Gagal sinkron saldo: ' . $e->getMessage());
+        }
 
         // --- CLEANUP ONLY MODE ---
         if ($this->option('cleanup-only')) {
@@ -323,6 +345,10 @@ class SyncTokovoucher extends Command
             }
 
             $this->info("Sukses! Berhasil sinkronisasi " . count($activeOperators) . " operator game dan {$count} produk aktif.");
+            
+            // RECORD LAST SYNC
+            SiteSetting::updateOrCreate(['key' => 'last_tokovoucher_sync'], ['value' => now()->toDateTimeString()]);
+
             return Command::SUCCESS;
 
         } catch (\Exception $e) {

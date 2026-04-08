@@ -57,7 +57,9 @@ class TokovoucherController extends Controller
         }
 
         $categories = \App\Models\ProviderCategory::where('provider', 'TokoVoucher')->get();
-        return view('admin.tokovoucher.categories', compact('categories'));
+        $lastSync = \App\Models\SiteSetting::where('key', 'last_tokovoucher_sync')->value('value');
+        
+        return view('admin.tokovoucher.categories', compact('categories', 'lastSync'));
     }
 
     public function toggleProviderCategory($id)
