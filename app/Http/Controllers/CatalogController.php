@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Provider;
 use App\Models\Rating;
 use Illuminate\Http\Request;
 
@@ -220,7 +221,14 @@ class CatalogController extends Controller
             })
             ->firstOrFail();
 
-        $services = \App\Models\Service::where('category_id', $category->id)
+        // ── Filter Nominal Berdasarkan Saldo TokoVoucher ────────────────────────
+        // Ambil provider TokoVoucher aktif dan hitung batas nominal yang aman.
+        $tokovoucherProvider = Provider::resolveTokovoucher();
+        $tokovoucherBalance  = $tokovoucherProvider ? (float) ($tokovoucherProvider->balance ?? 0) : null;
+        $maxNominal          = $tokovoucherProvider ? $tokovoucherProvider->maxAllowedNominal() : null;
+        // ────────────────────────────────────────────────────────────────────────
+
+        $servicesQuery = \App\Models\Service::where('category_id', $category->id)
             ->where('status', 'Aktif')
             ->where(function ($q) {
                 $q->whereNull('product_jenis_id')
@@ -228,8 +236,16 @@ class CatalogController extends Controller
                         $q->where('status', 'Aktif');
                     });
             })
-            ->orderBy('price', 'asc')
-            ->get();
+            ->orderBy('price', 'asc');
+
+        // Terapkan filter: tampilkan hanya produk dengan harga ≤ maxNominal.
+        // Jika maxNominal === null  → tidak ada batasan (provider tidak terdeteksi).
+        // Jika maxNominal === 0.0  → saldo nol, sembunyikan semua produk.
+        if ($maxNominal !== null) {
+            $servicesQuery->where('price', '<=', $maxNominal);
+        }
+
+        $services = $servicesQuery->get();
 
         $activeJenis = \App\Models\ProductJenis::where('category_id', $category->id)
             ->where('status', 'Aktif')
@@ -248,6 +264,13 @@ class CatalogController extends Controller
             $viewPath = "{$viewFolder}.neonflux.topupgame.generic";
         }
 
-        return view($viewPath, compact('category', 'services', 'groupedPayments', 'activeJenis'));
+        return view($viewPath, compact(
+            'category',
+            'services',
+            'groupedPayments',
+            'activeJenis',
+            'tokovoucherBalance',
+            'maxNominal'
+        ));
     }
 }
