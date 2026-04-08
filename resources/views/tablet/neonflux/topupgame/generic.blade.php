@@ -117,6 +117,9 @@
                             </div>
                             <span class="text-[10px] font-bold text-white">{{ $p->name }}</span>
                         </div>
+                        <div class="hidden peer-checked:flex items-center justify-center w-4 h-4 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-1">
+                            <span class="material-icons-round text-primary text-[8px] font-bold">done</span>
+                        </div>
                     </label>
                 </div>
                 @endforeach

@@ -180,6 +180,9 @@
                                             <div class="text-[10px] text-primary font-bold">Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</div>
                                         </div>
                                     </div>
+                                    <div class="hidden peer-checked:flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-2">
+                                        <span class="material-icons-round text-primary text-xs font-bold">done</span>
+                                    </div>
                                 </div>
                             </label>
                             @endauth
@@ -199,6 +202,9 @@
                                             <div class="font-bold text-sm text-slate-950 dark:text-white">{{ $p->name }}</div>
                                             <div class="text-[10px] text-slate-500 dark:text-gray-400">Proses Otomatis</div>
                                         </div>
+                                    </div>
+                                    <div class="hidden peer-checked:flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-2">
+                                        <span class="material-icons-round text-primary text-xs font-bold">done</span>
                                     </div>
                                 </div>
                             </label>

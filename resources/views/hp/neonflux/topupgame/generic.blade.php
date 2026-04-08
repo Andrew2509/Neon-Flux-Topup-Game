@@ -115,6 +115,9 @@
                                 <span class="text-[9px] text-primary font-bold">Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</span>
                             </div>
                         </div>
+                        <div class="hidden peer-checked:flex items-center justify-center w-4 h-4 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-1">
+                            <span class="material-icons-round text-primary text-[8px] font-bold">done</span>
+                        </div>
                         <div class="text-right">
                             <div class="text-[10px] font-bold text-green-500 uppercase tracking-tighter">Bebas Biaya</div>
                         </div>
@@ -138,6 +141,9 @@
                                 @endif
                             </div>
                             <span class="text-[12px] font-bold text-slate-950 dark:text-white">{{ $p->name }}</span>
+                        </div>
+                        <div class="hidden peer-checked:flex items-center justify-center w-4 h-4 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-1">
+                            <span class="material-icons-round text-primary text-[8px] font-bold">done</span>
                         </div>
                     </label>
                 </div>
