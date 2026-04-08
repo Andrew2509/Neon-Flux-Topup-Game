@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryUserId = document.getElementById('summary-userid');
     const summaryWhatsapp = document.getElementById('summary-whatsapp');
     const summaryTotal = document.getElementById('summary-total');
+    const summaryFee = document.getElementById('summary-fee');
     const playerNicknameInput = document.getElementById('player_nickname_input');
 
     /** true saat request /api/check-id sedang berjalan — updateSummary tidak boleh menimpa teks loading / hasil. */
@@ -154,18 +155,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (selectedProduct2 && summaryTotal) {
             let basePrice = parseInt(selectedProduct2.dataset.price.replace(/\./g, ''), 10);
-            let total = basePrice;
+            let feeAmount = 0;
+            
             if (selectedPayment2) {
-                const feeStr = selectedPayment2.dataset.fee;
-                if (feeStr.includes('%')) {
-                    const feePercent = parseFloat(feeStr.replace('%', ''));
-                    total += basePrice * (feePercent / 100);
-                } else {
-                    total += parseInt(feeStr.replace(/[^\d]/g, ''), 10) || 0;
-                }
+                const feeStr = (selectedPayment2.dataset.fee || '0').toString().replace(/\s/g, '');
+                
+                // Mendukung format hybrid seperti "2.5%+2000"
+                const components = feeStr.split('+');
+                components.forEach(comp => {
+                    if (comp.includes('%')) {
+                        const feePercent = parseFloat(comp.replace('%', ''));
+                        feeAmount += basePrice * (feePercent / 100);
+                    } else {
+                        feeAmount += parseInt(comp.replace(/[^\d]/g, ''), 10) || 0;
+                    }
+                });
+            }
+
+            const total = basePrice + feeAmount;
+
+            if (summaryFee) {
+                summaryFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
             }
             summaryTotal.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
         } else if (summaryTotal) {
+            if (summaryFee) summaryFee.textContent = 'Rp 0';
             summaryTotal.textContent = 'Rp 0';
         }
     }

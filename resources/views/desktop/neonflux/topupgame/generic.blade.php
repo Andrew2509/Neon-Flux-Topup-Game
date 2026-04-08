@@ -242,6 +242,10 @@
                             <span class="text-slate-950 dark:text-white font-medium text-right" id="summary-payment">Pilih Metode</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
+                            <span class="text-slate-500 dark:text-gray-400">Biaya Layanan:</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-fee">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">WhatsApp:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right font-mono text-xs" id="summary-whatsapp">Belum Diisi</span>
                         </div>
