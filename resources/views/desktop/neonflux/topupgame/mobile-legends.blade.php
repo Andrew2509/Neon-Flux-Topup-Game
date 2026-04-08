@@ -130,9 +130,6 @@
                             <p class="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
                                 Hanya produk hingga <strong class="text-yellow-600 dark:text-yellow-300">Rp {{ number_format($maxNominal, 0, ',', '.') }}</strong>
                                 yang ditampilkan untuk memastikan transaksi Anda berhasil diproses.
-                                @if(isset($tokovoucherBalance) && $tokovoucherBalance > 0)
-                                    <span class="block mt-1 opacity-70 text-[10px]">Saldo supplier saat ini: Rp {{ number_format($tokovoucherBalance, 0, ',', '.') }}</span>
-                                @endif
                             </p>
                         </div>
                     </div>
