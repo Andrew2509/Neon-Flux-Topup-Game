@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryWhatsapp = document.getElementById('summary-whatsapp');
     const summaryTotal = document.getElementById('summary-total');
     const summaryFee = document.getElementById('summary-fee');
+    const summaryBasePrice = document.getElementById('summary-base-price');
     const playerNicknameInput = document.getElementById('player_nickname_input');
 
     /** true saat request /api/check-id sedang berjalan — updateSummary tidak boleh menimpa teks loading / hasil. */
@@ -174,11 +175,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const total = basePrice + feeAmount;
 
+            if (summaryBasePrice) {
+                summaryBasePrice.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
+            }
             if (summaryFee) {
                 summaryFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
             }
             summaryTotal.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
         } else if (summaryTotal) {
+            if (summaryBasePrice) summaryBasePrice.textContent = 'Rp 0';
             if (summaryFee) summaryFee.textContent = 'Rp 0';
             summaryTotal.textContent = 'Rp 0';
         }

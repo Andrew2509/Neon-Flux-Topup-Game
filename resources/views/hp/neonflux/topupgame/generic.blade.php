@@ -171,6 +171,7 @@
 </div>
     <div id="summary-nominal" class="hidden"></div>
     <div id="summary-payment" class="hidden"></div>
+    <div id="summary-base-price" class="hidden"></div>
     <div id="summary-fee" class="hidden"></div>
     <div id="summary-whatsapp" class="hidden"></div>
     <div id="summary-userid" class="hidden"></div>
