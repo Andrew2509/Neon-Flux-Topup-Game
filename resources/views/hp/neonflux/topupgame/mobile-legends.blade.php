@@ -116,10 +116,6 @@
                             </div>
                             <span class="text-[12px] font-bold text-slate-950 dark:text-white">{{ $p->name }}</span>
                         </div>
-                        <div class="text-right">
-                            <div class="text-[10px] font-bold text-primary">{{ $p->fee }}</div>
-                            <div class="text-[8px] text-slate-400 dark:text-white/60">Biaya Layanan</div>
-                        </div>
                     </label>
                 </div>
                 @endforeach

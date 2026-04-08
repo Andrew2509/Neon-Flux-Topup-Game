@@ -186,10 +186,6 @@
                                             <div class="text-[10px] text-slate-500 dark:text-gray-400">Proses Otomatis</div>
                                         </div>
                                     </div>
-                                    <div class="text-right">
-                                        <div class="payment-total text-sm font-bold font-mono text-primary hidden"></div>
-                                        <div class="text-[10px] text-slate-500 dark:text-gray-400">Biaya: {{ $p->fee }}</div>
-                                    </div>
                                 </div>
                             </label>
                             @endforeach
