@@ -144,28 +144,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         reflowSummaryPlayerName();
 
-        let selectedProduct2 = null;
-        let selectedPayment2 = null;
-        productRadios.forEach(r => {
-            if (r.checked) selectedProduct2 = r;
-        });
-        paymentRadios.forEach(r => {
-            if (r.checked) selectedPayment2 = r;
-        });
-        if (selectedProduct2 && summaryTotal) {
-            let basePrice = parseInt(selectedProduct2.dataset.price.replace(/\./g, ''), 10);
+        const summaryFeeEl = document.getElementById('summary-fee');
+        
+        if (selectedProduct && summaryTotal) {
+            let basePrice = parseInt(selectedProduct.dataset.price.replace(/\./g, ''), 10);
+            let fee = 0;
             let total = basePrice;
-            if (selectedPayment2) {
-                const feeStr = selectedPayment2.dataset.fee;
+
+            if (selectedPayment) {
+                const feeStr = selectedPayment.dataset.fee;
                 if (feeStr.includes('%')) {
                     const feePercent = parseFloat(feeStr.replace('%', ''));
-                    total += basePrice * (feePercent / 100);
+                    fee = basePrice * (feePercent / 100);
                 } else {
-                    total += parseInt(feeStr.replace(/[^\d]/g, ''), 10) || 0;
+                    fee = parseInt(feeStr.replace(/[^\d]/g, ''), 10) || 0;
                 }
+            }
+            
+            total = basePrice + fee;
+            
+            if (summaryFeeEl) {
+                summaryFeeEl.textContent = 'Rp ' + Math.ceil(fee).toLocaleString('id-ID');
+            }
+            const summaryFeeMobile = document.getElementById('summary-fee-mobile');
+            if (summaryFeeMobile) {
+                summaryFeeMobile.textContent = (fee > 0) ? '(+Rp ' + Math.ceil(fee).toLocaleString('id-ID') + ')' : '';
             }
             summaryTotal.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
         } else if (summaryTotal) {
+            if (summaryFeeEl) summaryFeeEl.textContent = 'Rp 0';
             summaryTotal.textContent = 'Rp 0';
         }
     }

@@ -221,7 +221,7 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="payment-total text-sm font-bold font-mono text-primary hidden"></div>
-                                        <div class="text-[10px] text-slate-500 dark:text-gray-400">Biaya: {{ $p->fee }}</div>
+                                        <div class="text-[10px] text-slate-500 dark:text-gray-400 font-medium">Biaya Admin: +{{ $p->fee }}</div>
                                     </div>
                                 </div>
                             </label>
@@ -257,6 +257,10 @@
                             <span class="text-slate-950 dark:text-white font-medium text-right" id="summary-payment">Pilih Metode</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
+                            <span class="text-slate-500 dark:text-gray-400">Biaya Admin:</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-fee">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">WhatsApp:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right font-mono text-xs" id="summary-whatsapp">Belum Diisi</span>
                         </div>
@@ -266,7 +270,7 @@
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nama pemain:</span>
-                            <span class="js-summary-player-name text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] break-words" id="summary-player-name">—</span>
+                            <span class="js-summary-player-name text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] wrap-break-word" id="summary-player-name">—</span>
                         </div>
                     </div>
                     <div class="border-t border-dashed border-black/10 dark:border-white/20 pt-4 mb-6">
