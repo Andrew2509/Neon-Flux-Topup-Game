@@ -181,27 +181,84 @@
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* 3-Column Grid Optimizations */
+/* 3-Column Grid & Text Size Optimizations for Mobile */
 @media (max-width: 640px) {
+    /* Section Headers */
+    h2.text-xl {
+        font-size: 1.05rem !important;
+    }
+
+    /* Labels & Input Texts */
+    label.text-sm, .text-sm {
+        font-size: 0.75rem !important; /* xs */
+    }
+
+    .text-xs {
+        font-size: 0.7rem !important;
+    }
+
+    /* Form specific */
+    .glass-input {
+        padding: 0.6rem 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Product Grid (already in code, but refined) */
     .grid-cols-3 {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 0.5rem !important;
     }
     
     .grid-cols-3 .service-item label {
-        padding: 0.6rem 0.4rem !important;
-        border-radius: 1rem !important;
+        padding: 0.5rem 0.35rem !important;
+        border-radius: 0.75rem !important;
     }
     
     .grid-cols-3 .service-item .text-\[11px\] {
         font-size: 8.5px !important;
         line-height: 1.2 !important;
-        min-height: 1.5rem !important;
-        margin-bottom: 0.35rem !important;
+        min-height: 1.4rem !important;
+        margin-bottom: 0.25rem !important;
     }
     
-    .grid-cols-3 .service-item .text-\[10px\] {
+    .grid-cols-3 .service-item .text-\[10px\],
+    .text-\[10px\] {
         font-size: 8px !important;
+    }
+
+    /* Payment Methods */
+    .glass-panel-light.p-3 {
+        padding: 0.5rem !important;
+    }
+
+    .glass-panel-light img {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+
+    .payment-total {
+        font-size: 0.75rem !important;
+    }
+
+    /* Summary / Sidebar */
+    #summary-section h3 {
+        font-size: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    #summary-section .space-y-4 {
+        gap: 0.5rem !important;
+    }
+
+    #summary-total {
+        font-size: 1.25rem !important;
+    }
+
+    /* Step Numbers */
+    .w-10.h-10.rounded-full {
+        width: 1.75rem !important;
+        height: 1.75rem !important;
+        font-size: 0.875rem !important;
     }
 }
 
