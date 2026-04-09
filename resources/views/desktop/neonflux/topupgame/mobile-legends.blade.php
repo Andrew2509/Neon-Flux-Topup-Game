@@ -106,7 +106,7 @@
                 </div>
                 @endif
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="services-grid">
+                <div class="grid grid-cols-3 md:grid-cols-4 gap-3" id="services-grid">
                     @forelse($services as $s)
                     <label class="cursor-pointer group relative service-item" data-jenis="{{ $s->product_jenis_id }}">
                         <input type="radio" name="product_code" value="{{ $s->product_code }}" class="peer hidden radio-card" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required>
@@ -287,6 +287,23 @@
     </div>
     </form>
 </main>
+ 
+ {{-- Sticky Bottom Action Bar --}}
+ <div class="fixed bottom-[56px] inset-x-0 z-40 sticky-action-bar p-4 pb-safe flex items-center justify-center shadow-[0_-12px_40px_rgba(0,0,0,0.1)]">
+     <div class="w-full max-w-5xl flex items-center justify-between gap-4">
+         <div class="flex flex-col min-w-0">
+             <span class="text-[10px] text-slate-400 dark:text-white/50 font-black uppercase tracking-widest">Total Pembayaran</span>
+             <div class="flex items-baseline gap-1">
+                 <span class="text-xl font-black text-slate-900 dark:text-white leading-tight" id="sticky-total">Rp 0</span>
+                 <span class="text-[10px] text-slate-400 dark:text-white/40 line-through decoration-slate-400/50 hidden" id="sticky-original-price"></span>
+             </div>
+         </div>
+         <button type="button" onclick="scrollToPayment()" class="flex-1 max-w-[200px] h-12 bg-secondary dark:bg-linear-to-r dark:from-secondary dark:to-pink-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg dark:shadow-neon-magenta hover:scale-105 transition-all">
+             <span class="material-icons-round text-sm">bolt</span>
+             <span>Bayar</span>
+         </button>
+     </div>
+ </div>
 
 <!-- Decorative Blur Elements -->
 <div class="fixed top-1/4 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl -z-10 pointer-events-none animate-pulse"></div>

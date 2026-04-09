@@ -20,6 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryBasePrice = document.getElementById('summary-base-price');
     const playerNicknameInput = document.getElementById('player_nickname_input');
 
+    // New Receipt IDs for the redesigned UI
+    const receiptTotal = document.getElementById('receipt-total');
+    const displayBasePrice = document.getElementById('display-base-price');
+    const displayFee = document.getElementById('display-fee');
+    const displayDiscount = document.getElementById('display-discount');
+    const rowDiscount = document.getElementById('row-discount');
+
     /** true saat request /api/check-id sedang berjalan — updateSummary tidak boleh menimpa teks loading / hasil. */
     let playerLookupInFlight = false;
 
@@ -190,17 +197,86 @@ document.addEventListener('DOMContentLoaded', () => {
             if (displayBasePrice) displayBasePrice.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
             if (displayFee) displayFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
 
-            summaryTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
-        } else if (summaryTotal) {
-            if (summaryBasePrice) summaryBasePrice.textContent = 'Rp 0';
-            if (summaryFee) summaryFee.textContent = 'Rp 0';
-            
-            const displayBasePrice = document.getElementById('display-base-price');
-            const displayFee = document.getElementById('display-fee');
-            if (displayBasePrice) displayBasePrice.textContent = 'Rp 0';
-            if (displayFee) displayFee.textContent = 'Rp 0';
+            if (summaryTotal) {
+                summaryTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
+            }
+            if (receiptTotal) {
+                receiptTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
+            }
 
-            summaryTotal.textContent = 'Rp 0';
+            updateStepperState();
+        } else {
+            const zeroPrice = 'Rp 0';
+            if (summaryBasePrice) summaryBasePrice.textContent = zeroPrice;
+            if (summaryFee) summaryFee.textContent = zeroPrice;
+            if (displayBasePrice) displayBasePrice.textContent = zeroPrice;
+            if (displayFee) displayFee.textContent = zeroPrice;
+            if (summaryTotal) summaryTotal.textContent = zeroPrice;
+            if (receiptTotal) receiptTotal.textContent = zeroPrice;
+
+            updateStepperState();
+        }
+    }
+
+    function updateStepperState() {
+        const userId = userIdInput ? userIdInput.value.trim() : '';
+        const whatsapp = customerWhatsappInput ? customerWhatsappInput.value.trim() : '';
+        const productSelected = getSelectedProductCode() !== '';
+        const paymentSelected = (document.querySelector('input[name="payment"]:checked')) !== null;
+
+        const steps = document.querySelectorAll('.step-item');
+        
+        // Show/Hide Sticky Bar
+        const stickyBar = document.querySelector('.sticky-action-bar');
+        if (stickyBar) {
+            if (productSelected) {
+                stickyBar.classList.add('is-visible');
+            } else {
+                stickyBar.classList.remove('is-visible');
+            }
+        }
+
+        // Step 1: Account (WhatsApp + User ID)
+        if (whatsappDigitsOk() && userId.length >= 3) {
+            markStepComplete(1);
+        } else {
+            markStepActive(1);
+        }
+
+        // Step 2: Product
+        if (productSelected) {
+            markStepComplete(2);
+        } else {
+            if (whatsappDigitsOk() && userId.length >= 3) markStepActive(2);
+        }
+
+        // Step 3: Payment
+        if (paymentSelected) {
+            markStepComplete(3);
+        } else {
+            if (productSelected) markStepActive(3);
+        }
+    }
+
+    function markStepComplete(stepNum) {
+        const stepEl = document.querySelectorAll('.step-item')[stepNum - 1];
+        if (!stepEl) return;
+        const numEl = stepEl.querySelector('.step-number');
+        if (numEl) {
+            numEl.innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
+            numEl.classList.add('bg-green-500', 'text-white');
+            numEl.classList.remove('bg-primary', 'bg-slate-200');
+        }
+    }
+
+    function markStepActive(stepNum) {
+        const stepEl = document.querySelectorAll('.step-item')[stepNum - 1];
+        if (!stepEl) return;
+        const numEl = stepEl.querySelector('.step-number');
+        if (numEl && !numEl.classList.contains('bg-green-500')) {
+            numEl.textContent = stepNum;
+            numEl.classList.add('bg-primary', 'text-white');
+            numEl.classList.remove('bg-slate-200');
         }
     }
 
@@ -434,13 +510,32 @@ document.addEventListener('DOMContentLoaded', () => {
             updateSummary();
             updateNominalSectionState();
             updatePaymentSectionState();
+            
+            if (whatsappDigitsOk() && userIdInput && userIdInput.value.length < 3) {
+                userIdInput.focus();
+            }
         });
     }
+
     if (userIdInput) {
         userIdInput.addEventListener('input', () => {
             updateSummary();
             updateNominalSectionState();
             updatePaymentSectionState();
+        });
+
+        // Auto scroll to nominals when ID is filled
+        userIdInput.addEventListener('change', () => {
+            const hasZone = userIdInput.dataset.requiresZone === '1';
+            const zoneVal = zoneIdInput ? zoneIdInput.value.trim() : '';
+            if (userIdInput.value.trim().length >= 3 && (!hasZone || zoneVal.length >= 1)) {
+                setTimeout(() => {
+                    const nominalEl = document.getElementById('nominal-section');
+                    if (nominalEl && !nominalEl.classList.contains('is-locked')) {
+                        nominalEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 800);
+            }
         });
     }
     if (zoneIdInput) {
@@ -656,8 +751,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (myGen !== checkIdGeneration) return;
                 clearPlayerNickCache();
                 if (hasNickUi) {
-                    playerNickname.textContent = (data && data.message) ? data.message : 'Invalid ID';
-                    playerNickname.classList.add('text-red-500');
+                    const msg = (data && data.message) ? data.message : 'Invalid ID';
+                    playerNickname.textContent = msg;
+                    
+                    // If it's the "connection busy" message, don't make it red/blocked
+                    if (msg.includes('sibuk') || msg.includes('koneksi')) {
+                        playerNickname.classList.remove('text-red-500');
+                        playerNickname.classList.add('text-amber-500');
+                    } else {
+                        playerNickname.classList.add('text-red-500');
+                        playerNickname.classList.remove('text-amber-500');
+                    }
                 }
                 if (playerNicknameInput) {
                     playerNicknameInput.value = '';
@@ -697,6 +801,19 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePaymentPrices();
         updatePaymentSectionState();
         debouncedCheckProduct();
+
+        // Auto scroll to payment
+        setTimeout(() => {
+            const paymentEl = document.getElementById('payment-section');
+            if (paymentEl && !paymentEl.classList.contains('is-locked')) {
+                const navHeight = 80; // Approximate navbar height
+                const elementPosition = paymentEl.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({
+                    top: elementPosition - navHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 500);
     }));
 
     if (userIdInput) {
@@ -844,7 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showVoucherMessage('Gagal memproses voucher.', 'text-red-500');
             } finally {
                 applyVoucherBtn.disabled = false;
-                applyVoucherBtn.textContent = 'Terapkan';
+                applyVoucherBtn.textContent = 'Pakai';
             }
         });
     }

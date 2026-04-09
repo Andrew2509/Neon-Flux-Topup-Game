@@ -1257,7 +1257,15 @@ class TransactionController extends Controller
             'Origin' => 'https://www.codashop.com',
             'Referer' => 'https://www.codashop.com/',
             'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-        ])->connectTimeout(12)->timeout(22)->post('https://order-sg.codashop.com/initPayment.action', $postdata);
+        ])
+        ->withOptions([
+            'curl' => [
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            ],
+        ])
+        ->connectTimeout(12)
+        ->timeout(22)
+        ->post('https://order-sg.codashop.com/initPayment.action', $postdata);
 
         $result = $response->json();
         if (! is_array($result) && is_string($response->body()) && $response->body() !== '') {
@@ -1505,11 +1513,13 @@ class TransactionController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('CheckID Exception', ['msg' => $e->getMessage()]);
-
+            
+            // Return 200 with error message instead of 500 to prevent JS crash
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan koneksi. Coba lagi nanti.',
-            ], 500);
+                'message' => 'Layanan pengecekan ID sedang sibuk atau gangguan koneksi. Anda dapat melanjutkan pesanan.',
+                'error_detail' => $e->getMessage()
+            ]);
         }
     }
 
