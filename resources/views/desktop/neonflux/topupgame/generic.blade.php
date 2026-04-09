@@ -217,8 +217,9 @@
                     @empty
                     <div class="text-center py-10 opacity-50">Metode pembayaran tidak tersedia.</div>
                     @endforelse
-                </div>
             </section>
+
+
         </div>
 
         <!-- Sidebar Summary -->
@@ -232,7 +233,7 @@
                     <div class="space-y-4 mb-6">
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Item:</span>
-                            <span class="text-slate-950 dark:text-white font-medium text-right">Mobile Legends Diamonds</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right">{{ $produk->name }}</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nominal:</span>
@@ -250,6 +251,10 @@
                             <span class="text-slate-500 dark:text-gray-400">Biaya Layanan:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-fee">Rp 0</span>
                         </div>
+                        <div class="flex justify-between items-start text-sm hidden" id="row-discount">
+                            <span class="text-green-500 font-bold">Potongan Voucher:</span>
+                            <span class="text-green-500 font-bold text-right font-mono" id="display-discount">-Rp 0</span>
+                        </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">WhatsApp:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right font-mono text-xs" id="summary-whatsapp">Belum Diisi</span>
@@ -258,15 +263,20 @@
                             <span class="text-slate-500 dark:text-gray-400">User ID:</span>
                             <span class="text-slate-400 dark:text-gray-500 font-mono text-xs text-right" id="summary-userid">Belum Diisi</span>
                         </div>
-                        <div class="flex justify-between items-start text-sm">
-                            <span class="text-slate-500 dark:text-gray-400">Nama pemain:</span>
-                            <span class="js-summary-player-name text-slate-950 dark:text-white font-medium text-right text-xs max-w-[55%] break-words" id="summary-player-name">—</span>
-                        </div>
-                        <div class="flex justify-between items-start text-sm hidden" id="summary-discount-row">
-                            <span class="text-accent-blue font-bold">Potongan Voucher:</span>
-                            <span class="text-accent-blue font-bold text-right font-mono" id="summary-discount">-Rp 0</span>
-                        </div>
                     </div>
+
+                    <!-- Voucher Input in Sidebar -->
+                    <div class="mb-6 pb-6 border-b border-dashed border-black/10 dark:border-white/20">
+                        <div class="flex gap-2">
+                            <input type="text" id="voucher_code" placeholder="Kode Voucher" 
+                                class="flex-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:ring-primary focus:border-primary outline-hidden text-slate-950 dark:text-white font-mono uppercase">
+                            <button type="button" id="apply-voucher" class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                                Pakai
+                            </button>
+                        </div>
+                        <div id="voucher-msg" class="mt-2 text-[10px] hidden"></div>
+                    </div>
+
                     <input type="hidden" name="voucher_code" id="applied_voucher_code">
                     <input type="hidden" name="voucher_discount" id="applied_voucher_discount" value="0">
                     <div class="border-t border-dashed border-black/10 dark:border-white/20 pt-4 mb-6">
@@ -284,24 +294,6 @@
                         <span class="material-icons-round text-gray-400 text-sm">security</span>
                         <span class="text-xs text-gray-400">Pembayaran 100% Aman & Terpercaya</span>
                     </div>
-                </div>
-
-                <div class="glass-panel p-4 rounded-2xl relative overflow-hidden group">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary group-focus-within:bg-primary group-focus-within:text-black transition-all">
-                            <span class="material-symbols-outlined">loyalty</span>
-                        </div>
-                        <div class="flex-1">
-                            <label class="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider ml-1">KODE VOUCHER</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="voucher_input" placeholder="Masukkan kode promo" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none transition-all uppercase font-mono">
-                                <button type="button" id="apply_voucher_btn" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 whitespace-nowrap">
-                                    Pakai
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="voucher_message" class="mt-2 text-[10px] ml-13 hidden"></div>
                 </div>
             </div>
         </div>

@@ -772,11 +772,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Voucher Logic ---
-    const voucherInput = document.getElementById('voucher_input');
-    const applyVoucherBtn = document.getElementById('apply_voucher_btn');
-    const voucherMessage = document.getElementById('voucher_message');
-    const discountRow = document.getElementById('summary-discount-row');
-    const discountDisplay = document.getElementById('summary-discount');
+    const voucherInput = document.getElementById('voucher_code');
+    const applyVoucherBtn = document.getElementById('apply-voucher');
+    const voucherMessage = document.getElementById('voucher-msg');
+    const discountRow = document.getElementById('row-discount');
+    const discountDisplay = document.getElementById('display-discount');
     const appliedCodeInput = document.getElementById('applied_voucher_code');
     const appliedDiscountInput = document.getElementById('applied_voucher_discount');
 
@@ -826,11 +826,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Update UI & State
-                    appliedCodeInput.value = data.data.code;
-                    appliedDiscountInput.value = discountValue;
+                    if (appliedCodeInput) appliedCodeInput.value = data.data.code;
+                    if (appliedDiscountInput) appliedDiscountInput.value = discountValue;
                     
-                    discountDisplay.textContent = '-Rp ' + discountValue.toLocaleString('id-ID');
-                    discountRow.classList.remove('hidden');
+                    if (discountDisplay) discountDisplay.textContent = '-Rp ' + discountValue.toLocaleString('id-ID');
+                    if (discountRow) discountRow.classList.remove('hidden');
                     
                     showVoucherMessage(data.message, 'text-green-500');
                     updateSummary();
@@ -844,7 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showVoucherMessage('Gagal memproses voucher.', 'text-red-500');
             } finally {
                 applyVoucherBtn.disabled = false;
-                applyVoucherBtn.textContent = 'Pakai';
+                applyVoucherBtn.textContent = 'Terapkan';
             }
         });
     }
@@ -852,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showVoucherMessage(msg, colorClass) {
         if (!voucherMessage) return;
         voucherMessage.textContent = msg;
-        voucherMessage.className = 'mt-2 text-[10px] ml-13 ' + colorClass;
+        voucherMessage.className = 'mt-2 text-[10px] ' + colorClass;
         voucherMessage.classList.remove('hidden');
     }
 

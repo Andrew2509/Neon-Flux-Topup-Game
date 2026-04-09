@@ -156,6 +156,8 @@
              @endforelse
         </div>
     </div>
+
+
 </div>
 
 {{-- Ringkasan Pesanan --}}
@@ -165,31 +167,33 @@
             <span class="material-symbols-outlined text-sm">shopping_cart</span>
             Ringkasan Pesanan
         </h3>
-        <div class="space-y-2">
-            <div class="flex justify-between items-center text-[10px]">
-                <span class="text-slate-500 dark:text-white/60">Biaya Produk</span>
-                <span class="text-slate-950 dark:text-white font-bold" id="display-base-price">Rp 0</span>
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-[10px]">
+                    <span class="text-slate-500 dark:text-white/60">Biaya Produk</span>
+                    <span class="text-slate-950 dark:text-white font-bold" id="display-base-price">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center text-[10px]">
+                    <span class="text-slate-500 dark:text-white/60">Biaya Layanan</span>
+                    <span class="text-slate-950 dark:text-white font-bold" id="display-fee">Rp 0</span>
+                </div>
+                <div class="flex justify-between items-center text-[10px] hidden" id="row-discount">
+                    <span class="text-slate-500 dark:text-white/60">Diskon Voucher</span>
+                    <span class="text-green-500 font-bold" id="display-discount">-Rp 0</span>
+                </div>
             </div>
-            <div class="flex justify-between items-center text-[10px]">
-                <span class="text-slate-500 dark:text-white/60">Biaya Layanan</span>
-                <span class="text-slate-950 dark:text-white font-bold" id="display-fee">Rp 0</span>
-            </div>
-            <div class="flex justify-between items-center text-[10px] hidden" id="row-discount">
-                <span class="text-slate-500 dark:text-white/60">Diskon Voucher</span>
-                <span class="text-green-500 font-bold" id="display-discount">-Rp 0</span>
-            </div>
-        </div>
 
-        {{-- Input Voucher --}}
-        <div class="mt-4 pt-3 border-t border-black/5 dark:border-white/10">
-            <div class="flex gap-2">
-                <input type="text" id="voucher_code" name="voucher_code" placeholder="Kode Voucher" 
-                    class="flex-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-[10px] focus:ring-primary focus:border-primary outline-hidden text-slate-950 dark:text-white">
-                <button type="button" id="apply-voucher" class="px-3 py-2 bg-primary text-white rounded-xl text-[10px] font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">
-                    Cek
-                </button>
+            <!-- Voucher Input in Summary -->
+            <div class="pt-2 border-t border-black/5 dark:border-white/5">
+                <div class="flex gap-2">
+                    <input type="text" id="voucher_code" placeholder="Kode Voucher" 
+                        class="flex-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-[10px] focus:ring-primary focus:border-primary outline-hidden text-slate-950 dark:text-white font-mono uppercase">
+                    <button type="button" id="apply-voucher" class="px-4 py-2 bg-primary text-white rounded-lg text-[10px] font-bold shadow-md shadow-primary/20 active:scale-95 transition-all">
+                        Pakai
+                    </button>
+                </div>
+                <div id="voucher-msg" class="mt-1 text-[8px] hidden"></div>
             </div>
-            <div id="voucher-msg" class="mt-2 text-[9px] hidden"></div>
         </div>
     </div>
 </div>
@@ -213,6 +217,8 @@
     <div id="summary-fee" class="hidden"></div>
     <div id="summary-whatsapp" class="hidden"></div>
     <div id="summary-userid" class="hidden"></div>
+    <input type="hidden" name="voucher_code" id="applied_voucher_code">
+    <input type="hidden" name="voucher_discount" id="applied_voucher_discount" value="0">
     </form>
 </div>
 @push('scripts')
