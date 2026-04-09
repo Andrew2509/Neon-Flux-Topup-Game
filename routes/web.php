@@ -18,6 +18,7 @@ Route::group(['middleware' => []], function () {
     Route::get('/topup/berhasil', [App\Http\Controllers\TransactionController::class, 'topupSuccess'])->name('topup.success');
     Route::post('/testimoni', [App\Http\Controllers\TestimonialController::class, 'store'])->name('testimoni.store');
     Route::get('/api/order/{order_id}/poll', [App\Http\Controllers\TransactionController::class, 'pollOrderStatus'])->name('order.poll');
+    Route::get('/api/notifications/recent', [App\Http\Controllers\Api\TransactionNotificationController::class, 'getRecent'])->name('api.notifications.recent');
     Route::get('/cek-transaksi', function () {
         return redirect()->route('track.order');
     });
