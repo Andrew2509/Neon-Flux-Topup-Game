@@ -99,7 +99,7 @@
         radios.forEach(r => {
             r.addEventListener('change', function() {
                 if (this.checked) {
-                    customInput.value = '';
+                    customInput.value = this.value;
                 }
             });
         });
