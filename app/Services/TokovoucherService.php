@@ -76,6 +76,50 @@ class TokovoucherService
     }
 
     /**
+     * Cek saldo member Tokovoucher.
+     * signature = md5(MEMBER_CODE:SECRET)
+     *
+     * @return float|null
+     */
+    public function checkBalance(): ?float
+    {
+        $provider = self::resolveTokovoucherProvider();
+        if (! $provider || ! $provider->provider_id || ! $provider->api_key) {
+            return null;
+        }
+
+        $memberCode = (string) $provider->provider_id;
+        $secret = (string) $provider->api_key;
+        $signature = md5($memberCode.':'.$secret);
+
+        $base = rtrim((string) config('services.tokovoucher.api_base', 'https://api.tokovoucher.net'), '/');
+        $url = $base.'/member';
+
+        try {
+            $response = $this->http()->get($url, [
+                'member_code' => $memberCode,
+                'signature' => $signature,
+            ]);
+
+            $json = $response->json();
+            if (isset($json['status']) && $json['status'] == 1 && isset($json['data']['saldo'])) {
+                return (float) $json['data']['saldo'];
+            }
+
+            Log::warning('TokoVoucher cek saldo: respons gagal', [
+                'http' => $response->status(),
+                'json' => $json,
+            ]);
+
+            return null;
+        } catch (\Throwable $e) {
+            Log::error('TokoVoucher cek saldo exception', ['msg' => $e->getMessage()]);
+
+            return null;
+        }
+    }
+
+    /**
      * @param  array<string, mixed>|null  $result
      */
     /**
