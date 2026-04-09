@@ -86,6 +86,31 @@ class TransactionController extends Controller
             : $service->name.' ('.$gameUserId.')';
 
         $userId = \Illuminate\Support\Facades\Auth::id();
+        $isEligibleForBonus = false;
+        $bonusDiamonds = 0;
+        $baseDiamonds = (int) ($service->diamond_amount ?? 0);
+
+        // Logic: Check if first purchase (only 1 time per user AND per target ID game)
+        if ($baseDiamonds > 0) {
+            // 1. Check if user has already made a successful purchase
+            $userHasOrdered = false;
+            if ($userId) {
+                $userHasOrdered = Order::where('user_id', $userId)
+                    ->where('status', 'success')
+                    ->exists();
+            }
+
+            // 2. Check if target ID has already been used in a successful purchase
+            $targetHasOrdered = Order::where('status', 'success')
+                ->where('payload->game_user_id', $gameUserId)
+                ->exists();
+
+            if (! $userHasOrdered && ! $targetHasOrdered) {
+                $isEligibleForBonus = true;
+                // Round down (floor) according to standard business practice unless specified otherwise
+                $bonusDiamonds = (int) floor($baseDiamonds * 0.1);
+            }
+        }
 
         // Combined Create into one call
         $order = Order::create([
@@ -103,6 +128,12 @@ class TransactionController extends Controller
                 'cost' => $service->cost ?? $service->price,
                 'customer_whatsapp' => $waDigits,
                 'player_nickname' => $playerNickname,
+                'first_purchase_bonus' => [
+                    'is_eligible' => $isEligibleForBonus,
+                    'base_amount' => $baseDiamonds,
+                    'bonus_amount' => $bonusDiamonds,
+                    'total_amount' => $baseDiamonds + $bonusDiamonds,
+                ],
             ],
         ]);
 

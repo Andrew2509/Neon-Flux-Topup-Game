@@ -182,6 +182,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 summaryFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
             }
 
+            // --- FIRST PURCHASE BONUS PREVIEW ---
+            const bonusRow = document.getElementById('bonus-row');
+            const bonusDisplay = document.getElementById('display-bonus-diamonds');
+            const diamondAmount = parseInt(selectedProduct2.dataset.diamonds || '0', 10);
+
+            if (bonusRow && bonusDisplay && diamondAmount > 0) {
+                const bonus = Math.floor(diamondAmount * 0.1);
+                if (bonus > 0) {
+                    bonusDisplay.textContent = '+' + bonus + ' Diamonds';
+                    bonusRow.classList.remove('hidden');
+                } else {
+                    bonusRow.classList.add('hidden');
+                }
+            } else if (bonusRow) {
+                bonusRow.classList.add('hidden');
+            }
+
             // Sync visible display elements if they exist
             const displayBasePrice = document.getElementById('display-base-price');
             const displayFee = document.getElementById('display-fee');
@@ -193,6 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (summaryBasePrice) summaryBasePrice.textContent = 'Rp 0';
             if (summaryFee) summaryFee.textContent = 'Rp 0';
             
+            const bonusRow = document.getElementById('bonus-row');
+            if (bonusRow) bonusRow.classList.add('hidden');
+
             const displayBasePrice = document.getElementById('display-base-price');
             const displayFee = document.getElementById('display-fee');
             if (displayBasePrice) displayBasePrice.textContent = 'Rp 0';

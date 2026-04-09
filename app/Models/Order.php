@@ -45,4 +45,28 @@ class Order extends Model
             'payload' => $payload
         ]);
     }
+
+    /**
+     * Helper to check if this order received a first purchase bonus.
+     */
+    public function isFirstPurchaseBonus(): bool
+    {
+        return (bool) data_get($this->payload, 'first_purchase_bonus.is_eligible', false);
+    }
+
+    /**
+     * Get base diamonds from payload.
+     */
+    public function getBaseDiamondsAttribute()
+    {
+        return data_get($this->payload, 'first_purchase_bonus.base_amount', 0);
+    }
+
+    /**
+     * Get bonus diamonds from payload.
+     */
+    public function getBonusDiamondsAttribute()
+    {
+        return data_get($this->payload, 'first_purchase_bonus.bonus_amount', 0);
+    }
 }
