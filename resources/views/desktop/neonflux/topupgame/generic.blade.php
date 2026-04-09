@@ -213,7 +213,7 @@
                     <div class="space-y-4 mb-6">
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Item:</span>
-                            <span class="text-slate-950 dark:text-white font-medium text-right">{{ $produk->name }}</span>
+                            <span class="text-slate-950 dark:text-white font-medium text-right">{{ $category->name }}</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nominal:</span>
