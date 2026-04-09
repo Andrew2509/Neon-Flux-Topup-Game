@@ -36,33 +36,6 @@
         </div>
     </div>
 
-    <!-- Banner Promo -->
-    <div class="lg:col-span-3 mb-8">
-        <div class="glass-panel rounded-2xl p-px relative overflow-hidden group">
-            <div class="absolute inset-0 bg-linear-to-r from-primary via-secondary to-primary opacity-30 dark:opacity-50 blur-md animate-pulse"></div>
-            <div class="relative bg-opacity-95 bg-white dark:bg-[#121023] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between promo-glow transition-all">
-                <div class="flex items-center gap-6 z-10">
-                    <div class="hidden md:flex h-16 w-16 items-center justify-center rounded-full bg-white/5 border border-white/10 shadow-neon-cyan shrink-0">
-                        <span class="material-symbols-outlined text-4xl text-primary animate-bounce">diamond</span>
-                    </div>
-                    <div>
-                        <h3 class="font-display font-bold text-2xl md:text-3xl text-slate-950 dark:text-white tracking-wide">
-                            BONUS DIAMOND <span class="text-transparent bg-clip-text bg-linear-to-r from-primary to-secondary filter drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]">10%</span>
-                        </h3>
-                        <p class="text-slate-600 dark:text-gray-300 mt-1 max-w-xl">
-                            Khusus untuk pengguna baru! Nikmati tambahan diamond pada pembelian pertama Anda.
-                        </p>
-                    </div>
-                </div>
-                <div class="mt-4 md:mt-0 z-10">
-                    <button class="px-6 py-2.5 bg-black dark:bg-white/10 hover:bg-black/90 dark:hover:bg-white/20 border border-primary/50 text-primary font-bold rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(0,240,255,0.2)] hover:shadow-[0_0_25px_rgba(0,240,255,0.4)] text-sm tracking-wider uppercase font-display flex items-center gap-2">
-                        <span>Klaim Sekarang</span>
-                        <span class="material-icons-round text-sm">arrow_forward</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Form Area -->
