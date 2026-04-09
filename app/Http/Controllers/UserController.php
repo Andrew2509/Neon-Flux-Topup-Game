@@ -157,10 +157,11 @@ class UserController extends Controller
 
         try {
             $res = $ipaymu->createPayment($payload);
+            $statusCode = $res['Status'] ?? $res['status'] ?? 0;
+            $data = $res['Data'] ?? $res['data'] ?? [];
+            $paymentUrl = $data['Url'] ?? $data['url'] ?? null;
 
-            if (isset($res['Status']) && $res['Status'] == 200 && (isset($res['Data']['Url']) || isset($res['data']['url']))) {
-                $url = $res['Data']['Url'] ?? $res['data']['url'];
-
+            if ($statusCode == 200 && $paymentUrl) {
                 Deposit::create([
                     'deposit_id' => $depositId,
                     'user_id' => $user->id,
@@ -173,7 +174,7 @@ class UserController extends Controller
                     ]
                 ]);
 
-                return redirect($url);
+                return redirect($paymentUrl);
             } else {
                 $msg = $res['Message'] ?? $res['message'] ?? 'Gagal membuat transaksi ke iPaymu.';
                 return back()->with('error', 'Gagal membuat transaksi: ' . $msg);
