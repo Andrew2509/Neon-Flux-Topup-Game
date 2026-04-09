@@ -504,7 +504,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    paymentRadios.forEach(r => r.addEventListener('change', updateSummary));
+    paymentRadios.forEach(r => r.addEventListener('change', () => {
+        updateSummary();
+        
+        // Auto scroll to summary/checkout
+        setTimeout(() => {
+            const summaryEl = document.getElementById('summary-section');
+            if (summaryEl) {
+                const navHeight = 80;
+                const elementPosition = summaryEl.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({
+                    top: elementPosition - navHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 500);
+    }));
     if (customerWhatsappInput) {
         customerWhatsappInput.addEventListener('input', () => {
             updateSummary();

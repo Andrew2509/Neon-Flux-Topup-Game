@@ -208,7 +208,7 @@
         <!-- Sidebar Summary -->
         <div class="lg:col-span-1 relative">
             <div class="sticky top-28 space-y-4">
-                <div class="glass-panel p-6 rounded-3xl border border-secondary/30 shadow-none dark:shadow-neon-magenta">
+                <div id="summary-section" class="glass-panel p-6 rounded-3xl border border-secondary/30 shadow-none dark:shadow-neon-magenta">
                     <h3 class="text-xl font-display font-bold text-slate-950 dark:text-white mb-6 flex items-center border-b border-black/5 dark:border-white/10 pb-4">
                         <span class="material-icons-round mr-2 text-secondary">shopping_cart</span>
                         Ringkasan Pesanan
