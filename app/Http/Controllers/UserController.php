@@ -153,6 +153,7 @@ class UserController extends Controller
             'cancelUrl' => route('user.deposit'),
             'paymentMethod' => strtolower($pm->type),
             'paymentChannel' => $pm->code,
+            'forceRedirect' => true,
         ];
 
         try {

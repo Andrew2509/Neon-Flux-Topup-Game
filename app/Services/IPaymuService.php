@@ -57,7 +57,7 @@ class IPaymuService
             ];
         }
 
-        $isDirect = ! empty($data['paymentChannel']);
+        $isDirect = ! empty($data['paymentChannel']) && empty($data['forceRedirect']);
         $path = $isDirect ? '/api/v2/payment/direct' : '/api/v2/payment';
         $url = $this->baseUrl.$path;
 
@@ -96,6 +96,13 @@ class IPaymuService
                 'notifyUrl' => $data['notifyUrl'],
                 'referenceId' => $data['orderId'],
             ];
+
+            if (! empty($data['paymentMethod'])) {
+                $body['paymentMethod'] = $data['paymentMethod'];
+            }
+            if (! empty($data['paymentChannel'])) {
+                $body['paymentChannel'] = $data['paymentChannel'];
+            }
         }
 
         $cfg = config('services.ipaymu', []);
