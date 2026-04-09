@@ -139,11 +139,10 @@
                 </div>
 
                 <div class="flex flex-col gap-6">
-                    @forelse($groupedPayments as $type => $payments)
+                    @auth
                     <div>
-                        <h3 class="text-sm font-bold text-slate-500 dark:text-gray-400 mb-3 uppercase tracking-wide ml-1">{{ $type }}</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            @auth
+                        <h3 class="text-sm font-bold text-slate-500 dark:text-gray-400 mb-3 uppercase tracking-wide ml-1">Internal</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                             <label class="cursor-pointer w-full group relative">
                                 <input type="radio" name="payment" value="SALDO" class="peer hidden method-card" data-name="Saldo Akun" data-fee="0" required>
                                 <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
@@ -151,18 +150,26 @@
                                 </div>
                                 <div class="glass-panel-light p-3 rounded-xl flex items-center justify-between transition-all hover:bg-white/5 border border-white/10 h-auto min-h-16 peer-checked:bg-primary/10 peer-checked:border-primary">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center overflow-hidden p-1 shadow-sm shrink-0">
-                                            <img src="https://ui-avatars.com/api/?name=SA&background=00f0ff&color=fff" alt="Saldo Akun" class="w-full h-full object-contain">
+                                        <div class="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                                            <span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
                                         </div>
                                         <div>
                                             <div class="font-bold text-sm text-slate-950 dark:text-white">Saldo Akun</div>
-                                            <div class="text-[10px] text-primary font-bold">Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</div>
+                                            <div class="text-[10px] text-slate-500 dark:text-gray-400">Saldo: Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</div>
                                         </div>
                                     </div>
                                 </div>
                             </label>
-                            @endauth
+                        </div>
+                    </div>
+                    @endauth
+
+                    @forelse($groupedPayments as $type => $payments)
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-500 dark:text-gray-400 mb-3 uppercase tracking-wide ml-1">{{ $type }}</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             @foreach($payments as $p)
+                                @if($p->code === 'SALDO') @continue @endif
                             <label class="cursor-pointer w-full group relative">
                                 <input type="radio" name="payment" value="{{ $p->code }}" class="peer hidden method-card" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required>
                                 <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">

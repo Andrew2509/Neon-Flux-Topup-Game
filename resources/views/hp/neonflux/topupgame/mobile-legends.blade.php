@@ -112,7 +112,7 @@
                     </div>
                     <label for="p-saldo" class="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-5 bg-primary/20 rounded flex items-center justify-center text-primary">
+                            <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
                                 <span class="material-symbols-outlined text-[14px]">account_balance_wallet</span>
                             </div>
                             <div class="flex flex-col">
@@ -128,6 +128,7 @@
              <div class="space-y-2">
                 <h4 class="text-[10px] font-bold text-slate-500 dark:text-white/90 uppercase tracking-widest ml-1">{{ $type }}</h4>
                 @foreach($payments as $p)
+                    @if($p->code === 'SALDO') @continue @endif
                 <div class="relative group active:scale-[0.98] transition-all">
                     <input type="radio" name="payment" id="p-{{ $p->id }}" value="{{ $p->code }}" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required class="peer hidden method-card">
                     <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border border-white dark:border-slate-900 shadow-md overflow-hidden">
@@ -135,7 +136,7 @@
                     </div>
                     <label for="p-{{ $p->id }}" class="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-5 bg-white rounded overflow-hidden flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center shrink-0 border border-black/5 h-full p-1 shadow-sm">
                                 @if($p->image)
                                     <img src="{{ asset($p->image) }}" class="w-full h-full object-contain">
                                 @else
