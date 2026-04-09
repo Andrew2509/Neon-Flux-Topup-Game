@@ -79,12 +79,12 @@
             @forelse($services as $s)
             <div class="relative group active:scale-95 transition-transform service-item" data-jenis="{{ $s->product_jenis_id }}">
                 <input type="radio" name="product_code" id="n-{{ $loop->index }}" value="{{ $s->product_code }}" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required class="peer hidden radio-card">
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center text-white scale-0 peer-checked:scale-100 transition-all duration-300 z-10 border border-white dark:border-slate-900 shadow-md overflow-hidden">
+                    <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                </div>
                 <label for="n-{{ $loop->index }}" class="block p-2 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all cursor-pointer">
-                    <div class="text-[10px] font-bold text-slate-950 dark:text-white mb-0.5 line-clamp-2 h-7 flex items-center leading-none">{{ $s->name }}</div>
+                    <div class="text-[10px] font-bold text-slate-950 dark:text-white mb-0.5 line-clamp-2 h-7 flex items-center">{{ $s->name }}</div>
                     <div class="text-[8.5px] text-slate-500 dark:text-white/80 font-medium">Rp {{ number_format($s->price, 0, ',', '.') }}</div>
-                    <div class="hidden peer-checked:flex items-center justify-center w-3.5 h-3.5 bg-white rounded-full shadow-lg border border-primary absolute -top-1 -right-1 z-20">
-                        <span class="material-icons-round text-primary text-[7px] font-bold">done</span>
-                    </div>
                 </label>
             </div>
             @empty
@@ -108,6 +108,9 @@
                 @foreach($payments as $p)
                 <div class="relative group active:scale-[0.98] transition-all">
                     <input type="radio" name="payment" id="p-{{ $p->id }}" value="{{ $p->code }}" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required class="peer hidden method-card">
+                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center text-white scale-0 peer-checked:scale-100 transition-all duration-300 z-10 border border-white dark:border-slate-900 shadow-md overflow-hidden">
+                        <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                    </div>
                     <label for="p-{{ $p->id }}" class="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
                         <div class="flex items-center gap-2.5">
                             <div class="w-8 h-5 bg-white rounded overflow-hidden flex items-center justify-center">
@@ -118,9 +121,6 @@
                                 @endif
                             </div>
                             <span class="text-[12px] font-bold text-slate-950 dark:text-white">{{ $p->name }}</span>
-                        </div>
-                        <div class="hidden peer-checked:flex items-center justify-center w-4 h-4 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-1">
-                            <span class="material-icons-round text-primary text-[8px] font-bold">done</span>
                         </div>
                     </label>
                 </div>

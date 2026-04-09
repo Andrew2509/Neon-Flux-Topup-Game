@@ -135,6 +135,9 @@
                     @forelse($services as $s)
                     <label class="cursor-pointer group relative service-item" data-jenis="{{ $s->product_jenis_id }}">
                         <input type="radio" name="product_code" value="{{ $s->product_code }}" class="peer sr-only radio-card" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required>
+                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white scale-0 peer-checked:scale-100 transition-all duration-300 z-10 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
+                            <span class="material-symbols-outlined text-[14px] font-bold">check</span>
+                        </div>
                         <div class="glass-panel-light p-4 rounded-xl flex flex-col items-center justify-center h-full transition-all duration-300 peer-checked:bg-primary/10 peer-checked:border-primary border border-white/5 hover:border-white/20">
                             @if(Str::contains($s->name, 'HOT'))
                             <div class="absolute top-2 right-2">
@@ -145,9 +148,6 @@
                             <span class="font-bold text-center text-sm md:text-base text-slate-950 dark:text-white">{{ $s->name }}</span>
                             <div class="mt-3 bg-slate-100 dark:bg-black/30 rounded-lg px-3 py-1 w-full text-center border border-slate-200 dark:border-white/5 group-hover:border-primary/30 transition-colors">
                                 <span class="text-sm font-semibold text-primary">Rp {{ number_format($s->price, 0, ',', '.') }}</span>
-                            </div>
-                            <div class="hidden peer-checked:flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-lg border border-primary shrink-0 absolute -top-2 -right-2 z-20">
-                                <span class="material-icons-round text-primary text-xs font-bold">done</span>
                             </div>
                         </div>
                     </label>
@@ -171,8 +171,11 @@
                         <h3 class="text-sm font-bold text-slate-500 dark:text-gray-400 mb-3 uppercase tracking-wide ml-1">{{ $type }}</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             @auth
-                            <label class="cursor-pointer w-full group">
+                            <label class="cursor-pointer w-full group relative">
                                 <input type="radio" name="payment" value="SALDO" class="peer sr-only method-card" data-name="Saldo Akun" data-fee="0" required>
+                                <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center text-white scale-0 peer-checked:scale-100 transition-all duration-300 z-10 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
+                                    <span class="material-symbols-outlined text-[12px] font-bold">check</span>
+                                </div>
                                 <div class="glass-panel-light p-3 rounded-xl flex items-center justify-between transition-all hover:bg-white/5 border border-white/10 h-auto min-h-16 peer-checked:bg-primary/10 peer-checked:border-primary">
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center overflow-hidden p-1 shadow-sm shrink-0">
@@ -183,15 +186,15 @@
                                             <div class="text-[10px] text-primary font-bold">Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</div>
                                         </div>
                                     </div>
-                                    <div class="hidden peer-checked:flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-2">
-                                        <span class="material-icons-round text-primary text-xs font-bold">done</span>
-                                    </div>
                                 </div>
                             </label>
                             @endauth
                             @foreach($payments as $p)
-                            <label class="cursor-pointer w-full group">
+                            <label class="cursor-pointer w-full group relative">
                                 <input type="radio" name="payment" value="{{ $p->code }}" class="peer sr-only method-card" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required>
+                                <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center text-white scale-0 peer-checked:scale-100 transition-all duration-300 z-10 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
+                                    <span class="material-symbols-outlined text-[12px] font-bold">check</span>
+                                </div>
                                 <div class="glass-panel-light p-3 rounded-xl flex items-center justify-between transition-all hover:bg-white/5 border border-white/10 h-auto min-h-16 peer-checked:bg-primary/10 peer-checked:border-primary">
                                     <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center overflow-hidden p-1 shadow-sm shrink-0">
@@ -205,9 +208,6 @@
                                             <div class="font-bold text-sm text-slate-950 dark:text-white">{{ $p->name }}</div>
                                             <div class="text-[10px] text-slate-500 dark:text-gray-400">Proses Otomatis</div>
                                         </div>
-                                    </div>
-                                    <div class="hidden peer-checked:flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-lg border border-primary shrink-0 ml-2">
-                                        <span class="material-icons-round text-primary text-xs font-bold">done</span>
                                     </div>
                                 </div>
                             </label>
