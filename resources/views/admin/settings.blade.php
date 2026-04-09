@@ -310,8 +310,7 @@
                             <div class="space-y-2 group">
                                 <label class="text-[10px] font-bold text-slate-500 ml-1">Biaya Transaksi (Flat)</label>
                                 <div class="relative">
-                                    <input type="text" name="transaction_fee" value="{{ $settings['transaction_fee'] ?? '1,000' }}" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm text-slate-100 focus:ring-1 focus:ring-blue-400/50 focus:border-blue-400 outline-none transition-all shadow-inner">
-                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-600">Rp</span>
+                                    <input type="text" name="transaction_fee" value="{{ $settings['transaction_fee'] ?? '1,000' }}" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-4 py-4 text-sm text-slate-100 focus:ring-1 focus:ring-blue-400/50 focus:border-blue-400 outline-none transition-all shadow-inner">
                                 </div>
                             </div>
                         </div>

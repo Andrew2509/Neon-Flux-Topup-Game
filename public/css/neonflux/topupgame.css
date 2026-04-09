@@ -72,3 +72,26 @@
 .dark .promo-glow {
     box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
 }
+
+/* --- Section Locking --- */
+.is-locked {
+    cursor: not-allowed !important;
+}
+
+.is-locked > * {
+    pointer-events: none !important;
+}
+
+/* Allow interaction with category tabs in nominal section even if locked if needed */
+/* But the JS logic specifically allows .tab-btn, .category-tab etc. */
+/* So we need to override pointer-events for those if we want them clickable */
+.is-locked .category-tab, 
+.is-locked .tab-btn, 
+.is-locked [role="tab"] {
+    pointer-events: auto !important;
+}
+
+.glass-panel.is-locked, .glass-panel-mobile.is-locked {
+    filter: grayscale(0.2) brightness(0.9);
+}
+

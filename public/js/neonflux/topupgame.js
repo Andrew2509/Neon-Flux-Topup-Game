@@ -181,10 +181,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (summaryFee) {
                 summaryFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
             }
+
+            // Sync visible display elements if they exist
+            const displayBasePrice = document.getElementById('display-base-price');
+            const displayFee = document.getElementById('display-fee');
+            if (displayBasePrice) displayBasePrice.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
+            if (displayFee) displayFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
+
             summaryTotal.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
         } else if (summaryTotal) {
             if (summaryBasePrice) summaryBasePrice.textContent = 'Rp 0';
             if (summaryFee) summaryFee.textContent = 'Rp 0';
+            
+            const displayBasePrice = document.getElementById('display-base-price');
+            const displayFee = document.getElementById('display-fee');
+            if (displayBasePrice) displayBasePrice.textContent = 'Rp 0';
+            if (displayFee) displayFee.textContent = 'Rp 0';
+
             summaryTotal.textContent = 'Rp 0';
         }
     }
@@ -286,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const nominalSection = document.getElementById('nominal-section');
+    const paymentSection = document.getElementById('payment-section');
 
     function updateNominalSectionState() {
         if (!nominalSection) return;
@@ -295,6 +309,22 @@ document.addEventListener('DOMContentLoaded', () => {
             nominalSection.classList.add('transition-opacity', 'duration-500');
         } else {
             nominalSection.classList.add('opacity-50', 'is-locked');
+        }
+    }
+
+    function updatePaymentSectionState() {
+        if (!paymentSection) return;
+        const userId = (userIdInput ? userIdInput.value.trim() : '');
+        const hasNominal = getSelectedProductCode() !== '';
+        
+        // Locked if nominal section is locked OR no nominal is selected
+        if (whatsappDigitsOk() && userId.length >= 3 && hasNominal) {
+            paymentSection.classList.remove('opacity-50', 'is-locked');
+            paymentSection.classList.add('transition-opacity', 'duration-500');
+            // Remove pointer-events-none if we were using it, 
+            // but we're handling clicks in JS for better feedback
+        } else {
+            paymentSection.classList.add('opacity-50', 'is-locked');
         }
     }
 
@@ -350,24 +380,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }, true); // Use capture phase to intercept before children
     }
 
+    if (paymentSection) {
+        paymentSection.addEventListener('click', (e) => {
+            if (paymentSection.classList.contains('is-locked')) {
+                // Prevent interaction if locked
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const hasNominal = getSelectedProductCode() !== '';
+                let title = 'Silahkan pilih nominal terlebih dahulu';
+                let targetEl = null;
+
+                if (!whatsappDigitsOk()) {
+                    title = 'Silahkan isi nomor WhatsApp';
+                    targetEl = customerWhatsappInput;
+                } else if ((userIdInput ? userIdInput.value.trim().length : 0) < 3) {
+                    title = 'Silahkan isi data akun';
+                    targetEl = userIdInput;
+                } else if (!hasNominal) {
+                    title = 'Silahkan pilih nominal top-up';
+                    targetEl = nominalSection;
+                }
+
+                // Show toast message
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        icon: 'warning',
+                        title: title,
+                        background: document.documentElement.classList.contains('dark') ? '#0a0a15' : '#fff',
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    });
+                }
+
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (targetEl.focus) targetEl.focus();
+                }
+            }
+        }, true);
+    }
+
 
     paymentRadios.forEach(r => r.addEventListener('change', updateSummary));
     if (customerWhatsappInput) {
         customerWhatsappInput.addEventListener('input', () => {
             updateSummary();
             updateNominalSectionState();
+            updatePaymentSectionState();
         });
     }
     if (userIdInput) {
         userIdInput.addEventListener('input', () => {
             updateSummary();
             updateNominalSectionState();
+            updatePaymentSectionState();
         });
     }
     if (zoneIdInput) {
         zoneIdInput.addEventListener('input', () => {
             updateSummary();
             updateNominalSectionState();
+            updatePaymentSectionState();
         });
     }
 
@@ -375,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSummary();
     updatePaymentPrices();
     updateNominalSectionState();
+    updatePaymentSectionState();
 
     // --- Debounce Helper ---
     function debounce(func, wait) {
@@ -614,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     productRadios.forEach(r => r.addEventListener('change', () => {
         updateSummary();
         updatePaymentPrices();
+        updatePaymentSectionState();
         debouncedCheckProduct();
     }));
 

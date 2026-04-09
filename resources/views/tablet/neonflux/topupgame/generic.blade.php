@@ -97,12 +97,34 @@
     </div>
 
     {{-- Step 3: Payment --}}
-    <div class="glass-panel-mobile dark:bg-white/5 p-4 rounded-2xl space-y-3">
+    <div id="payment-section" class="glass-panel-mobile dark:bg-white/5 p-4 rounded-2xl space-y-3 transition-all duration-300">
         <div class="flex items-center gap-2">
             <div class="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">3</div>
             <h3 class="font-bold text-sm text-slate-950 dark:text-white">Metode Pembayaran</h3>
         </div>
         <div class="space-y-4">
+             @auth
+             <div class="space-y-2 mb-4">
+                <h4 class="text-[10px] font-bold text-slate-500 dark:text-white/90 uppercase tracking-widest ml-1">Pembayaran Internal</h4>
+                <div class="relative group active:scale-[0.98] transition-all">
+                    <input type="radio" name="payment" id="p-saldo" value="SALDO" data-name="Saldo Akun" data-fee="0" required class="peer hidden method-card">
+                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border border-white dark:border-slate-900 shadow-md overflow-hidden">
+                        <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                    </div>
+                    <label for="p-saldo" class="flex items-center justify-between p-2 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-4 bg-primary/20 rounded flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-[14px]">account_balance_wallet</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-slate-950 dark:text-white">Saldo Akun</span>
+                                <span class="text-[8px] text-primary font-bold leading-tight">Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+             </div>
+             @endauth
              @forelse($groupedPayments as $type => $payments)
              <div class="space-y-2">
                 <h4 class="text-[10px] font-bold text-slate-500 dark:text-white/90 uppercase tracking-widest ml-1">{{ $type }}</h4>
@@ -132,6 +154,26 @@
                  Metode pembayaran tidak tersedia.
              </div>
              @endforelse
+        </div>
+    </div>
+</div>
+
+{{-- Ringkasan Pesanan --}}
+<div class="px-4 mb-24">
+    <div class="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/10">
+        <h3 class="text-[10px] font-bold text-slate-500 dark:text-white/90 mb-3 uppercase tracking-widest flex items-center gap-2 border-b border-black/5 dark:border-white/10 pb-2">
+            <span class="material-symbols-outlined text-sm">shopping_cart</span>
+            Ringkasan Pesanan
+        </h3>
+        <div class="space-y-2">
+            <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-500 dark:text-white/60">Biaya Produk</span>
+                <span class="text-slate-950 dark:text-white font-bold" id="display-base-price">Rp 0</span>
+            </div>
+            <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-500 dark:text-white/60">Biaya Layanan</span>
+                <span class="text-slate-950 dark:text-white font-bold" id="display-fee">Rp 0</span>
+            </div>
         </div>
     </div>
 </div>

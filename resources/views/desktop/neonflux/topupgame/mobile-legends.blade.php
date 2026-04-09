@@ -136,8 +136,8 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="services-grid">
                     @forelse($services as $s)
                     <label class="cursor-pointer group relative service-item" data-jenis="{{ $s->product_jenis_id }}">
-                        <input type="radio" name="product_code" value="{{ $s->product_code }}" class="peer sr-only radio-card" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required>
-                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-10 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
+                        <input type="radio" name="product_code" value="{{ $s->product_code }}" class="peer hidden radio-card" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required>
+                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
                             <span class="material-symbols-outlined text-[14px] font-bold">check</span>
                         </div>
                         <div class="glass-panel-light p-4 rounded-xl flex flex-col items-center justify-center h-full transition-all duration-300 peer-checked:bg-primary/10 peer-checked:border-primary border border-white/5 hover:border-white/20">
@@ -160,7 +160,7 @@
             </section>
 
             <!-- Step 3: Payment -->
-            <section class="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden">
+            <section id="payment-section" class="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden transition-all duration-300">
                 <div class="absolute top-0 left-0 w-1 h-full bg-primary shadow-neon-cyan"></div>
                 <div class="flex items-center gap-4 mb-6">
                     <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl border border-primary/40 shadow-neon-cyan">3</div>
@@ -172,10 +172,29 @@
                     <div>
                         <h3 class="text-sm font-bold text-slate-500 dark:text-gray-400 mb-3 uppercase tracking-wide ml-1">{{ $type }}</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            @auth
+                            <label class="cursor-pointer w-full group relative">
+                                <input type="radio" name="payment" value="SALDO" class="peer hidden method-card" data-name="Saldo Akun" data-fee="0" required>
+                                <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
+                                    <span class="material-symbols-outlined text-[12px] font-bold">check</span>
+                                </div>
+                                <div class="glass-panel-light p-3 rounded-xl flex items-center justify-between transition-all hover:bg-white/5 border border-white/10 h-auto min-h-16 peer-checked:bg-primary/10 peer-checked:border-primary">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                                            <span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-sm text-slate-950 dark:text-white">Saldo Akun</div>
+                                            <div class="text-[10px] text-slate-500 dark:text-gray-400">Saldo: Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                            @endauth
                             @foreach($payments as $p)
                             <label class="cursor-pointer w-full group relative">
-                                <input type="radio" name="payment" value="{{ $p->code }}" class="peer sr-only method-card" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required>
-                                <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-10 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
+                                <input type="radio" name="payment" value="{{ $p->code }}" class="peer hidden method-card" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required>
+                                <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
                                     <span class="material-symbols-outlined text-[12px] font-bold">check</span>
                                 </div>
                                 <div class="glass-panel-light p-3 rounded-xl flex items-center justify-between transition-all hover:bg-white/5 border border-white/10 h-auto min-h-16 peer-checked:bg-primary/10 peer-checked:border-primary">
@@ -226,7 +245,7 @@
                             <span class="text-slate-950 dark:text-white font-medium text-right" id="summary-payment">Pilih Metode</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
-                            <span class="text-slate-500 dark:text-gray-400">Harga Produk:</span>
+                            <span class="text-slate-500 dark:text-gray-400">Biaya Produk:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-base-price">Rp 0</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">

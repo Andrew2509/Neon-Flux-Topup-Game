@@ -80,7 +80,7 @@
             @forelse($services as $s)
             <div class="relative group active:scale-95 transition-transform service-item" data-jenis="{{ $s->product_jenis_id }}">
                 <input type="radio" name="product_code" id="n-{{ $loop->index }}" value="{{ $s->product_code }}" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required class="peer hidden radio-card">
-                <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-10 border border-white dark:border-slate-900 shadow-md overflow-hidden">
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border border-white dark:border-slate-900 shadow-md overflow-hidden">
                     <span class="material-symbols-outlined text-[10px] font-bold">check</span>
                 </div>
                 <label for="n-{{ $loop->index }}" class="block p-2 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all cursor-pointer">
@@ -97,7 +97,7 @@
     </div>
 
     {{-- Step 3: Payment --}}
-    <div class="glass-panel-mobile dark:bg-white/5 p-4 rounded-2xl space-y-3">
+    <div id="payment-section" class="glass-panel-mobile dark:bg-white/5 p-4 rounded-2xl space-y-3 transition-all duration-300">
         <div class="flex items-center gap-2">
             <div class="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">3</div>
             <h3 class="font-bold text-sm text-slate-950 dark:text-white">Metode Pembayaran</h3>
@@ -108,18 +108,18 @@
                 <h4 class="text-[10px] font-bold text-slate-500 dark:text-white/90 uppercase tracking-widest ml-1">Pembayaran Internal</h4>
                 <div class="relative group active:scale-[0.98] transition-all">
                     <input type="radio" name="payment" id="p-saldo" value="SALDO" data-name="Saldo Akun" data-fee="0" required class="peer hidden method-card">
+                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border border-white dark:border-slate-900 shadow-md overflow-hidden">
+                        <span class="material-symbols-outlined text-[10px] font-bold">check</span>
+                    </div>
                     <label for="p-saldo" class="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-5 bg-white rounded overflow-hidden flex items-center justify-center">
-                                <img src="https://ui-avatars.com/api/?name=SA&background=00f0ff&color=fff" class="w-full h-full object-contain">
+                            <div class="w-8 h-5 bg-primary/20 rounded flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-[14px]">account_balance_wallet</span>
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-[12px] font-bold text-slate-950 dark:text-white">Saldo Akun</span>
                                 <span class="text-[9px] text-primary font-bold">Rp {{ number_format(Auth::user()->balance, 0, ',', '.') }}</span>
                             </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-[10px] font-bold text-green-500 uppercase tracking-tighter">Bebas Biaya</div>
                         </div>
                     </label>
                 </div>
@@ -131,7 +131,7 @@
                 @foreach($payments as $p)
                 <div class="relative group active:scale-[0.98] transition-all">
                     <input type="radio" name="payment" id="p-{{ $p->id }}" value="{{ $p->code }}" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required class="peer hidden method-card">
-                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-10 border border-white dark:border-slate-900 shadow-md overflow-hidden">
+                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border border-white dark:border-slate-900 shadow-md overflow-hidden">
                         <span class="material-symbols-outlined text-[10px] font-bold">check</span>
                     </div>
                     <label for="p-{{ $p->id }}" class="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
@@ -154,6 +154,26 @@
                  Metode pembayaran tidak tersedia.
              </div>
              @endforelse
+        </div>
+    </div>
+</div>
+
+{{-- Ringkasan Pesanan --}}
+<div class="px-4 mb-24">
+    <div class="glass-panel p-4 rounded-2xl border border-black/5 dark:border-white/10">
+        <h3 class="text-[10px] font-bold text-slate-500 dark:text-white/90 mb-3 uppercase tracking-widest flex items-center gap-2 border-b border-black/5 dark:border-white/10 pb-2">
+            <span class="material-symbols-outlined text-sm">shopping_cart</span>
+            Ringkasan Pesanan
+        </h3>
+        <div class="space-y-2">
+            <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-500 dark:text-white/60">Biaya Produk</span>
+                <span class="text-slate-950 dark:text-white font-bold" id="display-base-price">Rp 0</span>
+            </div>
+            <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-500 dark:text-white/60">Biaya Layanan</span>
+                <span class="text-slate-950 dark:text-white font-bold" id="display-fee">Rp 0</span>
+            </div>
         </div>
     </div>
 </div>
