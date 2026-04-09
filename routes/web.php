@@ -41,6 +41,7 @@ Route::group(['middleware' => []], function () {
     Route::get('/leaderboard', [App\Http\Controllers\StaticPageController::class, 'leaderboard'])->name('leaderboard');
 
     Route::get('/topup/{slug}', [App\Http\Controllers\CatalogController::class, 'showTopup'])->name('topup.game');
+    Route::post('/api/voucher/validate', [App\Http\Controllers\VoucherController::class, 'validateVoucher'])->name('voucher.validate');
 
     Route::post('/checkout', [App\Http\Controllers\TransactionController::class, 'checkout'])->name('checkout');
     Route::get('/checkout', function () {

@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->string('voucher_code')->nullable()->after('payment_method');
-            $table->decimal('voucher_discount', 15, 2)->default(0)->after('voucher_code');
+        Schema::table('vouchers', function (Blueprint $table) {
+            $table->enum('type', ['nominal', 'percentage'])->default('nominal')->after('code');
         });
     }
 
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn(['voucher_code', 'voucher_discount']);
+        Schema::table('vouchers', function (Blueprint $table) {
+            $table->dropColumn('type');
         });
     }
 };

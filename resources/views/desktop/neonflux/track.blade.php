@@ -84,16 +84,6 @@
                             <span class="text-slate-400">Metode Pembayaran</span>
                             <span class="text-white">{{ $order->payment_method }}</span>
                         </div>
-                        @if($order->discount_amount > 0)
-                        <div class="flex justify-between items-center text-sm font-medium">
-                            <span class="text-slate-400">Harga Produk</span>
-                            <span class="text-white">Rp {{ number_format($order->original_price, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm font-medium">
-                            <span class="text-slate-400">Diskon (Pengguna Baru 10%)</span>
-                            <span class="text-emerald-400">-Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</span>
-                        </div>
-                        @endif
                         <div class="flex justify-between items-center text-sm font-medium">
                             <span class="text-slate-400">Total Harga</span>
                             <span class="text-primary font-black">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>

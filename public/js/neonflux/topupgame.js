@@ -158,17 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let basePrice = parseInt(selectedProduct2.dataset.price.replace(/\./g, ''), 10);
             let feeAmount = 0;
             
-            // First Purchase Discount (10%)
-            const configEl = document.getElementById('first-purchase-config');
-            const isEligible = configEl && configEl.dataset.eligible === '1';
-            let discountAmount = 0;
-
-            if (isEligible) {
-                discountAmount = Math.floor(basePrice * 0.10);
-            }
-
-            const discountedBase = basePrice - discountAmount;
-
             if (selectedPayment2) {
                 const feeStr = (selectedPayment2.dataset.fee || '0').toString().replace(/\s/g, '');
                 
@@ -177,35 +166,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 components.forEach(comp => {
                     if (comp.includes('%')) {
                         const feePercent = parseFloat(comp.replace('%', ''));
-                        // Fees are usually applied to the discounted base price OR original base price.
-                        // We'll apply to discounted base for user benefit.
-                        feeAmount += discountedBase * (feePercent / 100);
+                        feeAmount += basePrice * (feePercent / 100);
                     } else {
                         feeAmount += parseInt(comp.replace(/[^\d]/g, ''), 10) || 0;
                     }
                 });
             }
 
-            const total = discountedBase + feeAmount;
+            const voucherDiscountInput = document.getElementById('applied_voucher_discount');
+            const discountAmount = parseInt(voucherDiscountInput ? voucherDiscountInput.value : '0') || 0;
+            const total = basePrice + feeAmount - discountAmount;
 
             if (summaryBasePrice) {
                 summaryBasePrice.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
             }
-
-            // Sync Discount Row
-            const discountRow = document.getElementById('discount-row');
-            const summaryDiscount = document.getElementById('summary-discount');
-            if (discountRow && summaryDiscount) {
-                if (discountAmount > 0) {
-                    discountRow.classList.remove('hidden');
-                    discountRow.classList.add('flex');
-                    summaryDiscount.textContent = '-Rp ' + discountAmount.toLocaleString('id-ID');
-                } else {
-                    discountRow.classList.add('hidden');
-                    discountRow.classList.remove('flex');
-                }
-            }
-
             if (summaryFee) {
                 summaryFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
             }
@@ -216,13 +190,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (displayBasePrice) displayBasePrice.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
             if (displayFee) displayFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
 
-            summaryTotal.textContent = 'Rp ' + Math.ceil(total).toLocaleString('id-ID');
+            summaryTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
         } else if (summaryTotal) {
             if (summaryBasePrice) summaryBasePrice.textContent = 'Rp 0';
             if (summaryFee) summaryFee.textContent = 'Rp 0';
-
-            const discountRow = document.getElementById('discount-row');
-            if (discountRow) discountRow.classList.add('hidden');
             
             const displayBasePrice = document.getElementById('display-base-price');
             const displayFee = document.getElementById('display-fee');
@@ -798,5 +769,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.innerHTML = '<span class="animate-spin material-icons-round text-sm">sync</span> Memproses...';
             }
         });
+    }
+
+    // --- Voucher Logic ---
+    const voucherInput = document.getElementById('voucher_input');
+    const applyVoucherBtn = document.getElementById('apply_voucher_btn');
+    const voucherMessage = document.getElementById('voucher_message');
+    const discountRow = document.getElementById('summary-discount-row');
+    const discountDisplay = document.getElementById('summary-discount');
+    const appliedCodeInput = document.getElementById('applied_voucher_code');
+    const appliedDiscountInput = document.getElementById('applied_voucher_discount');
+
+    if (applyVoucherBtn && voucherInput) {
+        applyVoucherBtn.addEventListener('click', async () => {
+            const code = voucherInput.value.trim();
+            if (!code) {
+                showVoucherMessage('Masukkan kode voucher.', 'text-red-500');
+                return;
+            }
+
+            const selectedProduct = getSelectedProductCode();
+            if (!selectedProduct) {
+                showVoucherMessage('Pilih nominal produk terlebih dahulu.', 'text-red-500');
+                return;
+            }
+
+            const productRadio = document.querySelector('input[name="product_code"]:checked');
+            const basePrice = parseInt(productRadio.dataset.price.replace(/\./g, ''), 10);
+
+            applyVoucherBtn.disabled = true;
+            applyVoucherBtn.innerHTML = '<span class="animate-spin material-icons-round text-[10px]">sync</span>';
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                const response = await fetch('/api/voucher/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : ''
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        amount: basePrice
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    let discountValue = 0;
+                    if (data.data.type === 'percentage') {
+                        discountValue = Math.floor(basePrice * (data.data.amount / 100));
+                    } else {
+                        discountValue = data.data.amount;
+                    }
+
+                    // Update UI & State
+                    appliedCodeInput.value = data.data.code;
+                    appliedDiscountInput.value = discountValue;
+                    
+                    discountDisplay.textContent = '-Rp ' + discountValue.toLocaleString('id-ID');
+                    discountRow.classList.remove('hidden');
+                    
+                    showVoucherMessage(data.message, 'text-green-500');
+                    updateSummary();
+                } else {
+                    resetVoucher();
+                    showVoucherMessage(data.message, 'text-red-500');
+                    updateSummary();
+                }
+            } catch (error) {
+                console.error('Voucher error:', error);
+                showVoucherMessage('Gagal memproses voucher.', 'text-red-500');
+            } finally {
+                applyVoucherBtn.disabled = false;
+                applyVoucherBtn.textContent = 'Pakai';
+            }
+        });
+    }
+
+    function showVoucherMessage(msg, colorClass) {
+        if (!voucherMessage) return;
+        voucherMessage.textContent = msg;
+        voucherMessage.className = 'mt-2 text-[10px] ml-13 ' + colorClass;
+        voucherMessage.classList.remove('hidden');
+    }
+
+    function resetVoucher() {
+        if (appliedCodeInput) appliedCodeInput.value = '';
+        if (appliedDiscountInput) appliedDiscountInput.value = '0';
+        if (discountRow) discountRow.classList.add('hidden');
     }
 });

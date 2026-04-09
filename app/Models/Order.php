@@ -11,9 +11,9 @@ class Order extends Model
         'user_id',
         'product_name',
         'total_price',
-        'original_price',
-        'discount_amount',
         'payment_method',
+        'voucher_code',
+        'voucher_discount',
         'status',
         'payload'
     ];

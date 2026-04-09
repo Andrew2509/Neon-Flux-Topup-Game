@@ -23,11 +23,12 @@ class VoucherController extends Controller
     {
         $request->validate([
             'code' => 'required|string|max:50|unique:vouchers',
+            'type' => 'required|in:nominal,percentage',
             'discount_amount' => 'required|numeric|min:0',
             'min_purchase' => 'required|numeric|min:0',
-            'quota' => 'required|integer|min:1',
+            'quota' => 'required|integer|min:-1',
             'expiry_date' => 'nullable|date',
-            'status' => 'required|string|in:Aktif,Nonaktif',
+            'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
 
         Voucher::create($request->all());
@@ -49,11 +50,12 @@ class VoucherController extends Controller
     {
         $request->validate([
             'code' => 'required|string|max:50|unique:vouchers,code,' . $voucher->id,
+            'type' => 'required|in:nominal,percentage',
             'discount_amount' => 'required|numeric|min:0',
             'min_purchase' => 'required|numeric|min:0',
-            'quota' => 'required|integer|min:0',
+            'quota' => 'required|integer|min:-1',
             'expiry_date' => 'nullable|date',
-            'status' => 'required|string|in:Aktif,Nonaktif',
+            'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
 
         $voucher->update($request->all());

@@ -49,7 +49,13 @@
                                 <span class="text-sm font-bold text-slate-100 font-mono tracking-tight">{{ $voucher->code }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-sm font-bold text-accent-blue">Rp {{ number_format($voucher->discount_amount, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-sm font-bold text-accent-blue">
+                            @if($voucher->type == 'percentage')
+                                {{ number_format($voucher->discount_amount, 0) }}%
+                            @else
+                                Rp {{ number_format($voucher->discount_amount, 0, ',', '.') }}
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-center text-xs text-slate-300">{{ $voucher->quota }}</td>
                         <td class="px-6 py-4 text-xs {{ $voucher->expiry_date && \Carbon\Carbon::parse($voucher->expiry_date)->isPast() ? 'text-red-400' : 'text-slate-400' }}">
                             {{ $voucher->expiry_date ? \Carbon\Carbon::parse($voucher->expiry_date)->format('d M Y, H:i') : 'Tanpa Batas Waktu' }}

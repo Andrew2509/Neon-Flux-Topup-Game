@@ -27,6 +27,7 @@ class TransactionController extends Controller
             'product_code' => 'required',
             'payment' => 'nullable',
             'player_nickname' => ['nullable', 'string', 'max:128'],
+            'voucher_code' => ['nullable', 'string', 'max:50'],
         ]);
 
         $waDigits = preg_replace('/\D/', '', $request->customer_whatsapp);
@@ -72,33 +73,59 @@ class TransactionController extends Controller
         // Use more robust Order ID: Timestamp + Random (Enterprise Standard)
         $orderId = 'PRP'.date('ymdHis').strtoupper(Str::random(4));
 
-        $user = \Illuminate\Support\Facades\Auth::user();
-        $isEligible = $user ? $user->isFirstPurchaseEligible() : false;
-
         $paymentMethod = null;
         if ($request->filled('payment')) {
             $paymentMethod = \App\Models\PaymentMethod::where('code', $request->payment)->first();
         }
 
-        $pricing = $this->calculatePricing(
+        $baseTotal = $this->checkoutTotalFromProductAndPaymentMethod(
             (float) $service->price,
-            $paymentMethod,
-            $isEligible
+            $paymentMethod
         );
 
-        $paymentAmount = $pricing['total'];
+        // 3. Handle Voucher Discount
+        $voucherCode = $request->input('voucher_code');
+        $discountAmount = 0;
+        $appliedVoucher = null;
+
+        if ($voucherCode) {
+            $appliedVoucher = \App\Models\Voucher::where('code', $voucherCode)
+                ->where('status', 'Aktif')
+                ->where(function ($q) {
+                    $q->whereNull('expiry_date')
+                      ->orWhere('expiry_date', '>=', now());
+                })
+                ->where(function ($q) {
+                    $q->where('quota', -1)
+                      ->orWhere('quota', '>', 0);
+                })
+                ->where('min_purchase', '<=', (float) $service->price)
+                ->first();
+
+            if ($appliedVoucher) {
+                if ($appliedVoucher->type === 'percentage') {
+                    $discountAmount = floor((float) $service->price * ($appliedVoucher->discount_amount / 100));
+                } else {
+                    $discountAmount = $appliedVoucher->discount_amount;
+                }
+            }
+        }
+
+        $paymentAmount = max(0, $baseTotal - $discountAmount);
         $productDetails = $zoneId !== ''
             ? $service->name.' ('.$gameUserId.' / '.$zoneId.')'
             : $service->name.' ('.$gameUserId.')';
 
+        $userId = \Illuminate\Support\Facades\Auth::id();
+
         // Combined Create into one call
         $order = Order::create([
             'order_id' => $orderId,
-            'user_id' => $user->id ?? null,
+            'user_id' => $userId,
             'product_name' => $productDetails,
             'total_price' => $paymentAmount,
-            'original_price' => $pricing['original_base_price'],
-            'discount_amount' => $pricing['discount_amount'],
+            'voucher_code' => $appliedVoucher ? $appliedVoucher->code : null,
+            'voucher_discount' => $discountAmount,
             'payment_method' => $request->payment ?? 'Duitku',
             'status' => 'pending_payment',
             'payload' => [
@@ -109,7 +136,6 @@ class TransactionController extends Controller
                 'cost' => $service->cost ?? $service->price,
                 'customer_whatsapp' => $waDigits,
                 'player_nickname' => $playerNickname,
-                'is_first_purchase_discount' => $isEligible,
             ],
         ]);
 
@@ -145,51 +171,44 @@ class TransactionController extends Controller
      * Total checkout = harga produk + biaya admin metode bayar.
      * Selaras dengan public/js/neonflux/topupgame.js (fee persen atau flat Rp, lalu ceil).
      */
-    /**
-     * Helper to calculate final pricing including fees and optional first purchase discount.
-     * 
-     * @return array{total: int, discount_amount: int, original_base_price: int}
-     */
-    private function calculatePricing(float $productPrice, ?\App\Models\PaymentMethod $paymentMethod, bool $applyDiscount = false): array
+    private function checkoutTotalFromProductAndPaymentMethod(float $productPrice, ?\App\Models\PaymentMethod $paymentMethod): int
     {
-        $originalBase = (int) round($productPrice);
-        $discountAmount = 0;
-
-        if ($applyDiscount) {
-            $discountAmount = (int) floor($originalBase * 0.10);
+        $base = (int) round($productPrice);
+        if (! $paymentMethod) {
+            return $base;
         }
 
-        $base = $originalBase - $discountAmount;
-        $feeAmount = 0;
+        $feeRaw = $paymentMethod->fee;
+        if ($feeRaw === null || $feeRaw === '') {
+            return $base;
+        }
 
-        if ($paymentMethod && $paymentMethod->fee) {
-            $feeStr = trim((string) $paymentMethod->fee);
-            if ($feeStr !== '' && $feeStr !== '0') {
-                $parts = explode('+', $feeStr);
-                foreach ($parts as $part) {
-                    $part = trim($part);
-                    if (str_contains($part, '%')) {
-                        $pctStr = str_replace(['%', ' '], '', $part);
-                        $pctStr = str_replace(',', '.', $pctStr);
-                        $pct = (float) $pctStr;
-                        // Fees generally apply to the discounted base price.
-                        $feeAmount += ($base * $pct / 100);
-                    } else {
-                        $flat = (float) preg_replace('/[^\d.]/', '', $part);
-                        if ($flat <= 0 && is_numeric($part)) {
-                            $flat = (float) $part;
-                        }
-                        $feeAmount += $flat;
-                    }
+        $feeStr = trim((string) $feeRaw);
+        if ($feeStr === '' || $feeStr === '0') {
+            return $base;
+        }
+
+        // Support for multi-component fees, e.g. "2.5%+2000"
+        $totalFee = 0;
+        $parts = explode('+', $feeStr);
+        
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (str_contains($part, '%')) {
+                $pctStr = str_replace(['%', ' '], '', $part);
+                $pctStr = str_replace(',', '.', $pctStr);
+                $pct = (float) $pctStr;
+                $totalFee += ($base * $pct / 100);
+            } else {
+                $flat = (float) preg_replace('/[^\d.]/', '', $part);
+                if ($flat <= 0 && is_numeric($part)) {
+                    $flat = (float) $part;
                 }
+                $totalFee += $flat;
             }
         }
 
-        return [
-            'total' => (int) ceil($base + $feeAmount),
-            'discount_amount' => $discountAmount,
-            'original_base_price' => $originalBase,
-        ];
+        return (int) ceil($base + $totalFee);
     }
 
     private function processBalancePayment($order, Request $request)
@@ -208,13 +227,10 @@ class TransactionController extends Controller
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($user, $order) {
                 // Deduct balance
-                $user->decrement('balance', $order->total_price);
-
-                // Update Order
-                $order->logStatus('Pembayaran menggunakan saldo berhasil. Sisa saldo: '.number_format($user->balance, 0, ',', '.'), 'paid');
+                $user->decrement('balance', (float) $order->total_price);
             });
 
-            $this->fulfillSupplierAfterPayment($order);
+            $this->finalizeOrder($order, 'Saldo');
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -759,10 +775,18 @@ class TransactionController extends Controller
         }
     }
 
-    private function finalizeOrder($order, $providerInfo)
+    private function finalizeOrder($order, $providerInfo, $extraPayload = [])
     {
-        \Illuminate\Support\Facades\DB::transaction(function () use ($order, $providerInfo) {
-            $order->logStatus("Pembayaran berhasil dikonfirmasi oleh $providerInfo.", 'paid');
+        \Illuminate\Support\Facades\DB::transaction(function () use ($order, $providerInfo, $extraPayload) {
+            $order->logStatus("Pembayaran berhasil dikonfirmasi oleh $providerInfo.", 'paid', $extraPayload);
+
+            // Reduksi Kuota Voucher Jika Ada
+            if ($order->voucher_code) {
+                $voucher = \App\Models\Voucher::where('code', $order->voucher_code)->first();
+                if ($voucher && $voucher->quota !== -1) {
+                    $voucher->decrement('quota', 1);
+                }
+            }
         });
 
         $this->fulfillSupplierAfterPayment($order);
@@ -825,20 +849,7 @@ class TransactionController extends Controller
         }
 
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($order, $tid) {
-                $o = Order::whereKey($order->id)->lockForUpdate()->first();
-                if (! $o || $o->status !== 'pending_payment') {
-                    return;
-                }
-                $o->logStatus('Pembayaran berhasil (verifikasi API cek transaksi iPaymu).', 'paid', [
-                    'ipaymu_trx_id' => $tid,
-                    'ipaymu_api_check' => true,
-                ]);
-            });
-
-            Log::info('iPaymu order disinkron dari API cek transaksi', ['order_id' => $order->order_id, 'transaction_id' => $tid]);
-
-            $this->fulfillSupplierAfterPayment($order->fresh());
+            $this->finalizeOrder($order->fresh(), 'iPaymu (API Sync)');
         } catch (\Throwable $e) {
             Log::warning('trySyncIpaymuOrderFromApi gagal', [
                 'order_id' => $order->order_id,
@@ -903,13 +914,7 @@ class TransactionController extends Controller
 
         if ($resultCode === '00' && $order->status === 'pending_payment') {
             try {
-                \Illuminate\Support\Facades\DB::transaction(function () use ($order, $reference) {
-                    $order->logStatus('Pembayaran berhasil dikonfirmasi oleh Duitku.', 'paid', [
-                        'duitku_reference' => $reference,
-                    ]);
-                });
-
-                $this->fulfillSupplierAfterPayment($order);
+                $this->finalizeOrder($order, 'Duitku', ['duitku_reference' => $reference]);
 
                 return response()->json(['success' => 'ok']);
             } catch (\Exception $e) {
@@ -995,13 +1000,7 @@ class TransactionController extends Controller
 
         if ($paid && $order->status === 'pending_payment') {
             try {
-                \Illuminate\Support\Facades\DB::transaction(function () use ($order, $trxId) {
-                    $order->logStatus('Pembayaran berhasil dikonfirmasi oleh iPaymu.', 'paid', [
-                        'ipaymu_trx_id' => $trxId,
-                    ]);
-                });
-
-                $this->fulfillSupplierAfterPayment($order);
+                $this->finalizeOrder($order, 'iPaymu', ['ipaymu_trx_id' => $trxId]);
 
                 return response()->json(['success' => 'ok']);
             } catch (\Exception $e) {

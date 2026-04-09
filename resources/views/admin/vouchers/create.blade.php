@@ -37,11 +37,33 @@
                         </div>
 
                         <div class="space-y-1">
-                            <label class="text-xs font-bold text-slate-500 ml-1">POTONGAN HARGA (RP)</label>
+                            <label class="text-xs font-bold text-slate-500 ml-1">TIPE POTONGAN</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="type" value="nominal" {{ old('type', 'nominal') == 'nominal' ? 'checked' : '' }} class="peer hidden">
+                                    <div class="flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold text-slate-400 peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary transition-all">
+                                        <span class="material-symbols-outlined text-sm">payments</span>
+                                        Nominal (Rp)
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="type" value="percentage" {{ old('type') == 'percentage' ? 'checked' : '' }} class="peer hidden">
+                                    <div class="flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold text-slate-400 peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary transition-all">
+                                        <span class="material-symbols-outlined text-sm">percent</span>
+                                        Persentase (%)
+                                    </div>
+                                </label>
+                            </div>
+                            @error('type') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 ml-1" id="discount_label">NILAI POTONGAN</label>
                             <div class="relative group">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold group-focus-within:text-accent-blue transition-colors">Rp</span>
-                                <input type="number" name="discount_amount" required placeholder="10000" value="{{ old('discount_amount') }}"
-                                    class="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-mono">
+                                <span id="discount_prefix" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold group-focus-within:text-accent-blue transition-colors">Rp</span>
+                                <input type="number" name="discount_amount" id="discount_amount" required placeholder="10000" value="{{ old('discount_amount') }}"
+                                    class="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-mono">
+                                <span id="discount_suffix" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold opacity-0 transition-opacity">%</span>
                             </div>
                             @error('discount_amount') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
                         </div>
@@ -110,3 +132,37 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeInputs = document.querySelectorAll('input[name="type"]');
+        const prefix = document.getElementById('discount_prefix');
+        const suffix = document.getElementById('discount_suffix');
+        const input = document.getElementById('discount_amount');
+        const label = document.getElementById('discount_label');
+
+        function updateUI() {
+            const selectedType = document.querySelector('input[name="type"]:checked').value;
+            if (selectedType === 'percentage') {
+                prefix.style.opacity = '0';
+                suffix.style.opacity = '1';
+                input.placeholder = '10';
+                label.innerText = 'PERSENTASE DISKON (%)';
+            } else {
+                prefix.style.opacity = '1';
+                suffix.style.opacity = '0';
+                input.placeholder = '10000';
+                label.innerText = 'NOMINAL DISKON (RP)';
+            }
+        }
+
+        typeInputs.forEach(input => {
+            input.addEventListener('change', updateUI);
+        });
+
+        // Run on load
+        updateUI();
+    });
+</script>
+@endpush

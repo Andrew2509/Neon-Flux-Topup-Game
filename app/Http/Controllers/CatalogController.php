@@ -262,11 +262,6 @@ class CatalogController extends Controller
             $viewPath = "{$viewFolder}.neonflux.topupgame.generic";
         }
 
-        $isFirstPurchaseEligible = false;
-        if (\Illuminate\Support\Facades\Auth::check()) {
-            $isFirstPurchaseEligible = \Illuminate\Support\Facades\Auth::user()->isFirstPurchaseEligible();
-        }
-
-        return view($viewPath, compact('category', 'services', 'groupedPayments', 'activeJenis', 'isFirstPurchaseEligible'));
+        return view($viewPath, compact('category', 'services', 'groupedPayments', 'activeJenis'));
     }
 }

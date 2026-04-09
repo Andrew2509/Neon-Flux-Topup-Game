@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Voucher extends Model
 {
-    protected $fillable = ['code', 'discount_amount', 'min_purchase', 'quota', 'expiry_date', 'status'];
+    protected $fillable = ['code', 'type', 'discount_amount', 'min_purchase', 'quota', 'expiry_date', 'status'];
 }
