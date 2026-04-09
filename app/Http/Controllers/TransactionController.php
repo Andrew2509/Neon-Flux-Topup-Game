@@ -72,52 +72,33 @@ class TransactionController extends Controller
         // Use more robust Order ID: Timestamp + Random (Enterprise Standard)
         $orderId = 'PRP'.date('ymdHis').strtoupper(Str::random(4));
 
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $isEligible = $user ? $user->isFirstPurchaseEligible() : false;
+
         $paymentMethod = null;
         if ($request->filled('payment')) {
             $paymentMethod = \App\Models\PaymentMethod::where('code', $request->payment)->first();
         }
 
-        $paymentAmount = $this->checkoutTotalFromProductAndPaymentMethod(
+        $pricing = $this->calculatePricing(
             (float) $service->price,
-            $paymentMethod
+            $paymentMethod,
+            $isEligible
         );
+
+        $paymentAmount = $pricing['total'];
         $productDetails = $zoneId !== ''
             ? $service->name.' ('.$gameUserId.' / '.$zoneId.')'
             : $service->name.' ('.$gameUserId.')';
 
-        $userId = \Illuminate\Support\Facades\Auth::id();
-        $isEligibleForBonus = false;
-        $bonusDiamonds = 0;
-        $baseDiamonds = (int) ($service->diamond_amount ?? 0);
-
-        // Logic: Check if first purchase (only 1 time per user AND per target ID game)
-        if ($baseDiamonds > 0) {
-            // 1. Check if user has already made a successful purchase
-            $userHasOrdered = false;
-            if ($userId) {
-                $userHasOrdered = Order::where('user_id', $userId)
-                    ->where('status', 'success')
-                    ->exists();
-            }
-
-            // 2. Check if target ID has already been used in a successful purchase
-            $targetHasOrdered = Order::where('status', 'success')
-                ->where('payload->game_user_id', $gameUserId)
-                ->exists();
-
-            if (! $userHasOrdered && ! $targetHasOrdered) {
-                $isEligibleForBonus = true;
-                // Round down (floor) according to standard business practice unless specified otherwise
-                $bonusDiamonds = (int) floor($baseDiamonds * 0.1);
-            }
-        }
-
         // Combined Create into one call
         $order = Order::create([
             'order_id' => $orderId,
-            'user_id' => $userId,
+            'user_id' => $user->id ?? null,
             'product_name' => $productDetails,
             'total_price' => $paymentAmount,
+            'original_price' => $pricing['original_base_price'],
+            'discount_amount' => $pricing['discount_amount'],
             'payment_method' => $request->payment ?? 'Duitku',
             'status' => 'pending_payment',
             'payload' => [
@@ -128,12 +109,7 @@ class TransactionController extends Controller
                 'cost' => $service->cost ?? $service->price,
                 'customer_whatsapp' => $waDigits,
                 'player_nickname' => $playerNickname,
-                'first_purchase_bonus' => [
-                    'is_eligible' => $isEligibleForBonus,
-                    'base_amount' => $baseDiamonds,
-                    'bonus_amount' => $bonusDiamonds,
-                    'total_amount' => $baseDiamonds + $bonusDiamonds,
-                ],
+                'is_first_purchase_discount' => $isEligible,
             ],
         ]);
 
@@ -169,44 +145,51 @@ class TransactionController extends Controller
      * Total checkout = harga produk + biaya admin metode bayar.
      * Selaras dengan public/js/neonflux/topupgame.js (fee persen atau flat Rp, lalu ceil).
      */
-    private function checkoutTotalFromProductAndPaymentMethod(float $productPrice, ?\App\Models\PaymentMethod $paymentMethod): int
+    /**
+     * Helper to calculate final pricing including fees and optional first purchase discount.
+     * 
+     * @return array{total: int, discount_amount: int, original_base_price: int}
+     */
+    private function calculatePricing(float $productPrice, ?\App\Models\PaymentMethod $paymentMethod, bool $applyDiscount = false): array
     {
-        $base = (int) round($productPrice);
-        if (! $paymentMethod) {
-            return $base;
+        $originalBase = (int) round($productPrice);
+        $discountAmount = 0;
+
+        if ($applyDiscount) {
+            $discountAmount = (int) floor($originalBase * 0.10);
         }
 
-        $feeRaw = $paymentMethod->fee;
-        if ($feeRaw === null || $feeRaw === '') {
-            return $base;
-        }
+        $base = $originalBase - $discountAmount;
+        $feeAmount = 0;
 
-        $feeStr = trim((string) $feeRaw);
-        if ($feeStr === '' || $feeStr === '0') {
-            return $base;
-        }
-
-        // Support for multi-component fees, e.g. "2.5%+2000"
-        $totalFee = 0;
-        $parts = explode('+', $feeStr);
-        
-        foreach ($parts as $part) {
-            $part = trim($part);
-            if (str_contains($part, '%')) {
-                $pctStr = str_replace(['%', ' '], '', $part);
-                $pctStr = str_replace(',', '.', $pctStr);
-                $pct = (float) $pctStr;
-                $totalFee += ($base * $pct / 100);
-            } else {
-                $flat = (float) preg_replace('/[^\d.]/', '', $part);
-                if ($flat <= 0 && is_numeric($part)) {
-                    $flat = (float) $part;
+        if ($paymentMethod && $paymentMethod->fee) {
+            $feeStr = trim((string) $paymentMethod->fee);
+            if ($feeStr !== '' && $feeStr !== '0') {
+                $parts = explode('+', $feeStr);
+                foreach ($parts as $part) {
+                    $part = trim($part);
+                    if (str_contains($part, '%')) {
+                        $pctStr = str_replace(['%', ' '], '', $part);
+                        $pctStr = str_replace(',', '.', $pctStr);
+                        $pct = (float) $pctStr;
+                        // Fees generally apply to the discounted base price.
+                        $feeAmount += ($base * $pct / 100);
+                    } else {
+                        $flat = (float) preg_replace('/[^\d.]/', '', $part);
+                        if ($flat <= 0 && is_numeric($part)) {
+                            $flat = (float) $part;
+                        }
+                        $feeAmount += $flat;
+                    }
                 }
-                $totalFee += $flat;
             }
         }
 
-        return (int) ceil($base + $totalFee);
+        return [
+            'total' => (int) ceil($base + $feeAmount),
+            'discount_amount' => $discountAmount,
+            'original_base_price' => $originalBase,
+        ];
     }
 
     private function processBalancePayment($order, Request $request)

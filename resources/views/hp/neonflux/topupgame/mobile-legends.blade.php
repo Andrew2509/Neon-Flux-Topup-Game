@@ -23,6 +23,20 @@
             <h1 class="text-lg font-display font-bold text-white tracking-tight">{{ $category->name }}</h1>
             <p class="text-[9px] text-gray-300 dark:text-white/90">Proses Instan • Terpercaya • 24 Jam</p>
         </div>
+        @if($isFirstPurchaseEligible)
+        <div class="absolute top-2 left-2 z-10 animate-bounce">
+            <span class="bg-linear-to-r from-amber-400 to-orange-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full shadow-lg border border-white/20 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[10px]">redeem</span>
+                DISKON 10% FIRST ORDER
+            </span>
+        </div>
+        @endif
+    </div>
+
+    <div id="first-purchase-config" 
+         data-eligible="{{ $isFirstPurchaseEligible ? '1' : '0' }}" 
+         data-discount-percent="10" 
+         style="display: none;">
     </div>
 
     <form action="{{ route('checkout') }}" method="POST" id="topup-form">
@@ -78,12 +92,7 @@
         <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2" id="services-grid">
             @forelse($services as $s)
             <div class="relative group active:scale-95 transition-transform service-item" data-jenis="{{ $s->product_jenis_id }}">
-                <input type="radio" name="product_code" id="n-{{ $loop->index }}" 
-                    value="{{ $s->product_code }}" 
-                    data-name="{{ $s->name }}" 
-                    data-price="{{ $s->price }}" 
-                    data-diamonds="{{ $s->diamond_amount }}"
-                    required class="peer hidden radio-card">
+                <input type="radio" name="product_code" id="n-{{ $loop->index }}" value="{{ $s->product_code }}" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required class="peer hidden radio-card">
                 <div class="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border border-white dark:border-slate-900 shadow-md overflow-hidden">
                     <span class="material-symbols-outlined text-[10px] font-bold">check</span>
                 </div>
@@ -174,12 +183,13 @@
                 <span class="text-slate-500 dark:text-white/60">Biaya Produk</span>
                 <span class="text-slate-950 dark:text-white font-bold" id="display-base-price">Rp 0</span>
             </div>
-            <div class="flex justify-between items-center text-[10px] hidden" id="bonus-row">
-                <span class="text-secondary font-bold flex items-center gap-1">
-                    <span class="material-symbols-outlined text-xs">redeem</span>
-                    Bonus 10% (First)
-                </span>
-                <span class="text-secondary font-black" id="display-bonus-diamonds">+0 Diamonds</span>
+            <div class="flex justify-between items-center text-[10px]">
+                <span class="text-slate-500 dark:text-white/60">Biaya Layanan</span>
+                <span class="text-slate-950 dark:text-white font-bold" id="display-fee">Rp 0</span>
+            </div>
+            <div id="display-discount-row" class="hidden flex justify-between items-center text-[10px]">
+                <span class="text-emerald-500 font-bold">Diskon Pengguna Baru</span>
+                <span class="text-emerald-500 font-bold" id="display-discount">-Rp 0</span>
             </div>
         </div>
     </div>

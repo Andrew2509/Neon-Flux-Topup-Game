@@ -92,7 +92,12 @@
                             <td class="px-6 py-4 text-sm text-slate-400 max-w-[200px] truncate">{{ $order->product_name }}</td>
                             <td class="px-6 py-4 text-xs text-slate-400">{{ $order->created_at->format('d M Y, H:i') }}</td>
                             <td class="px-6 py-4 text-xs">{{ $order->payment_method }}</td>
-                            <td class="px-6 py-4 text-sm font-bold">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                             <td class="px-6 py-4 text-sm font-bold">
+                                <div>Rp {{ number_format($order->total_price, 0, ',', '.') }}</div>
+                                @if($order->discount_amount > 0)
+                                    <div class="text-[10px] text-emerald-400 font-medium">Disc: -Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</div>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-center">
                                 @php
                                     $status_color = match($order->status) {

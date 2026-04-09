@@ -23,6 +23,20 @@
             <h1 class="text-lg font-display font-bold text-white tracking-tight">{{ $category->name }}</h1>
             <p class="text-[9px] text-gray-300 dark:text-white/90">Proses Instan • Terpercaya • 24 Jam</p>
         </div>
+        @if($isFirstPurchaseEligible)
+        <div class="absolute top-2 left-2 z-10 animate-bounce">
+            <span class="bg-linear-to-r from-amber-400 to-orange-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full shadow-lg border border-white/20 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[10px]">redeem</span>
+                DISKON 10% FIRST ORDER
+            </span>
+        </div>
+        @endif
+    </div>
+
+    <div id="first-purchase-config" 
+         data-eligible="{{ $isFirstPurchaseEligible ? '1' : '0' }}" 
+         data-discount-percent="10" 
+         style="display: none;">
     </div>
 
     <form action="{{ route('checkout') }}" method="POST" id="topup-form">
@@ -172,6 +186,10 @@
             <div class="flex justify-between items-center text-[10px]">
                 <span class="text-slate-500 dark:text-white/60">Biaya Layanan</span>
                 <span class="text-slate-950 dark:text-white font-bold" id="display-fee">Rp 0</span>
+            </div>
+            <div id="display-discount-row" class="hidden flex justify-between items-center text-[10px]">
+                <span class="text-emerald-500 font-bold">Diskon Pengguna Baru</span>
+                <span class="text-emerald-500 font-bold" id="display-discount">-Rp 0</span>
             </div>
         </div>
     </div>

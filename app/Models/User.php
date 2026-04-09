@@ -57,4 +57,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    /**
+     * Check if user is eligible for the first purchase discount (10%).
+     * Eligible if they have zero successful/paid orders.
+     */
+    public function isFirstPurchaseEligible(): bool
+    {
+        return ! $this->orders()
+            ->whereIn('status', ['success', 'paid', 'processing', 'completed'])
+            ->exists();
+    }
 }

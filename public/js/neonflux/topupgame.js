@@ -158,6 +158,17 @@ document.addEventListener('DOMContentLoaded', () => {
             let basePrice = parseInt(selectedProduct2.dataset.price.replace(/\./g, ''), 10);
             let feeAmount = 0;
             
+            // First Purchase Discount (10%)
+            const configEl = document.getElementById('first-purchase-config');
+            const isEligible = configEl && configEl.dataset.eligible === '1';
+            let discountAmount = 0;
+
+            if (isEligible) {
+                discountAmount = Math.floor(basePrice * 0.10);
+            }
+
+            const discountedBase = basePrice - discountAmount;
+
             if (selectedPayment2) {
                 const feeStr = (selectedPayment2.dataset.fee || '0').toString().replace(/\s/g, '');
                 
@@ -166,37 +177,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 components.forEach(comp => {
                     if (comp.includes('%')) {
                         const feePercent = parseFloat(comp.replace('%', ''));
-                        feeAmount += basePrice * (feePercent / 100);
+                        // Fees are usually applied to the discounted base price OR original base price.
+                        // We'll apply to discounted base for user benefit.
+                        feeAmount += discountedBase * (feePercent / 100);
                     } else {
                         feeAmount += parseInt(comp.replace(/[^\d]/g, ''), 10) || 0;
                     }
                 });
             }
 
-            const total = basePrice + feeAmount;
+            const total = discountedBase + feeAmount;
 
             if (summaryBasePrice) {
                 summaryBasePrice.textContent = 'Rp ' + basePrice.toLocaleString('id-ID');
             }
-            if (summaryFee) {
-                summaryFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
+
+            // Sync Discount Row
+            const discountRow = document.getElementById('discount-row');
+            const summaryDiscount = document.getElementById('summary-discount');
+            if (discountRow && summaryDiscount) {
+                if (discountAmount > 0) {
+                    discountRow.classList.remove('hidden');
+                    discountRow.classList.add('flex');
+                    summaryDiscount.textContent = '-Rp ' + discountAmount.toLocaleString('id-ID');
+                } else {
+                    discountRow.classList.add('hidden');
+                    discountRow.classList.remove('flex');
+                }
             }
 
-            // --- FIRST PURCHASE BONUS PREVIEW ---
-            const bonusRow = document.getElementById('bonus-row');
-            const bonusDisplay = document.getElementById('display-bonus-diamonds');
-            const diamondAmount = parseInt(selectedProduct2.dataset.diamonds || '0', 10);
-
-            if (bonusRow && bonusDisplay && diamondAmount > 0) {
-                const bonus = Math.floor(diamondAmount * 0.1);
-                if (bonus > 0) {
-                    bonusDisplay.textContent = '+' + bonus + ' Diamonds';
-                    bonusRow.classList.remove('hidden');
-                } else {
-                    bonusRow.classList.add('hidden');
-                }
-            } else if (bonusRow) {
-                bonusRow.classList.add('hidden');
+            if (summaryFee) {
+                summaryFee.textContent = 'Rp ' + Math.ceil(feeAmount).toLocaleString('id-ID');
             }
 
             // Sync visible display elements if they exist
@@ -209,10 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (summaryTotal) {
             if (summaryBasePrice) summaryBasePrice.textContent = 'Rp 0';
             if (summaryFee) summaryFee.textContent = 'Rp 0';
-            
-            const bonusRow = document.getElementById('bonus-row');
-            if (bonusRow) bonusRow.classList.add('hidden');
 
+            const discountRow = document.getElementById('discount-row');
+            if (discountRow) discountRow.classList.add('hidden');
+            
             const displayBasePrice = document.getElementById('display-base-price');
             const displayFee = document.getElementById('display-fee');
             if (displayBasePrice) displayBasePrice.textContent = 'Rp 0';

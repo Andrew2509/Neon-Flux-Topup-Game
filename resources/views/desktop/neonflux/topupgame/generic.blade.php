@@ -17,6 +17,8 @@
 <main class="pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen relative">
     <form action="{{ route('checkout') }}" method="POST" id="topup-form">
         @csrf
+        <!-- Eligibility Config for JS -->
+        <div id="first-purchase-config" data-eligible="{{ $isFirstPurchaseEligible ? '1' : '0' }}" class="hidden"></div>
     <!-- Header: MLBB Logo & Title -->
     <div class="flex flex-col md:flex-row items-center md:items-end gap-6 mb-10 pl-2">
         <div class="relative w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-neon-cyan border-2 border-primary/50 group">
@@ -36,6 +38,35 @@
         </div>
     </div>
 
+@if($isFirstPurchaseEligible)
+    <!-- Banner Promo: First Purchase Discount -->
+    <div class="lg:col-span-3 mb-8">
+        <div class="glass-panel rounded-2xl p-px relative overflow-hidden group">
+            <div class="absolute inset-0 bg-linear-to-r from-primary via-secondary to-primary opacity-30 dark:opacity-50 blur-md animate-pulse"></div>
+            <div class="relative bg-opacity-95 bg-white dark:bg-[#121023] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between promo-glow transition-all">
+                <div class="flex items-center gap-6 z-10">
+                    <div class="hidden md:flex h-16 w-16 items-center justify-center rounded-full bg-white/5 border border-white/10 shadow-neon-cyan shrink-0">
+                        <span class="material-symbols-outlined text-4xl text-primary animate-bounce">loyalty</span>
+                    </div>
+                    <div>
+                        <h3 class="font-display font-bold text-2xl md:text-3xl text-slate-950 dark:text-white tracking-wide">
+                            DISKON PERTAMA <span class="text-transparent bg-clip-text bg-linear-to-r from-primary to-secondary filter drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]">10%</span>
+                        </h3>
+                        <p class="text-slate-600 dark:text-gray-300 mt-1 max-w-xl">
+                            Khusus untuk transaksi pertama Anda! Harga akan otomatis terpotong 10% saat Checkout.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4 md:mt-0 z-10">
+                    <span class="px-6 py-2.5 bg-green-500/10 border border-green-500/30 text-green-500 font-bold rounded-lg text-sm tracking-wider uppercase font-display flex items-center gap-2">
+                        <span class="material-icons-round text-sm">check_circle</span>
+                        <span>Promo Aktif</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+@else
     <!-- Banner Promo -->
     <div class="lg:col-span-3 mb-8">
         <div class="glass-panel rounded-2xl p-px relative overflow-hidden group">
@@ -55,7 +86,7 @@
                     </div>
                 </div>
                 <div class="mt-4 md:mt-0 z-10">
-                    <button class="px-6 py-2.5 bg-black dark:bg-white/10 hover:bg-black/90 dark:hover:bg-white/20 border border-primary/50 text-primary font-bold rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(0,240,255,0.2)] hover:shadow-[0_0_25px_rgba(0,240,255,0.4)] text-sm tracking-wider uppercase font-display flex items-center gap-2">
+                    <button type="button" class="px-6 py-2.5 bg-black dark:bg-white/10 hover:bg-black/90 dark:hover:bg-white/20 border border-primary/50 text-primary font-bold rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(0,240,255,0.2)] hover:shadow-[0_0_25px_rgba(0,240,255,0.4)] text-sm tracking-wider uppercase font-display flex items-center gap-2">
                         <span>Klaim Sekarang</span>
                         <span class="material-icons-round text-sm">arrow_forward</span>
                     </button>
@@ -63,6 +94,7 @@
             </div>
         </div>
     </div>
+@endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Form Area -->
@@ -249,6 +281,10 @@
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Biaya Layanan:</span>
                             <span class="text-slate-950 dark:text-white font-medium text-right font-mono" id="summary-fee">Rp 0</span>
+                        </div>
+                        <div id="discount-row" class="hidden justify-between items-start text-sm">
+                            <span class="text-green-600 dark:text-green-400 font-bold">Diskon Pengguna Baru (10%):</span>
+                            <span class="text-green-600 dark:text-green-400 font-bold text-right font-mono" id="summary-discount">-Rp 0</span>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">WhatsApp:</span>
