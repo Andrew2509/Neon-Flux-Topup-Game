@@ -105,7 +105,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $paymentMethods = \App\Models\PaymentMethod::where('status', 'Aktif')
-            ->where('provider', 'TokoVoucher')
+            ->where('provider', 'like', '%iPaymu%')
             ->get();
         $view = $this->deviceType() . '.user.deposit';
         
@@ -133,61 +133,58 @@ class UserController extends Controller
         $user = Auth::user();
         $depositId = 'DEP-' . date('ymdHis') . strtoupper(\Illuminate\Support\Str::random(4));
 
-        $provider = \App\Models\Provider::where('name', 'like', '%Toko%')->first();
-        if (!$provider || !$provider->provider_id || !$provider->api_key) {
-            return back()->with('error', 'Metode deposit sedang tidak tersedia (Provider error).');
+        $pm = \App\Models\PaymentMethod::where('code', $request->payment_method)->first();
+        if (!$pm) {
+            return back()->with('error', 'Metode pembayaran tidak valid.');
         }
 
-        $params = [
-            'member_code' => $provider->provider_id,
-            'secret' => $provider->api_key,
-            'nominal' => (int)$amount,
-            'kode' => $request->payment_method,
-            'ref_id' => $depositId
+        $ipaymu = new \App\Services\IPaymuService();
+        
+        // Data for iPaymu
+        $payload = [
+            'orderId' => $depositId,
+            'amount' => (int)$amount,
+            'name' => $user->username ?? $user->name ?? 'User',
+            'email' => $user->email ?? 'customer@princepay.com',
+            'phone' => $user->no_wa ?? '081122334455',
+            'product' => 'Top Up Saldo PrincePay',
+            'notifyUrl' => route('api.ipaymu.callback'),
+            'returnUrl' => route('user.dashboard'),
+            'cancelUrl' => route('user.deposit'),
+            'paymentMethod' => strtolower($pm->type),
+            'paymentChannel' => $pm->code,
         ];
 
         try {
-            // According to documentation: https://api.tokovoucher.net/v1/deposit?member_code=[YOUR_MEMBER_CODE]&secret=[YOUR_SECRET_KEY]&nominal=[NOMINAL]&kode=[KODE_BAYAR]
-            // The docs show it as query params in the URL, but the search results suggest POST application/json for transactions.
-            // Let's try as query params first as per the specific deposit endpoint documentation provided by the user.
-            $url = "https://api.tokovoucher.net/v1/deposit?" . http_build_query($params);
-            
-            \Illuminate\Support\Facades\Log::info('TokoVoucher Deposit Request', ['url' => $url]);
-            $response = \Illuminate\Support\Facades\Http::get($url);
-            
-            if (!$response->successful()) {
-                throw new \Exception("TokoVoucher API Error: " . $response->status());
-            }
+            $res = $ipaymu->createPayment($payload);
 
-            $result = $response->json();
-            \Illuminate\Support\Facades\Log::info('TokoVoucher Deposit Response', ['body' => $result]);
+            if (isset($res['Status']) && $res['Status'] == 200 && (isset($res['Data']['Url']) || isset($res['data']['url']))) {
+                $url = $res['Data']['Url'] ?? $res['data']['url'];
 
-            if (isset($result['status']) && $result['status'] == 1) {
-                $data = $result['data'];
-                
                 Deposit::create([
                     'deposit_id' => $depositId,
                     'user_id' => $user->id,
                     'amount' => $amount,
-                    'method' => $request->payment_method,
+                    'method' => $pm->name,
                     'status' => 'pending',
-                    'payload' => $result
+                    'payload' => [
+                        'ipaymu' => $res,
+                        'request' => $payload
+                    ]
                 ]);
 
-                if (isset($data['pay']) && filter_var($data['pay'], FILTER_VALIDATE_URL)) {
-                    return redirect($data['pay']);
-                }
-
-                return back()->with('success', 'Deposit berhasil dibuat. Silakan selesaikan pembayaran sesuai instruksi.');
+                return redirect($url);
             } else {
-                return back()->with('error', 'Gagal membuat deposit: ' . ($result['error_msg'] ?? 'Unknown Error'));
+                $msg = $res['Message'] ?? $res['message'] ?? 'Gagal membuat transaksi ke iPaymu.';
+                return back()->with('error', 'Gagal membuat transaksi: ' . $msg);
             }
-
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Deposit Exception', ['msg' => $e->getMessage()]);
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('iPaymu Deposit Error', ['msg' => $e->getMessage()]);
+            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
+
+
 
     public function riwayatDeposit()
     {

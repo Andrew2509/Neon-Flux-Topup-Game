@@ -961,6 +961,12 @@ class TransactionController extends Controller
             return response()->json(['error' => 'Missing reference'], 400);
         }
 
+        if (str_starts_with($referenceId, 'DEP-')) {
+            $statusStr = $paid ? 'sukses' : 'gagal';
+
+            return app(\App\Http\Controllers\Api\WebhookController::class)->handleDepositCallback($referenceId, $statusStr, $parsed, false);
+        }
+
         $order = Order::where('order_id', $referenceId)->first();
         if (! $order) {
             Log::error('iPaymu Callback: Order Not Found', ['order_id' => $referenceId]);

@@ -342,7 +342,7 @@ class WebhookController extends Controller
         })->first();
     }
 
-    private function handleDepositCallback(string $depositId, string $status, array $allData, bool $plainResponse = false)
+    public function handleDepositCallback(string $depositId, string $status, array $allData, bool $plainResponse = false)
     {
         $deposit = Deposit::where('deposit_id', $depositId)->first();
         if (! $deposit) {
@@ -367,7 +367,7 @@ class WebhookController extends Controller
                 $user = $deposit->user;
                 $user->increment('balance', $deposit->amount);
 
-                Log::info("User {$user->id} balance updated via TokoVoucher webhook. New balance: {$user->balance}");
+                Log::info("User {$user->id} balance updated via webhook. New balance: {$user->balance}");
             });
         } elseif ($status === 'gagal') {
             $deposit->update([
