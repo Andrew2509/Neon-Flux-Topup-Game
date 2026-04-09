@@ -48,7 +48,7 @@
                     <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl border border-primary/40 shadow-neon-cyan">1</div>
                     <h2 class="text-xl font-display font-bold text-slate-950 dark:text-white">Masukkan Data Akun</h2>
                 </div>
-                <div class="grid @if($category->has_zone) grid-cols-1 md:grid-cols-2 @else @endif gap-6 items-end">
+                <div class="grid @if($category->has_zone) grid-cols-2 @else grid-cols-1 @endif gap-4 items-end">
                     <div>
                         <label class="block text-sm font-medium text-slate-500 dark:text-gray-400 mb-2">{{ $category->input_label ?? 'User ID' }}</label>
                         <input type="text" name="user_id" id="user_id_input" data-operator-id="{{ $category->ext_id }}" data-game-slug="{{ $category->slug }}" data-requires-zone="{{ $category->has_zone ? '1' : '0' }}" placeholder="{{ $category->input_placeholder ?? 'Contoh: 12345678' }}" class="w-full rounded-xl glass-input px-4 py-3 focus:ring-0 transition-all font-mono" required>
@@ -142,7 +142,7 @@
                     @auth
                     <div>
                         <h3 class="text-sm font-bold text-slate-500 dark:text-gray-400 mb-3 uppercase tracking-wide ml-1">Internal</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                        <div class="grid grid-cols-2 gap-3 mb-6">
                             <label class="cursor-pointer w-full group relative">
                                 <input type="radio" name="payment" value="SALDO" class="peer hidden method-card" data-name="Saldo Akun" data-fee="0" required>
                                 <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
@@ -167,7 +167,7 @@
                     @forelse($groupedPayments as $type => $payments)
                     <div>
                         <h3 class="text-sm font-bold text-slate-500 dark:text-gray-400 mb-3 uppercase tracking-wide ml-1">{{ $type }}</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-3">
                             @foreach($payments as $p)
                                 @if($p->code === 'SALDO') @continue @endif
                             <label class="cursor-pointer w-full group relative">
