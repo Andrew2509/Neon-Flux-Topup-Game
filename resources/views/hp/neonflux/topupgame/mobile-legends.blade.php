@@ -80,8 +80,11 @@
             <div class="relative group active:scale-95 transition-transform service-item" data-jenis="{{ $s->product_jenis_id }}">
                 <input type="radio" name="product_code" id="n-{{ $loop->index }}" value="{{ $s->product_code }}" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required class="peer hidden radio-card">
                 <label for="n-{{ $loop->index }}" class="block p-2 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all cursor-pointer">
-                    <div class="text-[10px] font-bold text-slate-950 dark:text-white mb-0.5 line-clamp-2 h-7 flex items-center">{{ $s->name }}</div>
+                    <div class="text-[10px] font-bold text-slate-950 dark:text-white mb-0.5 line-clamp-2 h-7 flex items-center leading-none">{{ $s->name }}</div>
                     <div class="text-[8.5px] text-slate-500 dark:text-white/80 font-medium">Rp {{ number_format($s->price, 0, ',', '.') }}</div>
+                    <div class="hidden peer-checked:flex items-center justify-center w-3.5 h-3.5 bg-white rounded-full shadow-lg border border-primary absolute -top-1 -right-1 z-20">
+                        <span class="material-icons-round text-primary text-[7px] font-bold">done</span>
+                    </div>
                 </label>
             </div>
             @empty

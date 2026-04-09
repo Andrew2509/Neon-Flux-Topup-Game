@@ -146,6 +146,9 @@
                             <div class="mt-3 bg-slate-100 dark:bg-black/30 rounded-lg px-3 py-1 w-full text-center border border-slate-200 dark:border-white/5 group-hover:border-primary/30 transition-colors">
                                 <span class="text-sm font-semibold text-primary">Rp {{ number_format($s->price, 0, ',', '.') }}</span>
                             </div>
+                            <div class="hidden peer-checked:flex items-center justify-center w-5 h-5 bg-white rounded-full shadow-lg border border-primary shrink-0 absolute -top-2 -right-2 z-20">
+                                <span class="material-icons-round text-primary text-xs font-bold">done</span>
+                            </div>
                         </div>
                     </label>
                     @empty
