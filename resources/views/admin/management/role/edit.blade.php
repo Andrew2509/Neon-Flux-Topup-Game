@@ -49,7 +49,7 @@
             <div class="flex justify-between items-center">
                 <h3 class="text-lg font-bold">Izin & Hak Akses</h3>
                 @if(!$isSuperAdmin)
-                <button type="button" onclick="toggleAllPermissions(true)" class="text-xs font-bold text-primary hover:underline">Pilih Semua</button>
+                <button type="button" id="btnToggleAll" onclick="toggleAllPermissions()" class="text-xs font-bold text-primary hover:underline transition-all">Pilih Semua</button>
                 @endif
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -93,13 +93,29 @@
 </div>
 @push('scripts')
 <script>
-    function toggleAllPermissions(checked) {
-        document.querySelectorAll('.permission-checkbox').forEach(el => {
-            if (!el.disabled) {
-                el.checked = checked;
-            }
+    function toggleAllPermissions() {
+        const checkboxes = document.querySelectorAll('.permission-checkbox:not(:disabled)');
+        const btn = document.getElementById('btnToggleAll');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        
+        checkboxes.forEach(cb => {
+            cb.checked = !allChecked;
         });
+
+        updateToggleButtonText();
     }
+
+    function updateToggleButtonText() {
+        const checkboxes = document.querySelectorAll('.permission-checkbox:not(:disabled)');
+        const btn = document.getElementById('btnToggleAll');
+        if (!btn) return;
+
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        btn.innerText = allChecked ? 'Batal Pilih Semua' : 'Pilih Semua';
+    }
+
+    // Initialize button text on load
+    document.addEventListener('DOMContentLoaded', updateToggleButtonText);
 </script>
 @endpush
 @endsection
