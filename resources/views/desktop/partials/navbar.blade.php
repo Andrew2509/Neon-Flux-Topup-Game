@@ -94,7 +94,7 @@
                     <span class="material-icons-round text-sm text-slate-600 dark:text-gray-400">expand_more</span>
                 </div>
                 <div class="absolute right-0 mt-2 w-48 glass-panel border border-black/5 dark:border-white/10 rounded-2xl py-2 shadow-xl opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-300 z-[2050] bg-white/95 dark:bg-[#0a0a15]/95 backdrop-blur-xl">
-                    @if(auth()->user()->role === 'admin')
+                    @if(auth()->user()->hasPermission('akses-dashboard'))
                         <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary transition-colors">
                             <span class="material-icons-round text-lg">dashboard</span>
                             <span>Admin Panel</span>

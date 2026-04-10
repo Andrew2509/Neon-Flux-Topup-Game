@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,5 +42,14 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('otp', function (Request $request) {
             return Limit::perMinute(3)->by($request->ip());
         });
+
+        // Dynamic Permissions Gate
+        if (!app()->runningInConsole() && Schema::hasTable('permissions')) {
+            foreach (\App\Models\Permission::all() as $permission) {
+                Gate::define($permission->slug, function ($user) use ($permission) {
+                    return $user->hasPermission($permission->slug);
+                });
+            }
+        }
     }
 }

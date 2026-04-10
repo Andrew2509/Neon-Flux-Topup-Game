@@ -209,8 +209,25 @@ Route::group(['middleware' => []], function () {
     Route::get('/admin/logo-generator', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'index'])->name('admin.logo-generator.index');
     Route::post('/admin/logo-generator/generate', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'generate'])->name('admin.logo-generator.generate');
 
-    Route::get('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
+
+    // Management User & Role Routes
+    Route::middleware(['auth', 'permission:manajemen-user-akses'])->prefix('admin/management')->name('admin.management.')->group(function () {
+        // User Management
+        Route::get('/user', [App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('user.index');
+        Route::post('/user', [App\Http\Controllers\Admin\UserManagementController::class, 'store'])->name('user.store');
+        Route::put('/user/{user}', [App\Http\Controllers\Admin\UserManagementController::class, 'update'])->name('user.update');
+        Route::post('/user/{user}/toggle', [App\Http\Controllers\Admin\UserManagementController::class, 'toggleStatus'])->name('user.toggle');
+        Route::delete('/user/{user}', [App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])->name('user.destroy');
+
+        // Role Management
+        Route::get('/role', [App\Http\Controllers\Admin\RoleController::class, 'index'])->name('role.index');
+        Route::get('/role/create', [App\Http\Controllers\Admin\RoleController::class, 'create'])->name('role.create');
+        Route::post('/role', [App\Http\Controllers\Admin\RoleController::class, 'store'])->name('role.store');
+        Route::get('/role/{role}/edit', [App\Http\Controllers\Admin\RoleController::class, 'edit'])->name('role.edit');
+        Route::put('/role/{role}', [App\Http\Controllers\Admin\RoleController::class, 'update'])->name('role.update');
+        Route::delete('/role/{role}', [App\Http\Controllers\Admin\RoleController::class, 'destroy'])->name('role.destroy');
+    });
 
     // Authentication Routes
     Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])->name('login');

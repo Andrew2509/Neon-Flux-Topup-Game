@@ -25,7 +25,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            if (Auth::user()->role === 'admin') {
+            if (Auth::user()->hasPermission('akses-dashboard')) {
                 return redirect()->route('admin.dashboard');
             }
             return redirect('/');
@@ -77,7 +77,7 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            if ($user->role === 'admin') {
+            if ($user->hasPermission('akses-dashboard')) {
                 return redirect()->route('admin.dashboard');
             }
 
@@ -253,7 +253,7 @@ class AuthController extends Controller
                 $token = $this->jwt->generateToken([
                     'user_id' => $user->id,
                     'email' => $user->email,
-                    'role' => $user->role
+                    'role' => $user->role ? $user->role->slug : 'member'
                 ]);
 
                 return response()->json([

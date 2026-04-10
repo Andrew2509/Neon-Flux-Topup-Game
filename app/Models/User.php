@@ -23,7 +23,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'balance',
-        'role',
+        'role_id',
         'status',
         'avatar',
         'phone_verified_at',
@@ -56,5 +56,25 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function hasRole($roleSlug)
+    {
+        return $this->role && $this->role->slug === $roleSlug;
+    }
+
+    public function hasPermission($permissionSlug)
+    {
+        if (!$this->role) return false;
+        
+        // Super Admin has all permissions
+        if ($this->role->slug === 'super-admin') return true;
+
+        return $this->role->permissions()->where('slug', $permissionSlug)->exists();
     }
 }

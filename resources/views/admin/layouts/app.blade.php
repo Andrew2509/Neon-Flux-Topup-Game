@@ -55,9 +55,9 @@
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <span class="text-sm font-medium">Pesanan</span>
             </a>
-            <a href="{{ route('admin.members') }}" class="{{ request()->routeIs('admin.members') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
+            <a href="{{ route('admin.management.user.index') }}" class="{{ request()->routeIs('admin.management.user.index') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">group</span>
-                <span class="text-sm font-medium">Member</span>
+                <span class="text-sm font-medium">Manajemen User</span>
             </a>
             <a href="{{ route('admin.deposits') }}" class="{{ request()->routeIs('admin.deposits') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">account_balance_wallet</span>
@@ -129,6 +129,26 @@
                 <span class="material-symbols-outlined">settings</span>
                 <span class="text-sm font-medium">Pengaturan Website</span>
             </a>
+
+            @can('manajemen-user-akses')
+            <div class="mt-4 mb-1 px-4 text-[10px] uppercase tracking-widest text-slate-500 font-bold">Administrator</div>
+            @php
+                $isAksesActive = request()->routeIs('admin.management.*');
+            @endphp
+            <div class="{{ $isAksesActive ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer" onclick="document.getElementById('akses-submenu').classList.toggle('hidden')">
+                <span class="material-symbols-outlined">admin_panel_settings</span>
+                <span class="text-sm font-medium">Manajemen Akses</span>
+                <span class="material-symbols-outlined text-sm ml-auto text-slate-500 transition-transform duration-200" id="akses-chevron">expand_more</span>
+            </div>
+            <div id="akses-submenu" class="pl-12 pr-4 space-y-1 mt-1 {{ $isAksesActive ? '' : 'hidden' }}">
+                <a href="{{ route('admin.management.user.index') }}" class="{{ request()->routeIs('admin.management.user.index') ? 'text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 py-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
+                    <span class="text-xs font-medium">Manajemen User</span>
+                </a>
+                <a href="{{ route('admin.management.role.index') }}" class="{{ request()->routeIs('admin.management.role.*') ? 'text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 py-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
+                    <span class="text-xs font-medium">Role & Permission</span>
+                </a>
+            </div>
+            @endcan
         </nav>
         <div class="p-4 mt-auto">
             <div class="glass-panel rounded-xl p-4 flex items-center gap-3 bg-white/5 border border-white/10">
@@ -137,7 +157,7 @@
                 </div>
                 <div class="flex-1 overflow-hidden">
                     <p class="text-sm font-bold truncate">{{ Auth::user()->name ?? 'Admin' }}</p>
-                    <p class="text-[10px] text-slate-400">{{ ucfirst(Auth::user()->role ?? 'Admin') }}</p>
+                    <p class="text-[10px] text-slate-400">{{ Auth::user()->role ? Auth::user()->role->name : 'Admin' }}</p>
                 </div>
                 <form action="{{ route('logout') }}" method="POST" id="logout-form" class="hidden">
                     @csrf
