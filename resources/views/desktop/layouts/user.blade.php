@@ -185,7 +185,7 @@
                 <div class="flex items-center space-x-3">
                     <div class="text-right hidden lg:block">
                         <p class="text-xs font-bold text-corp-navy leading-none">{{ Auth::user()->name }}</p>
-                        <p class="text-[9px] text-corp-muted uppercase font-semibold tracking-wider mt-1">{{ Auth::user()->role }} Member</p>
+                        <p class="text-[9px] text-corp-muted uppercase font-semibold tracking-wider mt-1">{{ Auth::user()->role ? Auth::user()->role->name : 'Member' }} Member</p>
                     </div>
                     <div class="w-9 h-9 rounded-full border-2 border-slate-100 p-0.5 bg-white shadow-sm overflow-hidden text-center justify-center flex items-center shrink-0">
                         <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=2563eb&color=fff' }}" 
