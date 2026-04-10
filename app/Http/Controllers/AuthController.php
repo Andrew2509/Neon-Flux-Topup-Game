@@ -15,7 +15,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /** @var WAService */
     protected $whatsapp;
+
+    /** @var JwtService */
     protected $jwt;
 
     public function __construct(WAService $whatsapp, JwtService $jwt)
@@ -26,7 +29,9 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            if (Auth::user()->hasPermission('akses-dashboard')) {
+            /** @var User $user */
+            $user = Auth::user();
+            if ($user->hasPermission('akses-dashboard')) {
                 return redirect()->route('admin.dashboard');
             }
             return redirect('/');
@@ -42,6 +47,7 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            /** @var User $user */
             $user = Auth::user();
 
             // Check if phone is verified
