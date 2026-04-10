@@ -29,13 +29,18 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($permissions as $permission)
-                <label for="perm_{{ $permission->id }}" class="glass-panel p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 border border-white/5 transition-all group has-[:checked]:bg-primary/10 has-[:checked]:border-primary/40">
-                    <div class="relative flex items-center justify-center">
-                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="perm_{{ $permission->id }}"
-                            class="permission-checkbox peer appearance-none size-6 border-2 border-white/10 rounded-lg checked:bg-primary checked:border-primary transition-all outline-none cursor-pointer">
-                        <span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform pointer-events-none text-sm font-bold">check</span>
+                <label for="perm_{{ $permission->id }}" class="relative glass-panel p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 border border-white/5 transition-all group has-[:checked]:bg-primary/10 has-[:checked]:border-primary/40 overflow-hidden">
+                    <!-- Checkbox Overlay -->
+                    <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="perm_{{ $permission->id }}"
+                        class="permission-checkbox absolute inset-0 opacity-0 z-10 cursor-pointer">
+                    
+                    <!-- Visual UI -->
+                    <div class="relative flex items-center justify-center z-0">
+                        <div class="size-6 border-2 border-white/10 rounded-lg group-has-[:checked]:bg-primary group-has-[:checked]:border-primary transition-all flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white scale-0 group-has-[:checked]:scale-100 transition-transform text-sm font-bold">check</span>
+                        </div>
                     </div>
-                    <div class="flex-1">
+                    <div class="flex-1 z-0">
                         <p class="font-bold text-sm">{{ $permission->name }}</p>
                         <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{{ $permission->slug }}</p>
                     </div>
