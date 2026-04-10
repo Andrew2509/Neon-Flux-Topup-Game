@@ -55,9 +55,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($permissions as $permission)
                 @php $isChecked = in_array($permission->id, $rolePermissions); @endphp
-                <label class="glass-panel p-4 rounded-2xl flex items-center gap-4 border border-white/5 transition-all group {{ $isSuperAdmin ? 'opacity-80' : 'cursor-pointer hover:bg-white/5' }}">
+                <label for="perm_{{ $permission->id }}" class="glass-panel p-4 rounded-2xl flex items-center gap-4 border border-white/5 transition-all group has-[:checked]:bg-primary/10 has-[:checked]:border-primary/40 {{ $isSuperAdmin ? 'opacity-80' : 'cursor-pointer hover:bg-white/5' }}">
                     <div class="relative flex items-center justify-center">
-                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" 
+                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="perm_{{ $permission->id }}"
                             {{ $isChecked || $isSuperAdmin ? 'checked' : '' }}
                             {{ $isSuperAdmin ? 'disabled' : '' }}
                             class="permission-checkbox peer appearance-none size-6 border-2 border-white/10 rounded-lg checked:bg-primary checked:border-primary transition-all outline-none {{ $isSuperAdmin ? 'cursor-default' : 'cursor-pointer' }}">
