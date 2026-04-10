@@ -38,20 +38,55 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Collapsed Sidebar State */
-        .sidebar-collapsed [data-purpose="sidebar-navigation"] {
-            width: 80px !important;
+        /* Collapsed Sidebar State (Desktop) */
+        @media (min-width: 1024px) {
+            .sidebar-collapsed [data-purpose="sidebar-navigation"] {
+                width: 80px !important;
+            }
+            .sidebar-collapsed [data-purpose="sidebar-navigation"] .hidden-on-collapse {
+                display: none !important;
+            }
+            .sidebar-collapsed [data-purpose="sidebar-navigation"] .sidebar-logo-full {
+                 display: none !important;
+            }
+            .sidebar-collapsed [data-purpose="sidebar-navigation"] .centered-on-collapse {
+                justify-content: center !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
         }
-        .sidebar-collapsed [data-purpose="sidebar-navigation"] .hidden-on-collapse {
-            display: none !important;
-        }
-        .sidebar-collapsed [data-purpose="sidebar-navigation"] .sidebar-logo-full {
-             display: none !important;
-        }
-        .sidebar-collapsed [data-purpose="sidebar-navigation"] .centered-on-collapse {
-            justify-content: center !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+
+        /* Mobile Sidebar Behavior */
+        @media (max-width: 1023px) {
+            [data-purpose="sidebar-navigation"] {
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(0);
+                width: 280px !important;
+                z-index: 20;
+            }
+
+            /* Completely hide on mobile if collapsed */
+            .sidebar-collapsed [data-purpose="sidebar-navigation"] {
+                transform: translateX(-100%) !important;
+                width: 280px !important; /* Keep wide for slide-in */
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.5);
+                backdrop-filter: blur(4px);
+                z-index: 15;
+                transition: opacity 0.3s;
+            }
+
+            body:not(.sidebar-collapsed) .sidebar-overlay {
+                display: block;
+            }
         }
 
         /* Hide scrollbar for clean look */

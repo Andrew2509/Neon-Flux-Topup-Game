@@ -20,7 +20,7 @@
             $secondPart = $parts[1] ?? '';
         @endphp
         
-        <span class="ml-3 font-bold text-lg tracking-tight text-white hidden lg:block uppercase sidebar-logo-full">
+        <span class="ml-3 font-bold text-lg tracking-tight text-white uppercase sidebar-logo-full hidden-on-collapse">
             {{ $firstPart }} <span class="text-corp-accent">{{ $secondPart }}</span>
         </span>
     </div>
@@ -49,7 +49,7 @@
             <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 {!! $item['svg'] !!}
             </svg>
-            <span class="ml-3 font-medium text-sm hidden lg:block hidden-on-collapse">{{ $item['label'] }}</span>
+            <span class="ml-3 font-medium text-sm hidden-on-collapse">{{ $item['label'] }}</span>
         </a>
         @endforeach
     </nav>
@@ -61,14 +61,14 @@
                 <div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center font-bold text-white text-xs border border-white/10 uppercase shrink-0">
                     {{ substr(Auth::user()->name, 0, 2) }}
                 </div>
-                <div class="ml-3 hidden lg:block overflow-hidden hidden-on-collapse">
+                <div class="ml-3 overflow-hidden hidden-on-collapse">
                     <p class="text-xs font-semibold text-white truncate max-w-[100px]">{{ Auth::user()->name }}</p>
                     <p class="text-[10px] text-slate-400 truncate uppercase">{{ Auth::user()->role }} Account</p>
                 </div>
             </div>
             <form action="{{ route('logout') }}" method="POST" id="logout-form-sidebar" class="hidden">@csrf</form>
             <button onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();" 
-                    class="text-slate-400 hover:text-white transition-colors hidden lg:block hidden-on-collapse">
+                    class="text-slate-400 hover:text-white transition-colors hidden-on-collapse">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
                 </svg>
