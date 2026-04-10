@@ -1,12 +1,12 @@
 <aside class="w-20 lg:w-64 bg-corp-sidebar flex flex-col transition-all duration-300 shadow-xl z-20" data-purpose="sidebar-navigation">
     <!-- Sidebar Logo -->
-    <div class="h-16 flex items-center px-6 border-b border-white/10">
+    <div class="h-16 flex items-center px-6 border-b border-white/10 centered-on-collapse">
         @if($logo = get_image_url('site_logo'))
-            <div class="w-10 h-10 flex items-center justify-center overflow-hidden">
+            <div class="w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
                 <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'PrincePay Gaming') }}" class="max-h-full max-w-full object-contain">
             </div>
         @else
-            <div class="w-8 h-8 bg-corp-accent rounded-lg flex items-center justify-center shadow-lg">
+            <div class="w-8 h-8 bg-corp-accent rounded-lg flex items-center justify-center shadow-lg shrink-0">
                 <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -20,7 +20,7 @@
             $secondPart = $parts[1] ?? '';
         @endphp
         
-        <span class="ml-3 font-bold text-lg tracking-tight text-white hidden lg:block uppercase">
+        <span class="ml-3 font-bold text-lg tracking-tight text-white hidden lg:block uppercase sidebar-logo-full">
             {{ $firstPart }} <span class="text-corp-accent">{{ $secondPart }}</span>
         </span>
     </div>
@@ -44,30 +44,31 @@
             $href = isset($item['route']) ? route($item['route']) : $item['url'];
         @endphp
         <a href="{{ $href }}" 
-           class="flex items-center px-3 py-2.5 rounded-lg group transition-all {{ $isActive ? 'text-white bg-white/10' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+           class="flex items-center px-3 py-2.5 rounded-lg group transition-all centered-on-collapse {{ $isActive ? 'text-white bg-white/10' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
+           title="{{ $item['label'] }}">
+            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 {!! $item['svg'] !!}
             </svg>
-            <span class="ml-3 font-medium text-sm hidden lg:block">{{ $item['label'] }}</span>
+            <span class="ml-3 font-medium text-sm hidden lg:block hidden-on-collapse">{{ $item['label'] }}</span>
         </a>
         @endforeach
     </nav>
 
     <!-- Sidebar Footer (User Info) -->
     <div class="p-4 border-t border-white/10">
-        <div class="flex items-center justify-between bg-white/5 rounded-xl p-3">
+        <div class="flex items-center justify-between bg-white/5 rounded-xl p-3 centered-on-collapse">
             <div class="flex items-center">
-                <div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center font-bold text-white text-xs border border-white/10 uppercase">
+                <div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center font-bold text-white text-xs border border-white/10 uppercase shrink-0">
                     {{ substr(Auth::user()->name, 0, 2) }}
                 </div>
-                <div class="ml-3 hidden lg:block overflow-hidden">
+                <div class="ml-3 hidden lg:block overflow-hidden hidden-on-collapse">
                     <p class="text-xs font-semibold text-white truncate max-w-[100px]">{{ Auth::user()->name }}</p>
                     <p class="text-[10px] text-slate-400 truncate uppercase">{{ Auth::user()->role }} Account</p>
                 </div>
             </div>
             <form action="{{ route('logout') }}" method="POST" id="logout-form-sidebar" class="hidden">@csrf</form>
             <button onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();" 
-                    class="text-slate-400 hover:text-white transition-colors hidden lg:block">
+                    class="text-slate-400 hover:text-white transition-colors hidden lg:block hidden-on-collapse">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
                 </svg>

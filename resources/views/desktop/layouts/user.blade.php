@@ -33,6 +33,27 @@
             --corp-bg: #f8fafc;
         }
 
+        /* Sidebar Transition */
+        [data-purpose="sidebar-navigation"] {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Collapsed Sidebar State */
+        .sidebar-collapsed [data-purpose="sidebar-navigation"] {
+            width: 80px !important;
+        }
+        .sidebar-collapsed [data-purpose="sidebar-navigation"] .hidden-on-collapse {
+            display: none !important;
+        }
+        .sidebar-collapsed [data-purpose="sidebar-navigation"] .sidebar-logo-full {
+             display: none !important;
+        }
+        .sidebar-collapsed [data-purpose="sidebar-navigation"] .centered-on-collapse {
+            justify-content: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
         /* Hide scrollbar for clean look */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
@@ -50,21 +71,37 @@
         .text-corp-navy { color: var(--corp-navy); }
         .text-corp-accent { color: var(--corp-accent); }
         .text-corp-muted { color: var(--corp-muted); }
+
+        .btn-ghost {
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            color: var(--corp-muted);
+        }
+        .btn-ghost:hover {
+            background-color: rgba(15, 23, 42, 0.05);
+            color: var(--corp-navy);
+        }
     </style>
 
     @stack('styles')
 </head>
-<body class="h-full overflow-hidden flex font-sans selection:bg-blue-100 selection:text-corp-navy">
+<body class="h-full overflow-hidden flex font-sans selection:bg-blue-100 selection:text-corp-navy transition-all duration-300">
     {{-- Sidebar --}}
     @include('desktop.partials.user_sidebar')
 
     {{-- Main Content Wrapper --}}
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
         {{-- Top Navigation Bar --}}
-        {{-- Top Navigation Bar --}}
-        <header class="h-16 flex items-center justify-between px-8 border-b border-corp-border bg-white shadow-sm z-10">
-            {{-- Left: Search Bar Placeholder & Mobile Toggle --}}
-            <div class="flex items-center flex-1 max-w-xl">
+        <header class="h-16 flex items-center justify-between px-6 border-b border-corp-border bg-white shadow-sm z-10 transition-all duration-300">
+            {{-- Left: Sidebar Toggle & Search --}}
+            <div class="flex items-center gap-4 flex-1">
+                <button id="nf-sidebar-toggle" class="btn-ghost" title="Tutup/Buka Sidebar">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 12h16M4 18h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+
                 <div class="relative w-full max-w-md hidden md:block">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-4 w-4 text-corp-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +149,7 @@
                         <p class="text-xs font-bold text-corp-navy leading-none">{{ Auth::user()->name }}</p>
                         <p class="text-[9px] text-corp-muted uppercase font-semibold tracking-wider mt-1">{{ Auth::user()->role }} Member</p>
                     </div>
-                    <div class="w-9 h-9 rounded-full border-2 border-slate-100 p-0.5 bg-white shadow-sm overflow-hidden">
+                    <div class="w-9 h-9 rounded-full border-2 border-slate-100 p-0.5 bg-white shadow-sm overflow-hidden text-center justify-center flex items-center shrink-0">
                         <img src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(Auth::user()->name).'&background=2563eb&color=fff' }}" 
                              class="w-full h-full rounded-full object-cover">
                     </div>
@@ -121,7 +158,7 @@
         </header>
 
         {{-- Scrollable Content --}}
-        <div class="flex-1 overflow-y-auto p-8 space-y-8 no-scrollbar">
+        <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 no-scrollbar scroll-smooth">
             @yield('content')
 
             {{-- Footer --}}
@@ -145,6 +182,22 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar Toggle Logic
+            const sidebar = document.body;
+            const toggleBtn = document.getElementById('nf-sidebar-toggle');
+            
+            // Load state
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                sidebar.classList.add('sidebar-collapsed');
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('sidebar-collapsed'));
+                });
+            }
+
             @if(session('success'))
                 Swal.fire({
                     icon: 'success',
