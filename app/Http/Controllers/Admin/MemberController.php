@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class MemberController extends Controller
@@ -30,7 +31,8 @@ class MemberController extends Controller
 
     public function create()
     {
-        return view('admin.members.create');
+        $roles = Role::all();
+        return view('admin.members.create', compact('roles'));
     }
 
     public function store(Request $request)
@@ -40,7 +42,7 @@ class MemberController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
-            'role' => 'required|string|in:member,vip,admin',
+            'role_id' => 'required|exists:roles,id',
             'status' => 'required|string|in:active,blocked',
             'balance' => 'required|numeric|min:0',
         ]);
@@ -50,7 +52,7 @@ class MemberController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => bcrypt($request->password),
-            'role' => $request->role,
+            'role_id' => $request->role_id,
             'status' => $request->status,
             'balance' => $request->balance,
         ]);
@@ -65,7 +67,8 @@ class MemberController extends Controller
 
     public function edit(User $user)
     {
-        return view('admin.members.edit', compact('user'));
+        $roles = Role::all();
+        return view('admin.members.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user)
@@ -75,7 +78,7 @@ class MemberController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:8',
-            'role' => 'required|string|in:member,vip,admin',
+            'role_id' => 'required|exists:roles,id',
             'status' => 'required|string|in:active,blocked',
             'balance' => 'required|numeric|min:0',
         ]);
@@ -84,7 +87,7 @@ class MemberController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'role' => $request->role,
+            'role_id' => $request->role_id,
             'status' => $request->status,
             'balance' => $request->balance,
         ];

@@ -25,7 +25,7 @@
             </div>
             <div class="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-black/5 dark:border-white/5">
                 <p class="text-[8px] uppercase tracking-widest text-slate-500 font-bold mb-1">Role</p>
-                <p class="text-xs font-bold dark:text-white uppercase tracking-widest">{{ $user->role }}</p>
+                <p class="text-xs font-bold dark:text-white uppercase tracking-widest">{{ $user->role ? $user->role->name : 'Member' }}</p>
             </div>
         </div>
     </div>

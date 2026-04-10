@@ -40,7 +40,7 @@
                     <img src="{{ $user->avatar ?: 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=2563eb&color=fff' }}" alt="{{ $user->name }}" class="size-full rounded-full object-cover">
                 </div>
                 <h2 class="text-xl font-bold text-slate-100">{{ $user->name }}</h2>
-                <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">{{ $user->role }}</p>
+                <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest font-bold">{{ $user->role ? $user->role->name : 'Member' }}</p>
 
                 <div class="mt-8 grid grid-cols-1 gap-3">
                     <div class="p-3 bg-white/5 rounded-2xl border border-white/5 text-center">

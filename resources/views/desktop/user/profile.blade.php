@@ -25,7 +25,7 @@
             <p class="text-corp-muted text-sm mt-1 uppercase tracking-wider font-semibold">{{ $user->email }}</p>
             <div class="mt-6 flex flex-wrap justify-center md:justify-start gap-3">
                 <div class="px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100 text-[10px] font-bold text-corp-accent uppercase tracking-widest leading-none">
-                    Status: {{ $user->role }} Member
+                    Status: {{ $user->role ? $user->role->name : 'Member' }}
                 </div>
                 <div class="px-3 py-1.5 rounded-lg bg-slate-50 border border-corp-border text-[10px] font-bold text-corp-muted uppercase tracking-widest leading-none">
                     Bergabung {{ $user->created_at->format('M Y') }}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Otp;
 use App\Models\User;
+use App\Models\Role;
 use App\Services\JwtService;
 use App\Services\WhatsAppService as WAService;
 use Illuminate\Http\Request;
@@ -44,7 +45,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             // Check if phone is verified
-            if (!$user->phone_verified_at && $user->role !== 'admin') {
+            if (!$user->phone_verified_at && !$user->hasRole('super-admin')) {
                 // Generate and send new OTP
                 $otpCode = rand(100000, 999999);
                 Otp::updateOrCreate(
@@ -65,7 +66,7 @@ class AuthController extends Controller
                 $token = $this->jwt->generateToken([
                     'user_id' => $user->id,
                     'email' => $user->email,
-                    'role' => $user->role
+                    'role' => $user->role ? $user->role->slug : 'member'
                 ]);
 
                 return response()->json([
@@ -136,7 +137,7 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'password' => Hash::make($request->password),
-                'role' => 'member',
+                'role_id' => Role::where('slug', 'member')->first()->id ?? 2,
                 'status' => 'active',
                 'balance' => 0,
             ]);

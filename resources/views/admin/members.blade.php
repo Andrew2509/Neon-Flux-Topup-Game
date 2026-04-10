@@ -67,15 +67,16 @@
                         <td class="px-6 py-4 text-xs text-slate-400">{{ $member->created_at->format('d M Y') }}</td>
                         <td class="px-6 py-4 text-center">
                             @php
-                                $role_color = match($member->role) {
-                                    'admin' => 'red',
+                                $roleSlug = $member->role ? $member->role->slug : 'member';
+                                $role_color = match($roleSlug) {
+                                    'super-admin' => 'red',
                                     'vip' => 'amber',
                                     'member' => 'blue',
                                     default => 'slate'
                                 };
                             @endphp
                             <span class="px-2 py-1 bg-{{ $role_color }}-500/10 text-{{ $role_color }}-400 text-[9px] font-bold rounded-lg border border-{{ $role_color }}-500/20 uppercase tracking-tighter">
-                                {{ $member->role }}
+                                {{ $member->role ? $member->role->name : 'Member' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">

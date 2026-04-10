@@ -16,7 +16,7 @@ class DashboardController extends Controller
     {
         $stats = [
             'total_sales' => Order::where('status', 'success')->sum('total_price'),
-            'active_users' => User::where('role', 'member')->where('status', 'active')->count(),
+            'active_users' => User::whereHas('role', function($q) { $q->where('slug', 'member'); })->where('status', 'active')->count(),
             'pending_orders' => Order::where('status', 'pending')->count(),
             'total_deposits' => Deposit::where('status', 'success')->sum('amount'),
 
