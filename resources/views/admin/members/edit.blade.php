@@ -70,10 +70,12 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="text-xs font-bold text-slate-500 ml-1">ROLE</label>
-                                <select name="role" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer">
-                                    <option value="member" {{ old('role', $user->role) == 'member' ? 'selected' : '' }}>Member Biasa</option>
-                                    <option value="vip" {{ old('role', $user->role) == 'vip' ? 'selected' : '' }}>VIP Reseller</option>
-                                    <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrator</option>
+                                <select name="role_id" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer">
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->id }}" {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>
+                                            {{ $role->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="space-y-1">

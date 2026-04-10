@@ -63,7 +63,7 @@
                 </div>
                 <div class="ml-3 overflow-hidden hidden-on-collapse">
                     <p class="text-xs font-semibold text-white truncate max-w-[100px]">{{ Auth::user()->name }}</p>
-                    <p class="text-[10px] text-slate-400 truncate uppercase">{{ Auth::user()->role }} Account</p>
+                    <p class="text-[10px] text-slate-400 truncate uppercase">{{ Auth::user()->role ? Auth::user()->role->name : 'Member' }} Account</p>
                 </div>
             </div>
             <form action="{{ route('logout') }}" method="POST" id="logout-form-sidebar" class="hidden">@csrf</form>
