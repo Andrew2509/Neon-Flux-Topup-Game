@@ -125,6 +125,9 @@
     {{-- Sidebar --}}
     @include('desktop.partials.user_sidebar')
 
+    {{-- Overlay for mobile --}}
+    <div id="nf-sidebar-overlay" class="sidebar-overlay"></div>
+
     {{-- Main Content Wrapper --}}
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
         {{-- Top Navigation Bar --}}
@@ -218,18 +221,57 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar Toggle Logic
-            const sidebar = document.body;
+            const body = document.body;
             const toggleBtn = document.getElementById('nf-sidebar-toggle');
+            const overlay = document.getElementById('nf-sidebar-overlay');
+            const sidebarNav = document.querySelector('[data-purpose="sidebar-navigation"]');
+            
+            // Initial state based on screen size
+            const checkIsMobile = () => window.innerWidth < 1024;
             
             // Load state
-            if (localStorage.getItem('sidebar-collapsed') === 'true') {
-                sidebar.classList.add('sidebar-collapsed');
+            const savedState = localStorage.getItem('sidebar-collapsed');
+            
+            if (checkIsMobile()) {
+                body.classList.add('sidebar-collapsed');
+            } else {
+                if (savedState === 'true') {
+                    body.classList.add('sidebar-collapsed');
+                }
+            }
+
+            function toggleSidebar() {
+                body.classList.toggle('sidebar-collapsed');
+                if (!checkIsMobile()) {
+                    localStorage.setItem('sidebar-collapsed', body.classList.contains('sidebar-collapsed'));
+                }
             }
 
             if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    sidebar.classList.toggle('sidebar-collapsed');
-                    localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('sidebar-collapsed'));
+                toggleBtn.addEventListener('click', toggleSidebar);
+            }
+
+            // Close on overlay click (mobile only)
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    if (checkIsMobile()) {
+                        body.classList.add('sidebar-collapsed');
+                    }
+                });
+            }
+
+            // Auto-hide on sidebar link click (mobile only)
+            if (sidebarNav) {
+                const links = sidebarNav.querySelectorAll('a');
+                links.forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (checkIsMobile()) {
+                            // Small delay for visual feedback then close
+                            setTimeout(() => {
+                                body.classList.add('sidebar-collapsed');
+                            }, 100);
+                        }
+                    });
                 });
             }
 
