@@ -47,7 +47,7 @@
     @endpush
 
     <div
-        class="relative w-full h-[45vw] sm:h-48 md:h-80 rounded-2xl md:rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
+        class="relative w-full h-48 md:h-80 rounded-2xl md:rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
         <div class="swiper hero-swiper">
             <div class="swiper-wrapper">
                 @foreach ($sliders as $slider)
@@ -187,7 +187,7 @@
 @else
     {{-- Static Fallback if no sliders --}}
     <div
-        class="relative w-full h-[45vw] sm:h-48 md:h-80 rounded-2xl md:rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
+        class="relative w-full h-48 md:h-80 rounded-2xl md:rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
         <img alt="Default Banner" class="absolute inset-0 w-full h-full object-cover opacity-40 dark:opacity-60"
             src="https://placehold.co/1200x400/1e293b/ccc?text={{ urlencode(get_setting('site_name', 'PrincePay')) }}" />
 
