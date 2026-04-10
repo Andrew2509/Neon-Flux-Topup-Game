@@ -509,7 +509,8 @@ class IPaymuService
 
         // Strategy 0: iPaymu API v2 (sama seperti request payment) — POST:VA:sha256(body):apiKey lalu HMAC-SHA256(..., apiKey)
         // Lihat contoh resmi: https://gist.githubusercontent.com/iogias/7470dbcd586df1b45613e6a9c67c717c/raw
-        if ($this->va !== '' && $this->apiKey !== '') {
+        $vaFromRequest = (string) ($data['va'] ?? $this->va);
+        if ($vaFromRequest !== '' && $this->apiKey !== '') {
             $jsonBodiesForHash = [];
             foreach ([false, true] as $normalizeNumerics) {
                 $payload = $data;
@@ -538,8 +539,10 @@ class IPaymuService
                 $bodyHash = strtolower(hash('sha256', $bodyStr));
                 foreach (['POST', 'post'] as $method) {
                     $variants = [
-                        $method.':'.$this->va.':'.$bodyHash.':'.$this->apiKey,
-                        $method.':'.$this->va.':'.$bodyHash,
+                        $method.':'.$vaFromRequest.':'.$bodyHash.':'.$this->apiKey,
+                        $method.':'.$vaFromRequest.':'.$bodyHash,
+                        $vaFromRequest.':'.$bodyHash.':'.$this->apiKey,
+                        $vaFromRequest.':'.$bodyHash,
                     ];
                     foreach ($variants as $stringToSign) {
                         $gen = strtolower(hash_hmac('sha256', $stringToSign, $this->apiKey));
@@ -595,7 +598,7 @@ class IPaymuService
         }
 
         // Strategy 2: sha256(va + trx_id + status + apiKey) dan variasi status_code
-        $va = (string) ($data['va'] ?? $this->va);
+        $vaFromRequest = (string) ($data['va'] ?? $this->va);
         $trxId = (string) ($data['trx_id'] ?? '');
         $status = (string) ($data['status'] ?? '');
         $statusCode = (string) ($data['status_code'] ?? '');
@@ -604,11 +607,22 @@ class IPaymuService
             if ($st === '') {
                 continue;
             }
-            $legacyString = $va.$trxId.$st.$this->apiKey;
+            $legacyString = $vaFromRequest.$trxId.$st.$this->apiKey;
             $gen = strtolower(hash('sha256', $legacyString));
             if (hash_equals($receivedSignature, $gen)) {
                 Log::info('iPaymu Validation Success: Strategy 2 (legacy concat)');
 
+                return true;
+            }
+        }
+
+        // Strategy 4: va + amount + status + apiKey (common variant)
+        $amount = (string) ($data['amount'] ?? '');
+        if ($amount !== '') {
+            $s4 = $vaFromRequest . $amount . $status . $this->apiKey;
+            $gen = strtolower(hash('sha256', $s4));
+            if (hash_equals($receivedSignature, $gen)) {
+                Log::info('iPaymu Validation Success: Strategy 4 (va+amount+status)');
                 return true;
             }
         }

@@ -231,108 +231,84 @@ class SyncTokovoucher extends Command
             $bar = $this->output->createProgressBar($totalJenis);
             $bar->start();
 
-            foreach ($chunks as $chunk) {
+            foreach ($targetJenis as $j) {
                 $retryCount = 0;
-                $maxRetries = 3; // Increased from 2 to 3
+                $maxRetries = 3;
                 $success = false;
 
                 while ($retryCount <= $maxRetries && !$success) {
                     try {
-                        $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($chunk, $memberCode, $signature) {
-                            foreach ($chunk as $j) {
-                                $pool->as($j['id'])->timeout(30)->get("https://api.tokovoucher.net/member/produk/list", [
-                                    'member_code' => $memberCode,
-                                    'signature' => $signature,
-                                    'id_jenis' => $j['id']
-                                ]);
-                            }
-                        });
+                        $response = Http::timeout(20)->get("https://api.tokovoucher.net/member/produk/list", [
+                            'member_code' => $memberCode,
+                            'signature' => $signature,
+                            'id_jenis' => $j['id']
+                        ]);
 
-                        $batchHasFailure = false;
-                        foreach ($responses as $jenisId => $response) {
-                            if ($response instanceof \Illuminate\Http\Client\Response) {
-                                if ($response->successful()) {
-                                    $resJson = $response->json();
-                                    if (isset($resJson['data']) && is_array($resJson['data'])) {
-                                        $jInfo = collect($targetJenis)->firstWhere('id', $jenisId);
-                                        $appCategoryId = $cachedCategoryIds[$jInfo['operator_id']] ?? null;
+                        if ($response->successful()) {
+                            $resJson = $response->json();
+                            if (isset($resJson['data']) && is_array($resJson['data'])) {
+                                $appCategoryId = $cachedCategoryIds[$j['operator_id']] ?? null;
 
-                                        // Fallback category search
-                                        if (!$appCategoryId && $jInfo) {
-                                            $opName = collect($activeOperators)->firstWhere('id', $jInfo['operator_id'])['name'] ?? null;
-                                            if ($opName) {
-                                                $cat = Category::where('name', $opName)->first();
-                                                $appCategoryId = $cat ? $cat->id : null;
-                                            }
-                                        }
+                                // Fallback category search
+                                if (!$appCategoryId) {
+                                    $opName = collect($activeOperators)->firstWhere('id', $j['operator_id'])['name'] ?? null;
+                                    if ($opName) {
+                                        $cat = Category::where('name', $opName)->first();
+                                        $appCategoryId = $cat ? $cat->id : null;
+                                    }
+                                }
 
-                                        if ($appCategoryId) {
-                                            $toUpsert = [];
-                                            $now = now();
-                                            foreach ($resJson['data'] as $produk) {
-                                                if ($produk['status'] == 1) {
-                                                    $calculatedPrice = Service::calculatePrice($produk['price'], $marginPublic);
-                                                    $toUpsert[] = [
-                                                        'product_code' => $produk['code'],
-                                                        'category_id' => $appCategoryId,
-                                                        'product_jenis_id' => $jenisId, // LINK TO JENIS
-                                                        'type' => $jInfo['type'],
-                                                        'name' => $produk['nama_produk'],
-                                                        'provider' => 'TokoVoucher',
-                                                        'cost' => (float)$produk['price'],
-                                                        'price' => $calculatedPrice,
-                                                        'status' => 'Aktif',
-                                                        'updated_at' => $now,
-                                                        'created_at' => $now,
-                                                    ];
-                                                }
-                                            }
-
-                                            if (!empty($toUpsert)) {
-                                                Service::upsert($toUpsert, ['product_code'], ['category_id', 'product_jenis_id', 'type', 'name', 'cost', 'price', 'status', 'updated_at']);
-                                                $count += count($toUpsert);
-                                            }
-                                        } else {
-                                            Log::warning("Sync: Skipping Jenis {$jenisId} because Category ID not found for Operator {$jInfo['operator_id']}");
+                                if ($appCategoryId) {
+                                    $toUpsert = [];
+                                    $now = now();
+                                    foreach ($resJson['data'] as $produk) {
+                                        if ($produk['status'] == 1) {
+                                            $calculatedPrice = Service::calculatePrice($produk['price'], $marginPublic);
+                                            $toUpsert[] = [
+                                                'product_code' => $produk['code'],
+                                                'category_id' => $appCategoryId,
+                                                'product_jenis_id' => $j['id'],
+                                                'type' => $j['type'],
+                                                'name' => $produk['nama_produk'],
+                                                'provider' => 'TokoVoucher',
+                                                'cost' => (float)$produk['price'],
+                                                'price' => $calculatedPrice,
+                                                'status' => 'Aktif',
+                                                'updated_at' => $now,
+                                                'created_at' => $now,
+                                            ];
                                         }
                                     }
-                                } else {
-                                    $batchHasFailure = true;
-                                    Log::error("Sync: HTTP Error for Jenis {$jenisId} in batch (retry {$retryCount})", ['status' => $response->status()]);
-                                }
-                            } else {
-                                $batchHasFailure = true;
-                                Log::error("Sync: Connection Error for Jenis {$jenisId} in batch (retry {$retryCount})", ['msg' => method_exists($response, 'getMessage') ? $response->getMessage() : 'Unknown Error']);
-                            }
-                        }
 
-                        if (!$batchHasFailure) {
-                            $success = true;
+                                    if (!empty($toUpsert)) {
+                                        Service::upsert($toUpsert, ['product_code'], ['category_id', 'product_jenis_id', 'type', 'name', 'cost', 'price', 'status', 'updated_at']);
+                                        $count += count($toUpsert);
+                                    }
+                                }
+                                $success = true;
+                            }
                         } else {
-                            $retryCount++;
-                            if ($retryCount <= $maxRetries) {
-                                $delay = pow(2, $retryCount) + 1; // Exponential backoff: 3s, 5s, 9s
-                                Log::warning("Sync: Batch failure, retrying in {$delay}s... (Attempt {$retryCount}/{$maxRetries})");
-                                sleep($delay); 
+                            if ($response->status() == 503) {
+                                $retryCount++;
+                                $delay = pow(2, $retryCount) + 1;
+                                Log::warning("Sync: 503 Error for Jenis {$j['id']}, retrying in {$delay}s...");
+                                sleep($delay);
+                            } else {
+                                Log::error("Sync: HTTP Error {$response->status()} for Jenis {$j['id']}");
+                                $success = true; // Stop retrying for non-503 errors
                             }
                         }
                     } catch (\Exception $e) {
                         $retryCount++;
                         $delay = pow(2, $retryCount) + 1;
-                        Log::error("Sync Pool Exception for batch (retry {$retryCount}): " . $e->getMessage());
-                        if ($retryCount <= $maxRetries) {
-                            sleep($delay);
-                        }
+                        Log::error("Sync Exception for Jenis {$j['id']} (retry {$retryCount}): " . $e->getMessage());
+                        sleep($delay);
                     }
                 }
 
-                // Small delay between batches to respect rate limits
-                usleep(500000); // 500ms
-
-                // Advance bar for all items in chunk regardless of final success
-                foreach($chunk as $item) {
-                    $bar->advance();
-                }
+                // Mandatory delay to respect rate limit
+                usleep(300000); // 300ms
+                $bar->advance();
             }
 
             $bar->finish();
