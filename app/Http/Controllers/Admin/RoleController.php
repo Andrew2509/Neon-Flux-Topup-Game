@@ -55,14 +55,23 @@ class RoleController extends Controller
             'permissions' => 'array'
         ]);
 
+        $isSystemRole = in_array($role->slug, ['super-admin', 'member']);
+        $isSuperAdmin = $role->slug === 'super-admin';
+
         $role->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
+            'slug' => $isSystemRole ? $role->slug : Str::slug($request->name),
         ]);
 
-        $role->permissions()->sync($request->permissions ?? []);
+        if ($isSuperAdmin) {
+            // Super admin handles ALL permissions
+            $allPermissions = Permission::pluck('id')->toArray();
+            $role->permissions()->sync($allPermissions);
+        } else {
+            $role->permissions()->sync($request->permissions ?? []);
+        }
 
-        return redirect()->route('admin.management.role.index')->with('status', 'Role berhasil diperbarui!');
+        return redirect()->route('admin.management.role.index')->with('success', 'Role ' . $role->name . ' berhasil diperbarui!');
     }
 
     public function destroy(Role $role)

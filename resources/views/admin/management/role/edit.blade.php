@@ -2,7 +2,12 @@
 
 @section('title', 'Edit Role: ' . $role->name)
 @section('page_title', 'Edit Role')
-@section('page_description', 'Atur ijin dan hak akses untuk role ' . $role->name)
+@section('page_description', 'Perbarui hak akses untuk grup ' . $role->name)
+
+@php
+    $isSystemRole = in_array($role->slug, ['super-admin', 'member']);
+    $isSuperAdmin = $role->slug === 'super-admin';
+@endphp
 
 @section('content')
 <div class="max-w-4xl mx-auto">
@@ -16,23 +21,51 @@
         @method('PUT')
 
         <div class="glass-panel p-8 rounded-3xl space-y-6">
-            <div class="space-y-2">
-                <label class="text-sm font-bold text-slate-400 uppercase tracking-wider">Nama Role</label>
-                <input type="text" name="name" value="{{ old('name', $role->name) }}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" placeholder="Contoh: Admin Operator" required>
-                @error('name') <p class="text-xs text-accent-red mt-1">{{ $message }}</p> @enderror
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <label class="text-sm font-bold text-slate-400 uppercase tracking-wider">Nama Role</label>
+                    <input type="text" name="name" value="{{ old('name', $role->name) }}" 
+                        {{ $isSystemRole ? 'readonly' : '' }}
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none {{ $isSystemRole ? 'opacity-70 cursor-not-allowed' : '' }}" 
+                        placeholder="Contoh: Admin Operator" required>
+                </div>
+                @if($isSystemRole)
+                <div class="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center gap-2 h-fit mt-6">
+                    <span class="material-symbols-outlined text-sm">lock</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Role Sistem</span>
+                </div>
+                @endif
             </div>
+            @if($isSuperAdmin)
+            <div class="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-start gap-3">
+                <span class="material-symbols-outlined text-xl">info</span>
+                <p class="text-xs leading-relaxed">Role <strong>Super Admin</strong> memiliki akses penuh ke seluruh fitur sistem secara permanen untuk mencegah kesalahan konfigurasi yang dapat mengunci akses sistem.</p>
+            </div>
+            @endif
+            @error('name') <p class="text-xs text-accent-red mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="space-y-4">
-            <h3 class="text-lg font-bold">Izin & Hak Akses</h3>
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold">Izin & Hak Akses</h3>
+                @if(!$isSuperAdmin)
+                <button type="button" onclick="toggleAllPermissions(true)" class="text-xs font-bold text-primary hover:underline">Pilih Semua</button>
+                @endif
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($permissions as $permission)
-                <label class="glass-panel p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 border border-white/5 transition-all group">
-                    <div class="relative flex items-center">
+                @php $isChecked = in_array($permission->id, $rolePermissions); @endphp
+                <label class="glass-panel p-4 rounded-2xl flex items-center gap-4 border border-white/5 transition-all group {{ $isSuperAdmin ? 'opacity-80' : 'cursor-pointer hover:bg-white/5' }}">
+                    <div class="relative flex items-center justify-center">
                         <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" 
-                            {{ in_array($permission->id, $rolePermissions) ? 'checked' : '' }}
-                            class="peer appearance-none size-6 border-2 border-white/10 rounded-lg checked:bg-primary checked:border-primary transition-all outline-none cursor-pointer">
-                        <span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform left-1/2 -translate-x-1/2 pointer-events-none text-sm font-bold">check</span>
+                            {{ $isChecked || $isSuperAdmin ? 'checked' : '' }}
+                            {{ $isSuperAdmin ? 'disabled' : '' }}
+                            class="permission-checkbox peer appearance-none size-6 border-2 border-white/10 rounded-lg checked:bg-primary checked:border-primary transition-all outline-none {{ $isSuperAdmin ? 'cursor-default' : 'cursor-pointer' }}">
+                        <span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform pointer-events-none text-sm font-bold">check</span>
+                        
+                        @if($isSuperAdmin)
+                            <input type="hidden" name="permissions[]" value="{{ $permission->id }}">
+                        @endif
                     </div>
                     <div class="flex-1">
                         <p class="font-bold text-sm">{{ $permission->name }}</p>
@@ -53,4 +86,15 @@
         </div>
     </form>
 </div>
+@push('scripts')
+<script>
+    function toggleAllPermissions(checked) {
+        document.querySelectorAll('.permission-checkbox').forEach(el => {
+            if (!el.disabled) {
+                el.checked = checked;
+            }
+        });
+    }
+</script>
+@endpush
 @endsection
