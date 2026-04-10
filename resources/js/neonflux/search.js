@@ -6,7 +6,7 @@
     const content = document.getElementById('nf-search-content');
     const input = document.getElementById('nf-search-input');
     const overlay = document.getElementById('nf-search-close-overlay');
-    const trigger = document.getElementById('nf-search-trigger');
+    const triggers = document.querySelectorAll('.nf-search-trigger');
     const resultsWrap = document.getElementById('nf-search-results-list');
     const initialView = document.getElementById('nf-search-initial');
     const loadingView = document.getElementById('nf-search-loading');
@@ -50,8 +50,10 @@
         }
     });
 
-    if (trigger) {
-        trigger.addEventListener('click', openModal);
+    if (triggers.length > 0) {
+        triggers.forEach(trigger => {
+            trigger.addEventListener('click', openModal);
+        });
     }
 
     if (overlay) {

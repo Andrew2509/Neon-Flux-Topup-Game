@@ -63,9 +63,8 @@
     {{-- Search Button (Desktop) --}}
     <div class="hidden lg:flex flex-shrink-0 ml-4">
         <button
-            id="nf-search-trigger"
-            class="[--background:transparent] [--color:#ffffff] [--muted:rgba(255,255,255,0.05)] [--muted-foreground:#9c9c9c] [--border:rgba(255,255,255,0.1)] relative inline-flex items-center whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 border border-[--border] bg-[--background] hover:bg-[--muted] hover:border-primary/30 text-[--muted-foreground] hover:text-[--color] px-4 py-2 justify-start rounded-xl text-sm font-normal shadow-none h-10 w-64 group cursor-pointer active:scale-95"
             type="button"
+            class="nf-search-trigger [--background:transparent] [--color:#ffffff] [--muted:rgba(255,255,255,0.05)] [--muted-foreground:#9c9c9c] [--border:rgba(255,255,255,0.1)] relative inline-flex items-center whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 border border-[--border] bg-[--background] hover:bg-[--muted] hover:border-primary/30 text-[--muted-foreground] hover:text-[--color] px-4 py-2 justify-start rounded-xl text-sm font-normal shadow-none h-10 w-64 group cursor-pointer active:scale-95"
         >
             <span class="flex items-center gap-2">
                 <span class="material-icons-round text-lg group-hover:text-primary transition-colors">search</span>
@@ -81,6 +80,11 @@
 
     {{-- User + menu HP --}}
     <div class="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+        {{-- Mobile Search Trigger --}}
+        <button type="button" class="nf-search-trigger md:hidden flex items-center justify-center size-10 rounded-xl glass-panel border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white touch-manipulation shadow-sm active:scale-95 transition-transform" aria-label="Cari game">
+            <span class="material-icons-round text-2xl">search</span>
+        </button>
+
         @auth
             <div class="relative group/user hidden sm:block">
                 <div class="flex items-center gap-2 glass-panel px-2 sm:px-3 py-1.5 rounded-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all">
