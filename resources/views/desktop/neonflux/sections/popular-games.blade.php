@@ -3,13 +3,13 @@
     ============================================================ --}}
 <div class="w-full mb-10">
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-display font-bold text-slate-950 dark:text-white flex items-center">
+        <h2 class="text-lg md:text-2xl font-display font-bold text-slate-950 dark:text-white flex items-center">
             <span class="material-icons-round mr-2 text-primary animate-pulse">trending_up</span>
             Populer Sekarang!
         </h2>
-        <a href="{{ route('catalog') }}" class="text-primary hover:text-secondary transition-colors text-sm font-bold flex items-center group">
+        <a href="{{ route('catalog') }}" class="text-primary hover:text-secondary transition-colors text-xs md:text-sm font-bold flex items-center group">
             Lihat Semua
-            <span class="material-icons-round text-sm ml-1 group-hover:translate-x-1 transition-transform">chevron_right</span>
+            <span class="material-icons-round text-xs md:text-sm ml-1 group-hover:translate-x-1 transition-transform">chevron_right</span>
         </a>
     </div>
 
