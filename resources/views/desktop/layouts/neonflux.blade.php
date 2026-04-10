@@ -80,6 +80,8 @@
 
     @include('desktop.partials.mobile-menu-drawer')
 
+    @include('desktop.partials.search-modal')
+
     {{-- Removed Theme Toggle Script per user request --}}
 
 

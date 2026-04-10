@@ -60,6 +60,25 @@
         </div>
     </div>
 
+    {{-- Search Button (Desktop) --}}
+    <div class="hidden lg:flex flex-shrink-0 ml-4">
+        <button
+            id="nf-search-trigger"
+            class="[--background:transparent] [--color:#ffffff] [--muted:rgba(255,255,255,0.05)] [--muted-foreground:#9c9c9c] [--border:rgba(255,255,255,0.1)] relative inline-flex items-center whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 border border-[--border] bg-[--background] hover:bg-[--muted] hover:border-primary/30 text-[--muted-foreground] hover:text-[--color] px-4 py-2 justify-start rounded-xl text-sm font-normal shadow-none h-10 w-64 group cursor-pointer active:scale-95"
+            type="button"
+        >
+            <span class="flex items-center gap-2">
+                <span class="material-icons-round text-lg group-hover:text-primary transition-colors">search</span>
+                <span>Cari game...</span>
+            </span>
+            <kbd
+                class="pointer-events-none absolute right-[0.5rem] top-[0.45rem] flex h-6 select-none items-center gap-1 rounded-lg border border-[--border] bg-[--muted] px-2 font-mono text-[10px] font-medium opacity-100 group-hover:border-primary/20"
+            >
+                <span class="text-xs">⌘</span>K
+            </kbd>
+        </button>
+    </div>
+
     {{-- User + menu HP --}}
     <div class="flex items-center gap-1 sm:gap-3 flex-shrink-0">
         @auth

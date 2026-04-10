@@ -242,6 +242,9 @@ Route::group(['middleware' => []], function () {
     Route::get('/login-ui', fn () => redirect()->route('login'));
     Route::get('/register-ui', fn () => redirect()->route('register'));
 
+    // Smart Search API
+    Route::get('/api/v1/search', [\App\Http\Controllers\Api\SearchController::class, 'search'])->name('api.search');
+
     // JWT Test Routes
     Route::prefix('api/jwt')->group(function () {
         Route::get('/generate', function (\App\Services\JwtService $jwt) {
