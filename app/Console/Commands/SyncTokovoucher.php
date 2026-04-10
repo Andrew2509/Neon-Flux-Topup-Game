@@ -227,13 +227,13 @@ class SyncTokovoucher extends Command
             // STEP 4: Fetch Products for each Jenis in batches of 10 with retries
             $count = 0;
             $totalJenis = count($targetJenis);
-            $chunks = array_chunk($targetJenis, 10);
+            $chunks = array_chunk($targetJenis, 5); // Reduced from 10 to 5 to avoid 503 errors
             $bar = $this->output->createProgressBar($totalJenis);
             $bar->start();
 
             foreach ($chunks as $chunk) {
                 $retryCount = 0;
-                $maxRetries = 2;
+                $maxRetries = 3; // Increased from 2 to 3
                 $success = false;
 
                 while ($retryCount <= $maxRetries && !$success) {
@@ -311,17 +311,23 @@ class SyncTokovoucher extends Command
                         } else {
                             $retryCount++;
                             if ($retryCount <= $maxRetries) {
-                                sleep(2); // Wait before retry
+                                $delay = pow(2, $retryCount) + 1; // Exponential backoff: 3s, 5s, 9s
+                                Log::warning("Sync: Batch failure, retrying in {$delay}s... (Attempt {$retryCount}/{$maxRetries})");
+                                sleep($delay); 
                             }
                         }
                     } catch (\Exception $e) {
                         $retryCount++;
+                        $delay = pow(2, $retryCount) + 1;
                         Log::error("Sync Pool Exception for batch (retry {$retryCount}): " . $e->getMessage());
                         if ($retryCount <= $maxRetries) {
-                            sleep(2);
+                            sleep($delay);
                         }
                     }
                 }
+
+                // Small delay between batches to respect rate limits
+                usleep(500000); // 500ms
 
                 // Advance bar for all items in chunk regardless of final success
                 foreach($chunk as $item) {
