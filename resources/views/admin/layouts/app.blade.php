@@ -47,63 +47,90 @@
             </div>
         </div>
         <nav class="flex-1 px-4 space-y-1">
+            @can('akses-dashboard')
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">dashboard</span>
                 <span class="text-sm font-semibold">Dashboard</span>
             </a>
+            @endcan
+            @can('kelola-pesanan')
             <a href="{{ route('admin.orders') }}" class="{{ request()->routeIs('admin.orders') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">shopping_cart</span>
                 <span class="text-sm font-medium">Pesanan</span>
             </a>
+            @endcan
+            @can('manajemen-user-akses')
             <a href="{{ route('admin.management.user.index') }}" class="{{ request()->routeIs('admin.management.user.index') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">group</span>
                 <span class="text-sm font-medium">Manajemen User</span>
             </a>
+            @endcan
+            @can('kelola-deposit')
             <a href="{{ route('admin.deposits') }}" class="{{ request()->routeIs('admin.deposits') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">account_balance_wallet</span>
                 <span class="text-sm font-medium">Deposit Member</span>
             </a>
+            @endcan
+            @can('kelola-kategori')
             <a href="{{ route('admin.categories') }}" class="{{ request()->routeIs('admin.categories') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">category</span>
                 <span class="text-sm font-medium">Kategori</span>
             </a>
+            @endcan
             @php
                 $isProductActive = request()->routeIs('admin.services') || request()->routeIs('admin.packages');
             @endphp
+            @if(Auth::user()->can('kelola-layanan') || Auth::user()->can('kelola-paket') || Auth::user()->can('kelola-tokovoucher') || Auth::user()->can('kelola-logo'))
             <div class="{{ $isProductActive ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer" onclick="document.getElementById('product-submenu').classList.toggle('hidden')">
                 <span class="material-symbols-outlined">inventory_2</span>
                 <span class="text-sm font-medium">Produk</span>
                 <span class="material-symbols-outlined text-sm ml-auto text-slate-500 transition-transform duration-200" id="product-chevron">expand_more</span>
             </div>
             <div id="product-submenu" class="pl-12 pr-4 space-y-1 mt-1 {{ $isProductActive ? '' : 'hidden' }}">
+                @can('kelola-layanan')
                 <a href="{{ route('admin.services') }}" class="{{ request()->routeIs('admin.services') ? 'text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 py-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                     <span class="text-xs font-medium">Layanan</span>
                 </a>
+                @endcan
+                @can('kelola-paket')
                 <a href="{{ route('admin.packages.index') }}" class="{{ request()->routeIs('admin.packages.*') ? 'text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 py-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                     <span class="text-xs font-medium">Paket Layanan</span>
                 </a>
+                @endcan
+                @can('kelola-tokovoucher')
                 <a href="{{ route('admin.tokovoucher.categories') }}" class="{{ request()->routeIs('admin.tokovoucher.categories') ? 'text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 py-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                     <span class="text-xs font-medium">Kategori (TokoVoucher)</span>
                 </a>
+                @endcan
+                @can('kelola-logo')
                 <a href="{{ route('admin.logo-generator.index') }}" class="{{ request()->routeIs('admin.logo-generator.index') ? 'text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 py-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                     <span class="text-xs font-medium">Logo Generator</span>
                 </a>
+                @endcan
             </div>
+            @endif
+            @can('kelola-voucher')
             <a href="{{ route('admin.vouchers') }}" class="{{ request()->routeIs('admin.vouchers') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">confirmation_number</span>
                 <span class="text-sm font-medium">Voucher</span>
             </a>
+            @endcan
+            @can('kelola-slider')
             <a href="{{ route('admin.sliders') }}" class="{{ request()->routeIs('admin.sliders') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">view_carousel</span>
                 <span class="text-sm font-medium">Slider dan Banner</span>
             </a>
+            @endcan
+            @can('kelola-pembayaran')
             <a href="{{ route('admin.payments') }}" class="{{ request()->routeIs('admin.payments') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">payments</span>
                 <span class="text-sm font-medium">Pembayaran</span>
             </a>
+            @endcan
             @php
                 $isWithdrawalActive = request()->routeIs('admin.withdrawals.*');
             @endphp
+            @can('kelola-penarikan')
             <div class="{{ $isWithdrawalActive ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer" onclick="document.getElementById('withdrawal-submenu').classList.toggle('hidden')">
                 <span class="material-symbols-outlined">account_balance</span>
                 <span class="text-sm font-medium">Penarikan</span>
@@ -117,18 +144,25 @@
                     <span class="text-xs font-medium">E-Wallet Reload</span>
                 </a>
             </div>
+            @endcan
+            @can('view-rating')
             <a href="{{ route('admin.ratings') }}" class="{{ request()->routeIs('admin.ratings') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">star</span>
                 <span class="text-sm font-medium">Rating Customer</span>
             </a>
+            @endcan
+            @can('kelola-provider')
             <a href="{{ route('admin.providers') }}" class="{{ request()->routeIs('admin.providers') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">database</span>
                 <span class="text-sm font-medium">Provider</span>
             </a>
+            @endcan
+            @can('kelola-setting')
             <a href="{{ route('admin.settings') }}" class="{{ request()->routeIs('admin.settings') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer">
                 <span class="material-symbols-outlined">settings</span>
                 <span class="text-sm font-medium">Pengaturan Website</span>
             </a>
+            @endcan
 
             @can('manajemen-user-akses')
             <div class="mt-4 mb-1 px-4 text-[10px] uppercase tracking-widest text-slate-500 font-bold">Administrator</div>

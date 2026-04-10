@@ -134,83 +134,125 @@ Route::group(['middleware' => []], function () {
     Route::post('/admin/cron/register', [App\Http\Controllers\Api\CronController::class, 'registerToCronJobOrg'])->name('admin.cron.register');
 
     // Admin Routes
-    Route::get('/admin-dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/admin/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders');
-    Route::post('/admin/orders/{order}/fulfill-tokovoucher', [App\Http\Controllers\Admin\OrderController::class, 'fulfillTokovoucher'])->name('admin.orders.fulfill_tokovoucher');
-    Route::delete('/admin/orders/mass-destroy', [App\Http\Controllers\Admin\OrderController::class, 'massDestroy'])->name('admin.orders.mass_destroy');
-    Route::delete('/admin/orders/destroy-all', [App\Http\Controllers\Admin\OrderController::class, 'destroyAll'])->name('admin.orders.destroy_all');
-    Route::get('/admin/members', [App\Http\Controllers\Admin\MemberController::class, 'index'])->name('admin.members');
-    Route::get('/admin/members/create', [App\Http\Controllers\Admin\MemberController::class, 'create'])->name('admin.members.create');
-    Route::post('/admin/members', [App\Http\Controllers\Admin\MemberController::class, 'store'])->name('admin.members.store');
-    Route::get('/admin/members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'show'])->name('admin.members.show');
-    Route::get('/admin/members/{user}/edit', [App\Http\Controllers\Admin\MemberController::class, 'edit'])->name('admin.members.edit');
-    Route::put('/admin/members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'update'])->name('admin.members.update');
-    Route::delete('/admin/members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'destroy'])->name('admin.members.destroy');
-    Route::get('/admin/deposits', [App\Http\Controllers\Admin\DepositController::class, 'index'])->name('admin.deposits');
-    Route::get('/admin/categories', [App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('admin.categories');
-    Route::get('/admin/services', [App\Http\Controllers\Admin\ServiceController::class, 'index'])->name('admin.services');
-    Route::get('/admin/services/ajax-search', [App\Http\Controllers\Admin\ServiceController::class, 'ajaxSearch'])->name('admin.services.ajax_search');
-    Route::get('/admin/services/sync-list', [App\Http\Controllers\Admin\ServiceController::class, 'getSyncList'])->name('admin.services.sync_list');
-    Route::post('/admin/services/sync', [App\Http\Controllers\Admin\ServiceController::class, 'syncTokoVoucher'])->name('admin.services.sync');
-    Route::post('/admin/services/{id}/toggle', [App\Http\Controllers\Admin\ServiceController::class, 'toggle'])->name('admin.services.toggle');
-    Route::get('/admin/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('admin.packages.index');
-    Route::get('/admin/packages/operator/{id}', [App\Http\Controllers\Admin\PackageController::class, 'showOperator'])->name('admin.packages.operator');
-    Route::get('/admin/packages/operator/{id}/edit', [App\Http\Controllers\Admin\PackageController::class, 'editOperator'])->name('admin.packages.operator.edit');
-    Route::put('/admin/packages/operator/{id}', [App\Http\Controllers\Admin\PackageController::class, 'updateOperator'])->name('admin.packages.operator.update');
-    Route::post('/admin/packages/operator/{id}/toggle', [App\Http\Controllers\Admin\PackageController::class, 'toggleOperatorStatus'])->name('admin.packages.operator.toggle');
-    Route::get('/admin/packages/jenis/{id}', [App\Http\Controllers\Admin\PackageController::class, 'showJenis'])->name('admin.packages.jenis');
-    Route::post('/admin/packages/jenis/{id}/toggle', [App\Http\Controllers\Admin\PackageController::class, 'toggleJenisStatus'])->name('admin.packages.jenis.toggle');
-    Route::post('/admin/packages/services/{id}/toggle', [App\Http\Controllers\Admin\PackageController::class, 'toggleServiceStatus'])->name('admin.packages.services.toggle');
-    Route::delete('/admin/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'destroy'])->name('admin.packages.destroy');
-    Route::get('/admin/vouchers', [App\Http\Controllers\Admin\VoucherController::class, 'index'])->name('admin.vouchers');
-    Route::get('/admin/vouchers/create', [App\Http\Controllers\Admin\VoucherController::class, 'create'])->name('admin.vouchers.create');
-    Route::post('/admin/vouchers', [App\Http\Controllers\Admin\VoucherController::class, 'store'])->name('admin.vouchers.store');
-    Route::get('/admin/vouchers/{voucher}', [App\Http\Controllers\Admin\VoucherController::class, 'show'])->name('admin.vouchers.show');
-    Route::get('/admin/vouchers/{voucher}/edit', [App\Http\Controllers\Admin\VoucherController::class, 'edit'])->name('admin.vouchers.edit');
-    Route::put('/admin/vouchers/{voucher}', [App\Http\Controllers\Admin\VoucherController::class, 'update'])->name('admin.vouchers.update');
-    Route::delete('/admin/vouchers/{voucher}', [App\Http\Controllers\Admin\VoucherController::class, 'destroy'])->name('admin.vouchers.destroy');
-    Route::get('/admin/sliders', [App\Http\Controllers\Admin\SliderController::class, 'index'])->name('admin.sliders');
-    Route::get('/admin/sliders/create', [App\Http\Controllers\Admin\SliderController::class, 'create'])->name('admin.sliders.create');
-    Route::post('/admin/sliders', [App\Http\Controllers\Admin\SliderController::class, 'store'])->name('admin.sliders.store');
-    Route::get('/admin/sliders/{slider}/edit', [App\Http\Controllers\Admin\SliderController::class, 'edit'])->name('admin.sliders.edit');
-    Route::put('/admin/sliders/{slider}', [App\Http\Controllers\Admin\SliderController::class, 'update'])->name('admin.sliders.update');
-    Route::delete('/admin/sliders/{slider}', [App\Http\Controllers\Admin\SliderController::class, 'destroy'])->name('admin.sliders.destroy');
-    Route::get('/admin/withdrawals/bank', [App\Http\Controllers\Admin\WithdrawalController::class, 'bankForm'])->name('admin.withdrawals.bank');
-    Route::post('/admin/withdrawals/bank', [App\Http\Controllers\Admin\WithdrawalController::class, 'processBank'])->name('admin.withdrawals.bank.process');
-    Route::get('/admin/withdrawals/ewallet', [App\Http\Controllers\Admin\WithdrawalController::class, 'ewalletForm'])->name('admin.withdrawals.ewallet');
-    Route::post('/admin/withdrawals/ewallet', [App\Http\Controllers\Admin\WithdrawalController::class, 'processEwallet'])->name('admin.withdrawals.ewallet.process');
+    // Admin Dashboard
+    Route::middleware(['auth', 'permission:akses-dashboard'])->get('/admin-dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
 
-    Route::get('/admin/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('admin.payments');
-    Route::post('/admin/payments/sync', [App\Http\Controllers\Admin\PaymentController::class, 'syncDuitku'])->name('admin.payments.sync');
-    Route::post('/admin/payments/sync-ipaymu', [App\Http\Controllers\Admin\PaymentController::class, 'syncIPaymu'])->name('admin.payments.sync_ipaymu');
-    Route::post('/admin/payments/sync-midtrans', [App\Http\Controllers\Admin\PaymentController::class, 'syncMidtrans'])->name('admin.payments.sync_midtrans');
-    Route::post('/admin/payments/sync-doku', [App\Http\Controllers\Admin\PaymentController::class, 'syncDoku'])->name('admin.payments.sync_doku');
-    Route::get('/admin/payments/create', [App\Http\Controllers\Admin\PaymentController::class, 'create'])->name('admin.payments.create');
-    Route::post('/admin/payments', [App\Http\Controllers\Admin\PaymentController::class, 'store'])->name('admin.payments.store');
-    Route::get('/admin/payments/{payment}/edit', [App\Http\Controllers\Admin\PaymentController::class, 'edit'])->name('admin.payments.edit');
-    Route::put('/admin/payments/{payment}', [App\Http\Controllers\Admin\PaymentController::class, 'update'])->name('admin.payments.update');
-    Route::post('/admin/payments/{payment}/toggle', [App\Http\Controllers\Admin\PaymentController::class, 'toggle'])->name('admin.payments.toggle');
-    Route::delete('/admin/payments/{payment}', [App\Http\Controllers\Admin\PaymentController::class, 'destroy'])->name('admin.payments.destroy');
+    // Admin Orders
+    Route::middleware(['auth', 'permission:kelola-pesanan'])->group(function () {
+        Route::get('/admin/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders');
+        Route::post('/admin/orders/{order}/fulfill-tokovoucher', [App\Http\Controllers\Admin\OrderController::class, 'fulfillTokovoucher'])->name('admin.orders.fulfill_tokovoucher');
+        Route::delete('/admin/orders/mass-destroy', [App\Http\Controllers\Admin\OrderController::class, 'mass_destroy'])->name('admin.orders.mass_destroy');
+        Route::delete('/admin/orders/destroy-all', [App\Http\Controllers\Admin\OrderController::class, 'destroy_all'])->name('admin.orders.destroy_all');
+    });
+    // Admin Members
+    Route::middleware(['auth', 'permission:kelola-member'])->group(function () {
+        Route::get('/admin/members', [App\Http\Controllers\Admin\MemberController::class, 'index'])->name('admin.members');
+        Route::get('/admin/members/create', [App\Http\Controllers\Admin\MemberController::class, 'create'])->name('admin.members.create');
+        Route::post('/admin/members', [App\Http\Controllers\Admin\MemberController::class, 'store'])->name('admin.members.store');
+        Route::get('/admin/members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'show'])->name('admin.members.show');
+        Route::get('/admin/members/{user}/edit', [App\Http\Controllers\Admin\MemberController::class, 'edit'])->name('admin.members.edit');
+        Route::put('/admin/members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'update'])->name('admin.members.update');
+        Route::delete('/admin/members/{user}', [App\Http\Controllers\Admin\MemberController::class, 'destroy'])->name('admin.members.destroy');
+    });
+    // Admin Deposits
+    Route::middleware(['auth', 'permission:kelola-deposit'])->get('/admin/deposits', [App\Http\Controllers\Admin\DepositController::class, 'index'])->name('admin.deposits');
 
-    Route::get('/admin/ratings', [App\Http\Controllers\Admin\RatingController::class, 'index'])->name('admin.ratings');
-    Route::get('/admin/providers', [App\Http\Controllers\Admin\ProviderController::class, 'index'])->name('admin.providers');
-    Route::get('/admin/providers/create', [App\Http\Controllers\Admin\ProviderController::class, 'create'])->name('admin.providers.create');
-    Route::post('/admin/providers', [App\Http\Controllers\Admin\ProviderController::class, 'store'])->name('admin.providers.store');
-    Route::get('/admin/providers/{provider}/edit', [App\Http\Controllers\Admin\ProviderController::class, 'edit'])->name('admin.providers.edit');
-    Route::put('/admin/providers/{provider}', [App\Http\Controllers\Admin\ProviderController::class, 'update'])->name('admin.providers.update');
-    Route::delete('/admin/providers/{provider}', [App\Http\Controllers\Admin\ProviderController::class, 'destroy'])->name('admin.providers.destroy');
-    Route::post('/admin/providers/{provider}/balance', [App\Http\Controllers\Admin\ProviderController::class, 'syncBalance'])->name('admin.providers.balance');
-    Route::get('/admin/providers/{provider}/deposit', [App\Http\Controllers\Admin\ProviderController::class, 'showDepositForm'])->name('admin.providers.deposit.form');
-    Route::post('/admin/providers/{provider}/deposit', [App\Http\Controllers\Admin\ProviderController::class, 'processDeposit'])->name('admin.providers.deposit.process');
-    Route::get('/admin/tokovoucher/categories', [\App\Http\Controllers\Admin\TokovoucherController::class, 'categories'])->name('admin.tokovoucher.categories');
-    Route::post('/admin/tokovoucher/categories/{id}/sync', [\App\Http\Controllers\Admin\TokovoucherController::class, 'syncCategory'])->name('admin.tokovoucher.sync');
-    Route::post('/admin/tokovoucher/categories/{id}/toggle', [\App\Http\Controllers\Admin\TokovoucherController::class, 'toggleProviderCategory'])->name('admin.tokovoucher.toggle');
+    // Admin Categories
+    Route::middleware(['auth', 'permission:kelola-kategori'])->get('/admin/categories', [App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('admin.categories');
 
-    Route::get('/admin/logo-generator', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'index'])->name('admin.logo-generator.index');
-    Route::post('/admin/logo-generator/generate', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'generate'])->name('admin.logo-generator.generate');
+    // Admin Services
+    Route::middleware(['auth', 'permission:kelola-layanan'])->group(function () {
+        Route::get('/admin/services', [App\Http\Controllers\Admin\ServiceController::class, 'index'])->name('admin.services');
+        Route::get('/admin/services/ajax-search', [App\Http\Controllers\Admin\ServiceController::class, 'ajaxSearch'])->name('admin.services.ajax_search');
+        Route::get('/admin/services/sync-list', [App\Http\Controllers\Admin\ServiceController::class, 'getSyncList'])->name('admin.services.sync_list');
+        Route::post('/admin/services/sync', [App\Http\Controllers\Admin\ServiceController::class, 'syncTokoVoucher'])->name('admin.services.sync');
+        Route::post('/admin/services/{id}/toggle', [App\Http\Controllers\Admin\ServiceController::class, 'toggle'])->name('admin.services.toggle');
+    });
+    // Admin Packages
+    Route::middleware(['auth', 'permission:kelola-paket'])->group(function () {
+        Route::get('/admin/packages', [App\Http\Controllers\Admin\PackageController::class, 'index'])->name('admin.packages.index');
+        Route::get('/admin/packages/operator/{id}', [App\Http\Controllers\Admin\PackageController::class, 'showOperator'])->name('admin.packages.operator');
+        Route::get('/admin/packages/operator/{id}/edit', [App\Http\Controllers\Admin\PackageController::class, 'editOperator'])->name('admin.packages.operator.edit');
+        Route::put('/admin/packages/operator/{id}', [App\Http\Controllers\Admin\PackageController::class, 'updateOperator'])->name('admin.packages.operator.update');
+        Route::post('/admin/packages/operator/{id}/toggle', [App\Http\Controllers\Admin\PackageController::class, 'toggleOperatorStatus'])->name('admin.packages.operator.toggle');
+        Route::get('/admin/packages/jenis/{id}', [App\Http\Controllers\Admin\PackageController::class, 'showJenis'])->name('admin.packages.jenis');
+        Route::post('/admin/packages/jenis/{id}/toggle', [App\Http\Controllers\Admin\PackageController::class, 'toggleJenisStatus'])->name('admin.packages.jenis.toggle');
+        Route::post('/admin/packages/services/{id}/toggle', [App\Http\Controllers\Admin\PackageController::class, 'toggleServiceStatus'])->name('admin.packages.services.toggle');
+        Route::delete('/admin/packages/{package}', [App\Http\Controllers\Admin\PackageController::class, 'destroy'])->name('admin.packages.destroy');
+    });
+    // Admin Vouchers
+    Route::middleware(['auth', 'permission:kelola-voucher'])->group(function () {
+        Route::get('/admin/vouchers', [App\Http\Controllers\Admin\VoucherController::class, 'index'])->name('admin.vouchers');
+        Route::get('/admin/vouchers/create', [App\Http\Controllers\Admin\VoucherController::class, 'create'])->name('admin.vouchers.create');
+        Route::post('/admin/vouchers', [App\Http\Controllers\Admin\VoucherController::class, 'store'])->name('admin.vouchers.store');
+        Route::get('/admin/vouchers/{voucher}', [App\Http\Controllers\Admin\VoucherController::class, 'show'])->name('admin.vouchers.show');
+        Route::get('/admin/vouchers/{voucher}/edit', [App\Http\Controllers\Admin\VoucherController::class, 'edit'])->name('admin.vouchers.edit');
+        Route::put('/admin/vouchers/{voucher}', [App\Http\Controllers\Admin\VoucherController::class, 'update'])->name('admin.vouchers.update');
+        Route::delete('/admin/vouchers/{voucher}', [App\Http\Controllers\Admin\VoucherController::class, 'destroy'])->name('admin.vouchers.destroy');
+    });
+    // Admin Sliders
+    Route::middleware(['auth', 'permission:kelola-slider'])->group(function () {
+        Route::get('/admin/sliders', [App\Http\Controllers\Admin\SliderController::class, 'index'])->name('admin.sliders');
+        Route::get('/admin/sliders/create', [App\Http\Controllers\Admin\SliderController::class, 'create'])->name('admin.sliders.create');
+        Route::post('/admin/sliders', [App\Http\Controllers\Admin\SliderController::class, 'store'])->name('admin.sliders.store');
+        Route::get('/admin/sliders/{slider}/edit', [App\Http\Controllers\Admin\SliderController::class, 'edit'])->name('admin.sliders.edit');
+        Route::put('/admin/sliders/{slider}', [App\Http\Controllers\Admin\SliderController::class, 'update'])->name('admin.sliders.update');
+        Route::delete('/admin/sliders/{slider}', [App\Http\Controllers\Admin\SliderController::class, 'destroy'])->name('admin.sliders.destroy');
+    });
+    // Admin Withdrawals
+    Route::middleware(['auth', 'permission:kelola-penarikan'])->group(function () {
+        Route::get('/admin/withdrawals/bank', [App\Http\Controllers\Admin\WithdrawalController::class, 'bankForm'])->name('admin.withdrawals.bank');
+        Route::post('/admin/withdrawals/bank', [App\Http\Controllers\Admin\WithdrawalController::class, 'processBank'])->name('admin.withdrawals.bank.process');
+        Route::get('/admin/withdrawals/ewallet', [App\Http\Controllers\Admin\WithdrawalController::class, 'ewalletForm'])->name('admin.withdrawals.ewallet');
+        Route::post('/admin/withdrawals/ewallet', [App\Http\Controllers\Admin\WithdrawalController::class, 'processEwallet'])->name('admin.withdrawals.ewallet.process');
+    });
 
-    Route::get('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
-    Route::post('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
+    // Admin Payments
+    Route::middleware(['auth', 'permission:kelola-pembayaran'])->group(function () {
+        Route::get('/admin/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('admin.payments');
+        Route::post('/admin/payments/sync', [App\Http\Controllers\Admin\PaymentController::class, 'syncDuitku'])->name('admin.payments.sync');
+        Route::post('/admin/payments/sync-ipaymu', [App\Http\Controllers\Admin\PaymentController::class, 'syncIPaymu'])->name('admin.payments.sync_ipaymu');
+        Route::post('/admin/payments/sync-midtrans', [App\Http\Controllers\Admin\PaymentController::class, 'syncMidtrans'])->name('admin.payments.sync_midtrans');
+        Route::post('/admin/payments/sync-doku', [App\Http\Controllers\Admin\PaymentController::class, 'syncDoku'])->name('admin.payments.sync_doku');
+        Route::get('/admin/payments/create', [App\Http\Controllers\Admin\PaymentController::class, 'create'])->name('admin.payments.create');
+        Route::post('/admin/payments', [App\Http\Controllers\Admin\PaymentController::class, 'store'])->name('admin.payments.store');
+        Route::get('/admin/payments/{payment}/edit', [App\Http\Controllers\Admin\PaymentController::class, 'edit'])->name('admin.payments.edit');
+        Route::put('/admin/payments/{payment}', [App\Http\Controllers\Admin\PaymentController::class, 'update'])->name('admin.payments.update');
+        Route::post('/admin/payments/{payment}/toggle', [App\Http\Controllers\Admin\PaymentController::class, 'toggle'])->name('admin.payments.toggle');
+        Route::delete('/admin/payments/{payment}', [App\Http\Controllers\Admin\PaymentController::class, 'destroy'])->name('admin.payments.destroy');
+    });
+
+    // Admin Ratings & Providers
+    Route::middleware(['auth', 'permission:view-rating'])->get('/admin/ratings', [App\Http\Controllers\Admin\RatingController::class, 'index'])->name('admin.ratings');
+    Route::middleware(['auth', 'permission:kelola-provider'])->group(function () {
+        Route::get('/admin/providers', [App\Http\Controllers\Admin\ProviderController::class, 'index'])->name('admin.providers');
+        Route::get('/admin/providers/create', [App\Http\Controllers\Admin\ProviderController::class, 'create'])->name('admin.providers.create');
+        Route::post('/admin/providers', [App\Http\Controllers\Admin\ProviderController::class, 'store'])->name('admin.providers.store');
+        Route::get('/admin/providers/{provider}/edit', [App\Http\Controllers\Admin\ProviderController::class, 'edit'])->name('admin.providers.edit');
+        Route::put('/admin/providers/{provider}', [App\Http\Controllers\Admin\ProviderController::class, 'update'])->name('admin.providers.update');
+        Route::delete('/admin/providers/{provider}', [App\Http\Controllers\Admin\ProviderController::class, 'destroy'])->name('admin.providers.destroy');
+        Route::post('/admin/providers/{provider}/balance', [App\Http\Controllers\Admin\ProviderController::class, 'syncBalance'])->name('admin.providers.balance');
+        Route::get('/admin/providers/{provider}/deposit', [App\Http\Controllers\Admin\ProviderController::class, 'showDepositForm'])->name('admin.providers.deposit.form');
+        Route::post('/admin/providers/{provider}/deposit', [App\Http\Controllers\Admin\ProviderController::class, 'processDeposit'])->name('admin.providers.deposit.process');
+    });
+    // Admin TokoVoucher
+    Route::middleware(['auth', 'permission:kelola-tokovoucher'])->group(function () {
+        Route::get('/admin/tokovoucher/categories', [\App\Http\Controllers\Admin\TokovoucherController::class, 'categories'])->name('admin.tokovoucher.categories');
+        Route::post('/admin/tokovoucher/categories/{id}/sync', [\App\Http\Controllers\Admin\TokovoucherController::class, 'syncCategory'])->name('admin.tokovoucher.sync');
+        Route::post('/admin/tokovoucher/categories/{id}/toggle', [\App\Http\Controllers\Admin\TokovoucherController::class, 'toggleProviderCategory'])->name('admin.tokovoucher.toggle');
+    });
+
+    // Admin Logo Generator
+    Route::middleware(['auth', 'permission:kelola-logo'])->group(function () {
+        Route::get('/admin/logo-generator', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'index'])->name('admin.logo-generator.index');
+        Route::post('/admin/logo-generator/generate', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'generate'])->name('admin.logo-generator.generate');
+    });
+
+    // Admin Settings
+    Route::middleware(['auth', 'permission:kelola-setting'])->group(function () {
+        Route::get('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
+        Route::post('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
+    });
 
     // Management User & Role Routes
     Route::middleware(['auth', 'permission:manajemen-user-akses'])->prefix('admin/management')->name('admin.management.')->group(function () {
