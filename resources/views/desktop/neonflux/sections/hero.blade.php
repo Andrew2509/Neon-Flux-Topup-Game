@@ -30,7 +30,7 @@
     @endpush
 
     <div
-        class="relative w-full h-[180px] md:h-80 rounded-2xl md:rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
+        class="relative w-full h-80 rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
         <div class="swiper hero-swiper">
             <div class="swiper-wrapper">
                 @foreach ($sliders as $slider)
@@ -47,14 +47,14 @@
                         <div class="absolute inset-0 hero-overlay-left opacity-70 pointer-events-none"></div>
 
                         <div
-                            class="absolute inset-y-0 left-0 p-4 md:p-10 z-20 flex flex-col justify-center items-start transition-transform duration-500 group-hover:translate-x-1 pointer-events-none">
-                            <div class="max-w-2xl space-y-1 md:space-y-1.5 pointer-events-auto">
+                            class="absolute inset-y-0 left-0 p-6 md:p-10 z-20 flex flex-col justify-center items-start transition-transform duration-500 group-hover:translate-x-1 pointer-events-none">
+                            <div class="max-w-2xl space-y-1.5 pointer-events-auto">
                                 {{-- Tags --}}
                                 @if ($slider->tags)
                                     <div class="flex flex-wrap items-center gap-2">
                                         @foreach (explode(',', $slider->tags) as $index => $tag)
                                             <span
-                                                class="px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest border backdrop-blur-md shadow-lg
+                                                class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border backdrop-blur-md shadow-lg
                                     {{ $index % 2 == 0 ? 'bg-secondary/90 border-secondary/30 text-white' : 'bg-blue-600/90 border-blue-400/30 text-white' }}">
                                                 {{ trim($tag) }}
                                             </span>
@@ -65,14 +65,14 @@
                                 <div>
                                     {{-- Title --}}
                                     <h2
-                                        class="text-xl md:text-5xl font-display font-black text-white mb-0.5 md:mb-1 leading-none drop-shadow-2xl uppercase tracking-tighter line-clamp-1">
+                                        class="text-3xl md:text-5xl font-display font-black text-white mb-1 leading-none drop-shadow-2xl uppercase tracking-tighter">
                                         {{ $slider->title }}
                                     </h2>
 
                                     {{-- Subtitle --}}
                                     @if ($slider->subtitle)
                                         <h3
-                                            class="text-xs md:text-3xl font-display font-black text-transparent bg-clip-text bg-linear-to-r from-primary to-secondary drop-shadow-lg uppercase line-clamp-1 pr-4">
+                                            class="text-xl md:text-3xl font-display font-black text-transparent bg-clip-text bg-linear-to-r from-primary to-secondary drop-shadow-lg uppercase">
                                             {{ $slider->subtitle }}
                                         </h3>
                                     @endif
@@ -81,13 +81,13 @@
                                 {{-- Description --}}
                                 @if ($slider->description)
                                     <p
-                                        class="text-slate-300 dark:text-gray-300 max-w-lg text-[9px] md:text-sm line-clamp-2 drop-shadow-md font-medium leading-relaxed opacity-90 pr-4 mt-0.5 md:mt-0">
+                                        class="text-slate-300 dark:text-gray-300 max-w-lg text-xs md:text-sm line-clamp-2 drop-shadow-md font-medium leading-relaxed opacity-90">
                                         {{ $slider->description }}
                                     </p>
                                 @endif
 
                                 {{-- Interactive Social Media Buttons (Aligned with Content) --}}
-                                <div class="hero-social-container pt-1.5 md:pt-4 scale-75 origin-left md:scale-100">
+                                <div class="hero-social-container pt-4">
                                     {{-- Instagram --}}
                                     @php $igUser = $slider->ig_link ?: get_setting('instagram_username', 'princepay.gaming'); @endphp
                                     <a href="https://instagram.com/{{ ltrim($igUser, '@') }}" target="_blank"
@@ -170,17 +170,17 @@
 @else
     {{-- Static Fallback if no sliders --}}
     <div
-        class="relative w-full h-[180px] md:h-80 rounded-2xl md:rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
+        class="relative w-full h-80 rounded-3xl overflow-hidden group glass-panel border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none bg-white dark:bg-transparent mb-6">
         <img alt="Default Banner" class="absolute inset-0 w-full h-full object-cover opacity-40 dark:opacity-60"
             src="https://placehold.co/1200x400/1e293b/ccc?text={{ urlencode(get_setting('site_name', 'PrincePay')) }}" />
 
         <div class="absolute inset-0 hero-overlay-bottom"></div>
 
-        <div class="absolute bottom-0 left-0 p-4 md:p-8 w-full">
-            <h1 class="text-xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-0.5 md:mb-2 leading-tight">
+        <div class="absolute bottom-0 left-0 p-8 w-full">
+            <h1 class="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-2 leading-tight">
                 {{ get_setting('site_name', 'PrincePay Gaming') }}
             </h1>
-            <p class="text-slate-600 dark:text-gray-300 max-w-lg text-[10px] md:text-base line-clamp-2">
+            <p class="text-slate-600 dark:text-gray-300 max-w-lg text-sm md:text-base line-clamp-2">
                 {{ get_setting('site_tagline', 'Premium Gaming Experience') }}
             </p>
         </div>
