@@ -101,16 +101,10 @@
                     </form>
                 </div>
             </div>
-            <a href="{{ route('user.dashboard') }}" class="sm:hidden flex items-center justify-center size-10 rounded-full glass-panel border border-white/10" title="Akun">
-                <img alt="" class="w-8 h-8 rounded-full border border-primary" src="{{ auth()->user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name) }}" />
-            </a>
         @else
             <a href="{{ route('login') }}" class="hidden sm:flex items-center gap-2 glass-panel px-4 sm:px-6 py-2 rounded-full cursor-pointer hover:bg-primary group transition-all duration-300">
                 <span class="material-icons-round text-sm text-primary group-hover:text-white transition-colors">login</span>
                 <span class="font-bold text-sm text-slate-950 dark:text-white group-hover:text-white transition-colors">Masuk</span>
-            </a>
-            <a href="{{ route('login') }}" class="sm:hidden flex items-center justify-center size-10 rounded-full glass-panel border border-white/10 text-primary" title="Masuk">
-                <span class="material-icons-round text-xl">login</span>
             </a>
         @endauth
 
