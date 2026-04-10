@@ -79,7 +79,7 @@ class SliderController extends Controller
             'wa_link' => 'nullable|string|max:255',
             'ig_link' => 'nullable|string|max:255',
             'fb_link' => 'nullable|string|max:255',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'image_path' => 'required_without:image_file|nullable|url',
             'link' => 'nullable|url',
             'status' => 'required|string|in:Aktif,Nonaktif',
@@ -130,7 +130,7 @@ class SliderController extends Controller
             'wa_link' => 'nullable|string|max:255',
             'ig_link' => 'nullable|string|max:255',
             'fb_link' => 'nullable|string|max:255',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'image_path' => 'required_without:image_file|nullable', // No URL rule here to allow existing base64
             'link' => 'nullable|url',
             'status' => 'required|string|in:Aktif,Nonaktif',

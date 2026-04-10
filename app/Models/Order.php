@@ -10,6 +10,8 @@ class Order extends Model
         'order_id',
         'user_id',
         'product_name',
+        'original_price',
+        'discount_amount',
         'total_price',
         'payment_method',
         'voucher_code',
