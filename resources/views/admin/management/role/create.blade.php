@@ -29,15 +29,15 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($permissions as $permission)
-                <label for="perm_{{ $permission->id }}" class="relative glass-panel p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 border border-white/5 transition-all group has-[:checked]:bg-primary/10 has-[:checked]:border-primary/40 overflow-hidden">
+                <label for="perm_{{ $permission->id }}" class="relative glass-panel p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 border border-white/5 transition-all has-[:checked]:bg-primary/10 has-[:checked]:border-primary/40 overflow-hidden">
                     <!-- Checkbox Overlay -->
                     <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="perm_{{ $permission->id }}"
-                        class="permission-checkbox absolute inset-0 opacity-0 z-10 cursor-pointer">
+                        class="permission-checkbox peer absolute inset-0 opacity-0 z-10 cursor-pointer">
                     
                     <!-- Visual UI -->
                     <div class="relative flex items-center justify-center z-0">
-                        <div class="size-6 border-2 border-white/10 rounded-lg group-has-[:checked]:bg-primary group-has-[:checked]:border-primary transition-all flex items-center justify-center">
-                            <span class="material-symbols-outlined text-white scale-0 group-has-[:checked]:scale-100 transition-transform text-sm font-bold">check</span>
+                        <div class="size-6 border-2 border-white/10 rounded-lg peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white scale-0 peer-checked:scale-100 transition-transform text-sm font-bold inline-block">check</span>
                         </div>
                     </div>
                     <div class="flex-1 z-0">
