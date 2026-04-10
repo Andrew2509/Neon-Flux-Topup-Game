@@ -20,7 +20,9 @@ class PermissionMiddleware
             return redirect()->route('login');
         }
 
-        if (!Auth::user()->hasPermission($permission)) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->hasPermission($permission)) {
             abort(403, 'Anda tidak memiliki hak akses untuk halaman ini.');
         }
 

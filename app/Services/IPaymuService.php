@@ -661,7 +661,7 @@ class IPaymuService
         Log::warning('iPaymu Signature Mismatch Debug:', [
             'received' => $receivedSignature,
             'raw_body_len' => strlen($rawBody),
-            'va_used' => $va,
+            'va_used' => $vaFromRequest,
         ]);
 
         return false;
