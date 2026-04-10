@@ -5,8 +5,8 @@
 
 <section id="testimoni" class="w-full mb-10 scroll-mt-28">
     <div class="flex items-center justify-between mb-4 px-1">
-        <h2 class="text-xl md:text-2xl font-display font-bold text-slate-950 dark:text-white flex items-center gap-2">
-            <span class="material-icons-round text-primary">format_quote</span>
+        <h2 class="text-base md:text-2xl font-display font-bold text-slate-950 dark:text-white flex items-center gap-2">
+            <span class="material-icons-round text-primary text-xl md:text-2xl">format_quote</span>
             Testimoni pelanggan
         </h2>
     </div>
@@ -21,22 +21,22 @@
                 @foreach([$list, $list] as $loopIndex => $chunk)
                     <div class="flex gap-4 md:gap-5 shrink-0" @if($loopIndex === 1) aria-hidden="true" @endif>
                         @foreach($chunk as $t)
-                            <article class="w-[260px] sm:w-[280px] md:w-[300px] shrink-0 glass-panel rounded-2xl p-4 border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none flex flex-col">
+                            <article class="w-[200px] sm:w-[280px] md:w-[300px] shrink-0 glass-panel rounded-xl md:rounded-2xl p-3 md:p-4 border border-black/5 dark:border-white/10 shadow-sm dark:shadow-none flex flex-col">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <div class="size-9 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs uppercase border border-primary/20">
+                                    <div class="size-6 md:size-9 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-[10px] md:text-xs uppercase border border-primary/20">
                                         {{ mb_substr($t->displayName(), 0, 1) }}
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <p class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ $t->displayName() }}</p>
+                                        <p class="text-[10px] md:text-xs font-bold text-slate-900 dark:text-white truncate">{{ $t->displayName() }}</p>
                                         <div class="flex text-amber-500 gap-0.5">
                                             @for($i = 1; $i <= 5; $i++)
-                                                <span class="material-icons-round text-[14px] {{ $i <= $t->stars ? '' : 'opacity-25' }}">star</span>
+                                                <span class="material-icons-round text-[10px] md:text-[14px] {{ $i <= $t->stars ? '' : 'opacity-25' }}">star</span>
                                             @endfor
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-[11px] md:text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-4 flex-1">"{{ $t->comment }}"</p>
-                                <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-2 truncate">{{ $t->product_name }}</p>
+                                <p class="text-[9px] md:text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-4 flex-1">"{{ $t->comment }}"</p>
+                                <p class="text-[8px] md:text-[9px] text-slate-400 dark:text-slate-500 mt-2 truncate">{{ $t->product_name }}</p>
                             </article>
                         @endforeach
                     </div>
