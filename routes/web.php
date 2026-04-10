@@ -209,6 +209,7 @@ Route::group(['middleware' => []], function () {
     Route::get('/admin/logo-generator', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'index'])->name('admin.logo-generator.index');
     Route::post('/admin/logo-generator/generate', [\App\Http\Controllers\Admin\LogoGeneratorController::class, 'generate'])->name('admin.logo-generator.generate');
 
+    Route::get('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
 
     // Management User & Role Routes
