@@ -227,6 +227,13 @@
                             <span class="material-symbols-outlined text-xl">print</span>
                             Print Summary
                         </button>
+                        <form id="cancelOrderForm" action="{{ route('order.cancel', $order->order_id) }}" method="POST" class="flex-1">
+                            @csrf
+                            <button type="button" onclick="confirmCancelOrder()" class="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-slate-950 border border-red-500/20 font-black py-5 px-8 rounded-2xl flex items-center justify-center gap-3 active:scale-[0.97] transition-all uppercase tracking-[0.2em] text-xs">
+                                <span class="material-symbols-outlined text-xl">cancel</span>
+                                Cancel Payment
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -270,6 +277,25 @@
                 display.textContent = "00:00";
             }
         }, 1000);
+    }
+
+    function confirmCancelOrder() {
+        Swal.fire({
+            title: 'Batalkan Pembayaran?',
+            text: "Pesanan yang dibatalkan tidak dapat diproses kembali.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff716c',
+            cancelButtonColor: '#1c2028',
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Tunggu',
+            background: '#161a21',
+            color: '#ecedf6'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancelOrderForm').submit();
+            }
+        })
     }
 
     window.onload = function () {

@@ -79,7 +79,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-3 mb-3">
                 <a href="{{ route('track.order', ['order_id' => $order->order_id]) }}" class="bg-white/5 text-white font-black text-[10px] py-4 rounded-2xl flex items-center justify-center gap-2">
                     <span class="material-icons-round text-sm">history</span>
                     <span>STATUS</span>
@@ -89,6 +89,14 @@
                     <span>SAVE</span>
                 </button>
             </div>
+            
+            <form id="cancelOrderForm" action="{{ route('order.cancel', $order->order_id) }}" method="POST">
+                @csrf
+                <button type="button" onclick="confirmCancelOrder()" class="w-full bg-red-500/10 text-red-500 border border-red-500/20 font-black text-[10px] py-4 rounded-2xl flex items-center justify-center gap-2 uppercase tracking-widest active:scale-95 transition-transform">
+                    <span class="material-icons-round text-sm">cancel</span>
+                    <span>Batalkan Pesanan</span>
+                </button>
+            </form>
         </div>
 
         <!-- Help Info -->
@@ -138,6 +146,25 @@
                 display.textContent = "00:00";
             }
         }, 1000);
+    }
+
+    function confirmCancelOrder() {
+        Swal.fire({
+            title: 'Batalkan Pesanan?',
+            text: "Pesanan yang dibatalkan tidak dapat diproses kembali.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#1e293b',
+            confirmButtonText: 'Ya, Batalkan!',
+            cancelButtonText: 'Tunggu',
+            background: '#1e293b',
+            color: '#fff'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancelOrderForm').submit();
+            }
+        })
     }
 
     window.onload = function () {

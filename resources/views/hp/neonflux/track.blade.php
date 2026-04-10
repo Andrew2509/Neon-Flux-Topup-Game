@@ -109,6 +109,39 @@
                         </div>
                     </div>
                 @endif
+
+                @if($order->status === 'pending_payment')
+                    <div class="pt-2">
+                        <form id="cancelOrderForm" action="{{ route('order.cancel', $order->order_id) }}" method="POST">
+                            @csrf
+                            <button type="button" onclick="confirmCancelOrder()" class="w-full bg-red-50 text-red-600 border border-red-100 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all">
+                                <span class="material-icons-round text-lg">cancel</span>
+                                <span>Batalkan Pembayaran</span>
+                            </button>
+                        </form>
+                    </div>
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                    <script>
+                        function confirmCancelOrder() {
+                            Swal.fire({
+                                title: 'Batal Bayar?',
+                                text: "Pesanan akan dibatalkan permanen.",
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#ef4444',
+                                cancelButtonColor: '#64748b',
+                                confirmButtonText: 'Ya, Batal',
+                                cancelButtonText: 'Tunggu',
+                                background: '#ffffff',
+                                color: '#0f172a'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    document.getElementById('cancelOrderForm').submit();
+                                }
+                            })
+                        }
+                    </script>
+                @endif
             </div>
 
             <!-- Help Message -->

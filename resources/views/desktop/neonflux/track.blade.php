@@ -112,6 +112,39 @@
                             </div>
                         </div>
                     @endif
+
+                    @if($order->status === 'pending_payment')
+                        <div class="pt-4">
+                            <form id="cancelOrderForm" action="{{ route('order.cancel', $order->order_id) }}" method="POST">
+                                @csrf
+                                <button type="button" onclick="confirmCancelOrder()" class="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-slate-950 border border-red-500/20 py-4 rounded-2xl font-black transition-all flex items-center justify-center gap-2 group">
+                                    <span class="material-icons-round text-lg group-hover:rotate-12 transition-transform">cancel</span>
+                                    <span>Batalkan Pembayaran</span>
+                                </button>
+                            </form>
+                        </div>
+                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                        <script>
+                            function confirmCancelOrder() {
+                                Swal.fire({
+                                    title: 'Batalkan Pembayaran?',
+                                    text: "Transaksi yang dibatalkan tidak dapat diproses kembali.",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonColor: '#1e293b',
+                                    confirmButtonText: 'Ya, Batalkan!',
+                                    cancelButtonText: 'Kembali',
+                                    background: '#0f172a',
+                                    color: '#ffffff'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        document.getElementById('cancelOrderForm').submit();
+                                    }
+                                })
+                            }
+                        </script>
+                    @endif
                 </div>
             @endif
         </div>

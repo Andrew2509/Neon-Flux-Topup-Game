@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\Services\IPaymuService;
 use App\Services\TokovoucherOrderSync;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -1647,5 +1648,30 @@ class TransactionController extends Controller
         }
 
         return view($view, compact('order', 'testimonialAlreadySent'));
+    }
+    /**
+     * Membatalkan pesanan yang masih pending_payment secara lokal.
+     */
+    public function cancelOrder(Request $request, string $order_id)
+    {
+        $order = Order::where('order_id', $order_id)->first();
+
+        if (!$order) {
+            return back()->with('error', 'Transaksi tidak ditemukan.');
+        }
+
+        if ($order->status !== 'pending_payment') {
+            return back()->with('error', 'Pembayaran sudah diproses dan tidak dapat dibatalkan.');
+        }
+
+        // Check ownership if user_id is set
+        if ($order->user_id && Auth::id() !== $order->user_id) {
+            abort(403, 'Anda tidak memiliki hak untuk membatalkan transaksi ini.');
+        }
+
+        // Cancel order locally
+        $order->logStatus('cancelled', 'Dibatalkan oleh pengguna.');
+        
+        return back()->with('success', 'Pembayaran berhasil dibatalkan.');
     }
 }
