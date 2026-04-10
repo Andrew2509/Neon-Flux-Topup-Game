@@ -29,9 +29,9 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($permissions as $permission)
-                <label class="glass-panel p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 border border-white/5 transition-all group">
+                <label for="perm_{{ $permission->id }}" class="glass-panel p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 border border-white/5 transition-all group">
                     <div class="relative flex items-center justify-center">
-                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" 
+                        <input type="checkbox" name="permissions[]" value="{{ $permission->id }}" id="perm_{{ $permission->id }}"
                             class="permission-checkbox peer appearance-none size-6 border-2 border-white/10 rounded-lg checked:bg-primary checked:border-primary transition-all outline-none cursor-pointer">
                         <span class="material-symbols-outlined absolute text-white scale-0 peer-checked:scale-100 transition-transform pointer-events-none text-sm font-bold">check</span>
                     </div>
