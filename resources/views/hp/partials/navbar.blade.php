@@ -9,22 +9,12 @@
                 class="text-slate-950 dark:text-white transition-colors">{{ substr(get_setting('site_name', 'NEONFLUX'), strlen(explode(' ', get_setting('site_name', 'NEON'))[0])) }}</span>
         </span>
     </div>
-    <div class="flex items-center gap-3">
-
-
-        <a href="{{ route('kalkulator.index') }}" class="text-slate-600 dark:text-gray-400">
-            <span class="material-icons-round text-2xl">calculate</span>
-        </a>
-        
-        @auth
-            <div class="w-8 h-8 rounded-full border border-primary overflow-hidden">
-                <img src="{{ auth()->user()->avatar ?? 'https://ui-avatars.com/api/?name='.auth()->user()->name }}" alt="User" class="w-full h-full object-cover">
-            </div>
-        @else
-            <a href="{{ route('login') }}" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
-                <span class="material-icons-round text-lg">login</span>
-                <span class="text-xs font-bold uppercase tracking-wider">Login</span>
-            </a>
-        @endauth
+    <div class="flex items-center gap-1 flex-shrink-0">
+        <button type="button" id="nf-drawer-open" class="relative z-[2100] flex items-center justify-center size-10 rounded-xl glass-panel-mobile border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white touch-manipulation shadow-sm" aria-label="Buka menu">
+            <span class="material-icons-round text-2xl">menu</span>
+        </button>
     </div>
 </nav>
+
+{{-- Drawer Menu (Sama seperti home) --}}
+@include('desktop.partials.mobile-menu-drawer')
