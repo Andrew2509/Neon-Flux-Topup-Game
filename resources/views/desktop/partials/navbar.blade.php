@@ -15,7 +15,6 @@
     {{-- Nav Links (tablet & desktop) --}}
     <div class="hidden md:flex flex-1 justify-center max-w-3xl px-4 space-x-6 lg:space-x-8 text-base lg:text-lg font-medium text-slate-500 dark:text-gray-400">
         <a class="hover:text-primary transition-colors whitespace-nowrap {{ request()->is('/') ? 'text-slate-900 dark:text-white text-glow' : '' }}" href="{{ url('/') }}">Top-Up</a>
-        <a class="hover:text-primary transition-colors whitespace-nowrap {{ request()->is('catalog') ? 'text-slate-900 dark:text-white text-glow' : '' }}" href="{{ route('catalog') }}">Games</a>
         <a class="hover:text-primary transition-colors whitespace-nowrap {{ request()->routeIs('track.order') ? 'text-slate-900 dark:text-white text-glow' : '' }}" href="{{ route('track.order') }}">Cek Transaksi</a>
         <div class="group relative z-[2100]" data-nf-calc-wrap data-nf-open="false">
             <button type="button" id="nf-calc-menu-btn" aria-expanded="false" aria-haspopup="true" aria-controls="nf-calc-menu-panel"

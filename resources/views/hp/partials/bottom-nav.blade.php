@@ -4,10 +4,6 @@
             <span class="material-icons-round text-xl">home</span>
             <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
         </a>
-        <a href="/catalog" class="flex flex-col items-center gap-0.5 {{ request()->is('catalog') ? 'text-primary' : 'text-slate-400 dark:text-white/70' }}">
-            <span class="material-icons-round text-xl">grid_view</span>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Catalog</span>
-        </a>
         <a href="#" class="flex flex-col items-center gap-0.5 text-slate-400 dark:text-white/70">
             <div class="relative">
                 <span class="material-icons-round text-xl">local_offer</span>

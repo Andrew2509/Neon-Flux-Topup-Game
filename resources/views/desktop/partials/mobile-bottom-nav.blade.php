@@ -5,10 +5,6 @@
             <span class="material-icons-round text-[22px]">home</span>
             <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
         </a>
-        <a href="{{ route('catalog') }}" class="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 touch-manipulation {{ request()->is('catalog') ? 'text-primary' : 'text-white/55' }}">
-            <span class="material-icons-round text-[22px]">grid_view</span>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Games</span>
-        </a>
         <a href="{{ route('track.order') }}" class="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 touch-manipulation {{ request()->routeIs('track.order') ? 'text-primary' : 'text-white/55' }}">
             <span class="material-icons-round text-[22px]">receipt_long</span>
             <span class="text-[9px] font-bold uppercase tracking-wider">Cek</span>

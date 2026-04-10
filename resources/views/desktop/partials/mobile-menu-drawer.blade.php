@@ -10,7 +10,6 @@
         </div>
         <nav class="flex-1 overflow-y-auto p-4 flex flex-col gap-1.5" role="navigation">
             <a href="{{ url('/') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 hover:bg-white/10 text-lg font-bold">Top-Up</a>
-            <a href="{{ route('catalog') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 hover:bg-white/10 text-lg font-bold">Games</a>
             <a href="{{ route('track.order') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 hover:bg-white/10 text-lg font-bold">Cek Transaksi</a>
             
             <p class="text-xs font-black text-white/50 uppercase tracking-widest px-4 pt-5 pb-2">Kalkulator</p>
