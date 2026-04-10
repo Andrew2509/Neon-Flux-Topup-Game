@@ -158,55 +158,6 @@ class CatalogController extends Controller
         return view($view, compact('popular', 'categories', 'totalCategories', 'activeGroups', 'sliders', 'testimonials'));
     }
 
-    public function catalog(Request $request)
-    {
-        $search = $request->input('search');
-        $type = $request->input('type');
-        $popular = $request->input('popular');
-        $platform = $request->input('platform');
-
-        $query = Category::where('status', 'Aktif')
-            ->where(function ($q) {
-                $q->whereDoesntHave('providerCategory')
-                    ->orWhereHas('providerCategory', function ($q) {
-                        $q->where('status', 'Aktif');
-                    });
-            })
-            ->whereHas('services', function ($q) {
-                $q->where('status', 'Aktif');
-            });
-
-        if ($search) {
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        if ($type) {
-            $query->where('type', $type);
-        }
-
-        if ($popular) {
-            $query->where('is_popular', true);
-        }
-
-        if ($platform) {
-            $query->where('platform', 'like', "%{$platform}%");
-        }
-
-        $categories = $query->orderBy('name', 'asc')->paginate(100)->withQueryString();
-
-        // Dynamic counts for sidebar labels
-        $counts = [
-            'all' => Category::where('status', 'Aktif')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
-            'popular' => Category::where('status', 'Aktif')->where('is_popular', true)->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
-            'mobile' => Category::where('status', 'Aktif')->where('platform', 'like', '%mobile%')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
-            'pc' => Category::where('status', 'Aktif')->where('platform', 'like', '%pc%')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
-            'console' => Category::where('status', 'Aktif')->where('platform', 'like', '%console%')->whereHas('services', fn ($q) => $q->where('status', 'Aktif'))->count(),
-        ];
-
-        $view = $this->deviceType().'.neonflux.catalog';
-
-        return view($view, compact('categories', 'counts'));
-    }
 
     public function showTopup($slug)
     {

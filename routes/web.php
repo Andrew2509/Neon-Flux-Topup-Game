@@ -32,7 +32,9 @@ Route::group(['middleware' => []], function () {
         Route::get('/zodiac', [App\Http\Controllers\CalculatorController::class, 'zodiac'])->name('zodiac');
     });
 
-    Route::get('/catalog', [App\Http\Controllers\CatalogController::class, 'catalog'])->name('catalog');
+    Route::get('/catalog', function () {
+        return redirect()->route('home');
+    })->name('catalog');
     Route::get('/syarat-ketentuan', [App\Http\Controllers\StaticPageController::class, 'syaratKetentuan'])->name('syarat-ketentuan');
     Route::get('/kebijakan-privasi', [App\Http\Controllers\StaticPageController::class, 'kebijakanPrivasi'])->name('kebijakan-privasi');
     Route::get('/kebijakan-refund', [App\Http\Controllers\StaticPageController::class, 'kebijakanRefund'])->name('kebijakan-refund');
