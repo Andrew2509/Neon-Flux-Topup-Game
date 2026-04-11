@@ -41,11 +41,27 @@
             overflow: hidden;
             border-right-width: 0;
         }
+        @media (max-width: 1023px) {
+            #admin-sidebar {
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+                width: 18rem !important;
+                margin-left: 0 !important;
+                opacity: 1 !important;
+            }
+            #admin-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+        }
     </style>
     @stack('styles')
 </head>
 <body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen overflow-x-hidden">
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden relative">
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-10 hidden lg:hidden"></div>
+    
     <!-- Side Navigation -->
     <aside id="admin-sidebar" class="w-72 glass-panel border-r border-slate-200 dark:border-white/5 flex flex-col z-20 overflow-y-auto">
         <div class="p-6 flex items-center gap-3">
@@ -216,27 +232,30 @@
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto relative bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background-dark to-background-dark">
         <!-- Header -->
-        <header class="sticky top-0 z-10 glass-panel px-8 py-4 flex items-center justify-between border-b border-white/5">
+        <header class="sticky top-0 z-10 glass-panel px-4 sm:px-8 py-4 flex items-center justify-between border-b border-white/5">
             <div class="flex items-center gap-4">
-                <button id="sidebar-toggle" class="size-10 glass-panel rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:scale-110 active:scale-95 group">
-                    <span class="material-symbols-outlined transition-transform duration-300 group-hover:rotate-180" id="toggle-icon">menu_open</span>
+                <button id="sidebar-toggle" class="size-10 glass-panel rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:scale-110 active:scale-95 group shrink-0">
+                    <span class="material-symbols-outlined transition-transform duration-300" id="toggle-icon">menu_open</span>
                 </button>
-                <div>
-                    <h2 class="text-2xl font-bold">@yield('page_title', 'Dashboard')</h2>
-                    <p class="text-sm text-slate-400">@yield('page_description', 'Selamat datang kembali di pusat kendali Neon Flux.')</p>
+                <div class="overflow-hidden">
+                    <h2 class="text-lg sm:text-2xl font-bold truncate">@yield('page_title', 'Dashboard')</h2>
+                    <p class="text-[10px] sm:text-sm text-slate-400 truncate">@yield('page_description', 'Selamat datang kembali di pusat kendali Neon Flux.')</p>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="relative">
+            <div class="flex items-center gap-2 sm:gap-4">
+                <div class="relative hidden sm:block">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl">search</span>
-                    <input class="bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary transition-all w-64 outline-none" placeholder="Cari pesanan atau member..." type="text"/>
+                    <input class="bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary transition-all w-48 lg:w-64 outline-none" placeholder="Cari..." type="text"/>
                 </div>
+                <button class="size-10 glass-panel rounded-full flex items-center justify-center text-slate-400 hover:text-primary transition-colors sm:hidden">
+                    <span class="material-symbols-outlined">search</span>
+                </button>
                 <button class="size-10 glass-panel rounded-full flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
                     <span class="material-symbols-outlined">notifications</span>
                 </button>
             </div>
         </header>
-        <div class="p-8 space-y-8">
+        <div class="p-4 sm:p-8 space-y-6 sm:space-y-8">
             <!-- Session Alerts -->
             @if(session('success'))
             <div class="glass-panel p-4 rounded-2xl border-green-500/20 bg-green-500/10 flex gap-3 text-green-400 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -280,27 +299,56 @@
         const sidebar = document.getElementById('admin-sidebar');
         const toggleBtn = document.getElementById('sidebar-toggle');
         const toggleIcon = document.getElementById('toggle-icon');
+        const backdrop = document.getElementById('sidebar-backdrop');
 
-        // Check local storage for sidebar state
-        const isCollapsed = localStorage.getItem('admin_sidebar_collapsed') === 'true';
-        if (isCollapsed) {
-            sidebar.classList.add('sidebar-collapsed');
-            toggleIcon.innerText = 'menu';
+        function isMobile() {
+            return window.innerWidth < 1024;
         }
 
-        toggleBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('sidebar-collapsed');
-            const nowCollapsed = sidebar.classList.contains('sidebar-collapsed');
-            
-            // Save state
-            localStorage.setItem('admin_sidebar_collapsed', nowCollapsed);
-            
-            // Update icon
-            if (nowCollapsed) {
+        // Check local storage for sidebar state (Desktop only)
+        if (!isMobile()) {
+            const isCollapsed = localStorage.getItem('admin_sidebar_collapsed') === 'true';
+            if (isCollapsed) {
+                sidebar.classList.add('sidebar-collapsed');
                 toggleIcon.innerText = 'menu';
-            } else {
-                toggleIcon.innerText = 'menu_open';
             }
+        }
+
+        function updateIcon() {
+            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+            const isMobileOpen = sidebar.classList.contains('mobile-open');
+            
+            if (isMobile()) {
+                toggleIcon.innerText = isMobileOpen ? 'close' : 'menu';
+            } else {
+                toggleIcon.innerText = isCollapsed ? 'menu' : 'menu_open';
+            }
+        }
+
+        function toggleSidebar() {
+            if (isMobile()) {
+                sidebar.classList.toggle('mobile-open');
+                backdrop.classList.toggle('hidden');
+            } else {
+                sidebar.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('admin_sidebar_collapsed', sidebar.classList.contains('sidebar-collapsed'));
+            }
+            updateIcon();
+        }
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        backdrop.addEventListener('click', toggleSidebar);
+
+        // Initial icon update
+        updateIcon();
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (!isMobile()) {
+                sidebar.classList.remove('mobile-open');
+                backdrop.classList.add('hidden');
+            }
+            updateIcon();
         });
     });
 </script>

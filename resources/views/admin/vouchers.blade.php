@@ -8,7 +8,7 @@
 <div class="space-y-6">
     <!-- Filters & Actions -->
     <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-white/5">
-        <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div class="relative w-full md:w-64 group">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg transition-colors group-focus-within:text-primary">search</span>
                 <input type="text" placeholder="Cari Kode Voucher..." class="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary transition-all w-full outline-none">
@@ -18,7 +18,7 @@
                 Filter
             </button>
         </div>
-        <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto md:justify-end">
              <a href="{{ route('admin.vouchers.create') }}" class="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/5">
                 <span class="material-symbols-outlined text-lg">add</span>
                 Tambah Voucher
@@ -30,7 +30,7 @@
     <div class="glass-panel rounded-2xl overflow-hidden border border-white/5">
         <div class="overflow-x-auto">
             <table class="w-full text-left">
-                <thead class="bg-white/5 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                <thead class="bg-white/5 text-[10px] uppercase tracking-wider text-slate-500 font-bold whitespace-nowrap">
                     <tr>
                         <th class="px-6 py-4">Kode Voucher</th>
                         <th class="px-6 py-4">Potongan</th>
@@ -40,7 +40,7 @@
                         <th class="px-6 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-white/5 whitespace-nowrap">
                     @forelse($vouchers as $voucher)
                     <tr class="hover:bg-white/5 transition-colors group">
                         <td class="px-6 py-4">

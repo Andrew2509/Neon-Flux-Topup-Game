@@ -173,7 +173,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-white/5 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                    <tr>
+                    <tr class="whitespace-nowrap">
                         <th class="px-6 py-4">ID Pesanan</th>
                         <th class="px-6 py-4">Pelanggan</th>
                         <th class="px-6 py-4">Produk</th>
@@ -181,7 +181,7 @@
                         <th class="px-6 py-4 text-center">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-white/5 whitespace-nowrap">
                     @forelse($recent_orders as $order)
                     <tr class="hover:bg-white/5 transition-colors">
                         <td class="px-6 py-4 text-sm font-bold text-accent-blue">{{ $order->order_id }}</td>

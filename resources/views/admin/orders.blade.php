@@ -13,7 +13,7 @@
     </div>
     <!-- Filters & Actions -->
     <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-white/5">
-        <form action="{{ route('admin.orders') }}" method="GET" class="flex items-center gap-3 w-full md:w-auto">
+        <form action="{{ route('admin.orders') }}" method="GET" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div class="relative w-full md:w-64 group">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg transition-colors group-focus-within:text-primary">search</span>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID, Nama, Produk..." class="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary focus:border-primary transition-all w-full outline-none">
@@ -40,7 +40,7 @@
                 </a>
             @endif
         </form>
-        <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto md:justify-end">
             <button type="button" onclick="confirmDeleteAll()" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-500/5">
                 <span class="material-symbols-outlined text-lg">delete_sweep</span>
                 Hapus Semua
@@ -64,7 +64,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead class="bg-white/5 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-                        <tr>
+                        <tr class="whitespace-nowrap">
                             <th class="px-6 py-4 w-10">
                                 <input type="checkbox" id="selectAll" class="rounded bg-white/5 border-white/10 text-primary focus:ring-primary">
                             </th>
@@ -84,16 +84,16 @@
                             <td class="px-6 py-4">
                                 <input type="checkbox" name="ids[]" value="{{ $order->id }}" class="order-checkbox rounded bg-white/5 border-white/10 text-primary focus:ring-primary">
                             </td>
-                            <td class="px-6 py-4 text-sm font-bold text-accent-blue">{{ $order->order_id }}</td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 text-sm font-bold text-accent-blue whitespace-nowrap">{{ $order->order_id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium">{{ $order->user->name ?? 'Guest' }}</div>
                                 <div class="text-[10px] text-slate-500">{{ $order->user->email ?? '-' }}</div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-slate-400 max-w-[200px] truncate">{{ $order->product_name }}</td>
-                            <td class="px-6 py-4 text-xs text-slate-400">{{ $order->created_at->format('d M Y, H:i') }}</td>
-                            <td class="px-6 py-4 text-xs">{{ $order->payment_method }}</td>
-                            <td class="px-6 py-4 text-sm font-bold">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-sm text-slate-400 max-w-[200px] truncate whitespace-nowrap">{{ $order->product_name }}</td>
+                            <td class="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">{{ $order->created_at->format('d M Y, H:i') }}</td>
+                            <td class="px-6 py-4 text-xs whitespace-nowrap">{{ $order->payment_method }}</td>
+                            <td class="px-6 py-4 text-sm font-bold whitespace-nowrap">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
                                 @php
                                     $status_color = match($order->status) {
                                         'success' => 'emerald',
@@ -107,7 +107,7 @@
                                     {{ \Illuminate\Support\Str::title(str_replace('_', ' ', $order->status)) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-2 flex-wrap">
                                     @if($order->status === 'paid')
                                     <button type="button"
