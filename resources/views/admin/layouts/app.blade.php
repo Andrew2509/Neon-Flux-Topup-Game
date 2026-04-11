@@ -30,13 +30,24 @@
             background: linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0) 100%);
             border-left: 3px solid #2563eb;
         }
+        #admin-sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #admin-sidebar.sidebar-collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            margin-left: -18rem;
+            opacity: 0;
+            overflow: hidden;
+            border-right-width: 0;
+        }
     </style>
     @stack('styles')
 </head>
 <body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen overflow-x-hidden">
 <div class="flex h-screen overflow-hidden">
     <!-- Side Navigation -->
-    <aside class="w-72 glass-panel border-r border-slate-200 dark:border-white/5 flex flex-col z-20 overflow-y-auto">
+    <aside id="admin-sidebar" class="w-72 glass-panel border-r border-slate-200 dark:border-white/5 flex flex-col z-20 overflow-y-auto">
         <div class="p-6 flex items-center gap-3">
             <div class="size-10 rounded-xl bg-gradient-to-br from-primary to-accent-red flex items-center justify-center shadow-lg shadow-primary/20">
                 <span class="material-symbols-outlined text-white text-2xl">bolt</span>
@@ -206,9 +217,14 @@
     <main class="flex-1 overflow-y-auto relative bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background-dark to-background-dark">
         <!-- Header -->
         <header class="sticky top-0 z-10 glass-panel px-8 py-4 flex items-center justify-between border-b border-white/5">
-            <div>
-                <h2 class="text-2xl font-bold">@yield('page_title', 'Dashboard')</h2>
-                <p class="text-sm text-slate-400">@yield('page_description', 'Selamat datang kembali di pusat kendali Neon Flux.')</p>
+            <div class="flex items-center gap-4">
+                <button id="sidebar-toggle" class="size-10 glass-panel rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all hover:scale-110 active:scale-95 group">
+                    <span class="material-symbols-outlined transition-transform duration-300 group-hover:rotate-180" id="toggle-icon">menu_open</span>
+                </button>
+                <div>
+                    <h2 class="text-2xl font-bold">@yield('page_title', 'Dashboard')</h2>
+                    <p class="text-sm text-slate-400">@yield('page_description', 'Selamat datang kembali di pusat kendali Neon Flux.')</p>
+                </div>
             </div>
             <div class="flex items-center gap-4">
                 <div class="relative">
@@ -259,6 +275,35 @@
         <div class="fixed top-0 left-0 w-[300px] h-[300px] bg-accent-red/5 blur-[100px] -z-10 rounded-full"></div>
     </main>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('admin-sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const toggleIcon = document.getElementById('toggle-icon');
+
+        // Check local storage for sidebar state
+        const isCollapsed = localStorage.getItem('admin_sidebar_collapsed') === 'true';
+        if (isCollapsed) {
+            sidebar.classList.add('sidebar-collapsed');
+            toggleIcon.innerText = 'menu';
+        }
+
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('sidebar-collapsed');
+            const nowCollapsed = sidebar.classList.contains('sidebar-collapsed');
+            
+            // Save state
+            localStorage.setItem('admin_sidebar_collapsed', nowCollapsed);
+            
+            // Update icon
+            if (nowCollapsed) {
+                toggleIcon.innerText = 'menu';
+            } else {
+                toggleIcon.innerText = 'menu_open';
+            }
+        });
+    });
+</script>
 @stack('scripts')
 </body>
 </html>
