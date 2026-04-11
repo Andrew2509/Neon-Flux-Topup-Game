@@ -142,8 +142,8 @@ Route::group(['middleware' => []], function () {
     Route::middleware(['auth', 'permission:kelola-pesanan'])->group(function () {
         Route::get('/admin/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders');
         Route::post('/admin/orders/{order}/fulfill-tokovoucher', [App\Http\Controllers\Admin\OrderController::class, 'fulfillTokovoucher'])->name('admin.orders.fulfill_tokovoucher');
-        Route::delete('/admin/orders/mass-destroy', [App\Http\Controllers\Admin\OrderController::class, 'mass_destroy'])->name('admin.orders.mass_destroy');
-        Route::delete('/admin/orders/destroy-all', [App\Http\Controllers\Admin\OrderController::class, 'destroy_all'])->name('admin.orders.destroy_all');
+        Route::delete('/admin/orders/mass-destroy', [App\Http\Controllers\Admin\OrderController::class, 'massDestroy'])->name('admin.orders.mass_destroy');
+        Route::delete('/admin/orders/destroy-all', [App\Http\Controllers\Admin\OrderController::class, 'destroyAll'])->name('admin.orders.destroy_all');
     });
     // Admin Members
     Route::middleware(['auth', 'permission:kelola-member'])->group(function () {
