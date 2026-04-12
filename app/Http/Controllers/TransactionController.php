@@ -301,6 +301,13 @@ class TransactionController extends Controller
             
             // Simpan data esensial ke payload
             $p = $order->payload ?? [];
+            
+            // Generate QR Image URL safely
+            $qrImageUrl = $data['QrImage'] ?? $data['QrTemplate'] ?? null;
+            if (empty($qrImageUrl) && !empty($data['QrString'])) {
+                $qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($data['QrString']);
+            }
+            
             $p['ipaymu'] = array_merge($p['ipaymu'] ?? [], [
                 'transaction_id' => $ipaymuTid,
                 'created_via' => isset($data['PaymentNo']) || isset($data['QrString']) ? 'direct' : 'redirect_only',
@@ -309,7 +316,7 @@ class TransactionController extends Controller
                 'payment_no' => $data['PaymentNo'] ?? null,
                 'payment_name' => $data['PaymentName'] ?? null,
                 'qr_string' => $data['QrString'] ?? null,
-                'qr_image' => $data['QrImage'] ?? null,
+                'qr_image' => $qrImageUrl,
                 'expired' => $data['Expired'] ?? null,
                 'total' => $data['Total'] ?? $order->total_price,
                 'via' => $paymentMethod?->name ?? 'iPaymu',
