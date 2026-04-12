@@ -30,5 +30,9 @@ class DatabaseSeeder extends Seeder
             'role' => 'member',
             'email_verified_at' => now(),
         ]);
+
+        $this->call([
+            RatingSeeder::class,
+        ]);
     }
 }
