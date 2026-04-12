@@ -151,7 +151,7 @@
                     @foreach($payments as $p)
                         @if($p->code === 'SALDO') @continue @endif
                     <div class="relative group active:scale-[0.98] transition-all p-1">
-                        <input type="radio" name="payment" id="p-{{ $p->id }}" value="{{ $p->code }}" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required class="peer hidden method-card">
+                        <input type="radio" name="payment" id="p-{{ $p->id }}" value="{{ $p->code }}" data-name="{{ $p->name }}" data-image="{{ asset($p->image) }}" data-fee="{{ $p->fee }}" required class="peer hidden method-card">
                         <div class="absolute top-0 right-0 w-6 h-6 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white z-20 border-2 border-white dark:border-slate-900 shadow-xl">
                             <span class="material-symbols-outlined text-[14px] font-black">check</span>
                         </div>
@@ -240,6 +240,19 @@
                 <span class="text-xl font-display font-black text-slate-900 dark:text-white leading-tight" id="summary-total">Rp 0</span>
             </div>
             <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[9px] text-primary font-bold truncate max-w-[40vw] mt-0.5"></span>
+            
+            {{-- New Detailed Selection Row --}}
+            <div id="footer-selection-details" class="flex items-center gap-1.5 mt-1 hidden animate-in fade-in slide-in-from-left-2 duration-300">
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
+                    <img id="footer-nominal-img" src="{{ $category->icon }}" class="w-2.5 h-2.5 rounded-full object-cover">
+                    <span id="footer-nominal-txt" class="text-[8px] font-black text-slate-600 dark:text-white/70 truncate max-w-[50px]"></span>
+                </div>
+                <span class="text-slate-300 dark:text-white/20 text-[8px]">•</span>
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
+                    <img id="footer-payment-img" src="" class="w-2.5 h-2.5 object-contain hidden">
+                    <span id="footer-payment-txt" class="text-[8px] font-black text-slate-600 dark:text-white/70 truncate max-w-[50px]"></span>
+                </div>
+            </div>
         </div>
         <button type="submit" class="flex-1 max-w-[200px] py-4 rounded-2xl bg-linear-to-r from-primary to-blue-600 text-white font-display font-black tracking-tight text-sm shadow-xl shadow-primary/30 active:scale-95 transition-all uppercase">
             Top Up Sekarang

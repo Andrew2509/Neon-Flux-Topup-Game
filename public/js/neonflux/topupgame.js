@@ -134,6 +134,38 @@ document.addEventListener('DOMContentLoaded', () => {
             summaryPayment.textContent = selectedPayment.dataset.name;
         }
 
+        // --- NEW: Update Sticky Footer Details ---
+        const footerDetails = document.getElementById('footer-selection-details');
+        const footerNominalTxt = document.getElementById('footer-nominal-txt');
+        const footerPaymentTxt = document.getElementById('footer-payment-txt');
+        const footerPaymentImg = document.getElementById('footer-payment-img');
+
+        if (selectedProduct && footerNominalTxt) {
+            footerNominalTxt.textContent = selectedProduct.dataset.name;
+        }
+
+        if (selectedPayment && footerPaymentTxt) {
+            footerPaymentTxt.textContent = selectedPayment.dataset.name;
+            if (footerPaymentImg) {
+                const imgUrl = selectedPayment.dataset.image;
+                if (imgUrl) {
+                    footerPaymentImg.src = imgUrl;
+                    footerPaymentImg.classList.remove('hidden');
+                } else {
+                    footerPaymentImg.classList.add('hidden');
+                }
+            }
+        }
+
+        if (footerDetails) {
+            if (selectedProduct && selectedPayment) {
+                footerDetails.classList.remove('hidden');
+            } else {
+                footerDetails.classList.add('hidden');
+            }
+        }
+        // --- END NEW ---
+
         // Update User ID info
         if (summaryUserId) {
             const userId = userIdInput ? userIdInput.value : '';
@@ -204,6 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 receiptTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
             }
 
+            const stickyTotal = document.getElementById('sticky-total');
+            if (stickyTotal) {
+                stickyTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
+            }
+
             updateStepperState();
         } else {
             const zeroPrice = 'Rp 0';
@@ -213,6 +250,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (displayFee) displayFee.textContent = zeroPrice;
             if (summaryTotal) summaryTotal.textContent = zeroPrice;
             if (receiptTotal) receiptTotal.textContent = zeroPrice;
+            
+            const stickyTotalZero = document.getElementById('sticky-total');
+            if (stickyTotalZero) stickyTotalZero.textContent = zeroPrice;
+
+            if (footerDetails) footerDetails.classList.add('hidden');
 
             updateStepperState();
         }

@@ -171,7 +171,7 @@
                             @foreach($payments as $p)
                                 @if($p->code === 'SALDO') @continue @endif
                             <label class="cursor-pointer w-full group relative">
-                                <input type="radio" name="payment" value="{{ $p->code }}" class="peer hidden method-card" data-name="{{ $p->name }}" data-fee="{{ $p->fee }}" required>
+                                <input type="radio" name="payment" value="{{ $p->code }}" class="peer hidden method-card" data-name="{{ $p->name }}" data-image="{{ asset($p->image) }}" data-fee="{{ $p->fee }}" required>
                                 <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
                                     <span class="material-symbols-outlined text-[12px] font-bold">check</span>
                                 </div>
@@ -290,6 +290,19 @@
                  <span class="text-xl font-black text-slate-900 dark:text-white leading-tight" id="sticky-total">Rp 0</span>
                  <span class="text-[10px] text-slate-400 dark:text-white/40 line-through decoration-slate-400/50 hidden" id="sticky-original-price"></span>
              </div>
+
+             {{-- New Detailed Selection Row --}}
+            <div id="footer-selection-details" class="flex items-center gap-1.5 mt-1 hidden animate-in fade-in slide-in-from-left-2 duration-300">
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
+                    <img id="footer-nominal-img" src="{{ $category->icon }}" class="w-2.5 h-2.5 rounded-full object-cover">
+                    <span id="footer-nominal-txt" class="text-[8px] font-black text-slate-600 dark:text-white/70 truncate max-w-[80px]"></span>
+                </div>
+                <span class="text-slate-300 dark:text-white/20 text-[8px]">•</span>
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
+                    <img id="footer-payment-img" src="" class="w-2.5 h-2.5 object-contain hidden">
+                    <span id="footer-payment-txt" class="text-[8px] font-black text-slate-600 dark:text-white/70 truncate max-w-[80px]"></span>
+                </div>
+            </div>
          </div>
          <button type="button" onclick="scrollToPayment()" class="flex-1 max-w-[200px] h-12 bg-secondary dark:bg-linear-to-r dark:from-secondary dark:to-pink-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg dark:shadow-neon-magenta hover:scale-105 transition-all">
              <span class="material-icons-round text-sm">bolt</span>
