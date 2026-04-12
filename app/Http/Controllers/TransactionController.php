@@ -564,8 +564,22 @@ class TransactionController extends Controller
             }
 
             $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
+            $paymentNo = $data['PaymentNo'] ?? $data['payment_no'] ?? null;
+            $qrString = $data['QrString'] ?? $data['qr_string'] ?? null;
+            $qrImage = $data['QrImage'] ?? $data['qr_image'] ?? null;
+            $via = strtolower((string)($data['Via'] ?? $data['via'] ?? ''));
+            
+            // Check if we have enough data to show local Neon Flux view
+            $hasLocalData = !empty($paymentNo) || !empty($qrString) || !empty($qrImage);
+            
+            // Methods that MUST redirect (E-Wallet, etc.)
+            $isEwallet = str_contains($via, 'ewallet') || str_contains($via, 'shopeepay') || str_contains($via, 'ovo') || str_contains($via, 'linkaja') || str_contains($via, 'dana');
+
+            // Redirect only if it's a redirect-mandatory method OR we don't have local data to show
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                return redirect()->away($hostedUrl);
+                if ($isEwallet || !$hasLocalData) {
+                    return redirect()->away($hostedUrl);
+                }
             }
 
             // Detect device for proper view folder
@@ -578,13 +592,13 @@ class TransactionController extends Controller
 
             // Normalize QR Source for QRIS
             $qrUrl = null;
-            if (($data['Via'] ?? $data['via'] ?? '') == 'QRIS') {
-                $qrString = $data['QrString'] ?? $data['qr_string'] ?? $data['PaymentNo'] ?? $data['payment_no'] ?? null;
-                // If it looks like a valid QRIS string (starting with 000201), use external generator as it's more reliable
-                if ($qrString && str_starts_with($qrString, '000201')) {
-                    $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?data='.urlencode($qrString).'&size=400x400';
+            if ($via == 'qris') {
+                $qrInput = $qrString ?? $paymentNo; 
+                // If it looks like a valid QRIS string (starting with 000201), use external generator
+                if ($qrInput && str_starts_with($qrInput, '000201')) {
+                    $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?data='.urlencode($qrInput).'&size=400x400';
                 } else {
-                    $qrUrl = $data['QrImage'] ?? $data['qr_image'] ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
+                    $qrUrl = $qrImage ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
                 }
             }
 
