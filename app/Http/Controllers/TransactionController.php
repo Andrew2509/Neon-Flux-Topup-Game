@@ -1003,6 +1003,18 @@ class TransactionController extends Controller
         $device = (new CatalogController)->deviceType();
         $view = "{$device}.neonflux.track";
 
+        if ($order && $order->status === 'pending_payment') {
+            $p = $order->payload ?? [];
+            if (!empty($p['ipaymu'])) {
+                $ipaymu = $p['ipaymu'];
+                $paymentView = "{$device}.neonflux.payment.ipaymu";
+                if (! view()->exists($paymentView)) {
+                    $paymentView = 'desktop.neonflux.payment.ipaymu';
+                }
+                return view($paymentView, compact('order', 'ipaymu', 'latestOrders'));
+            }
+        }
+
         if (! view()->exists($view)) {
             $view = 'desktop.neonflux.track'; // Fallback to desktop
         }
