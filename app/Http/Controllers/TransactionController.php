@@ -192,7 +192,7 @@ class TransactionController extends Controller
         // Support for multi-component fees, e.g. "2.5%+2000"
         $totalFee = 0;
         $parts = explode('+', $feeStr);
-        
+
         foreach ($parts as $part) {
             $part = trim($part);
             if (str_contains($part, '%')) {
@@ -568,7 +568,7 @@ class TransactionController extends Controller
             $qrString  = $data['QrString'] ?? $data['qr_string'] ?? null;
             $qrImage   = $data['QrImage'] ?? $data['qr_image'] ?? null;
             $via       = strtolower((string)($data['Via'] ?? $data['via'] ?? ''));
-            
+
             // Additional logging for debugging iPaymu responses
             Log::info('iPaymu Direct Response Data', [
                 'order_id' => $order->order_id,
@@ -582,7 +582,7 @@ class TransactionController extends Controller
 
             // Check if we have enough data to show local Neon Flux view
             $hasLocalData = !empty($paymentNo) || !empty($qrString) || !empty($qrImage) || !empty($data['QrTemplate']) || !empty($data['qr_template']);
-            
+
             // Methods that MUST redirect (E-Wallet, etc.)
             $isEwallet = str_contains($via, 'ewallet') || str_contains($via, 'shopeepay') || str_contains($via, 'ovo') || str_contains($via, 'linkaja') || str_contains($via, 'dana');
             $isQris = ($via === 'qris' || ($paymentMethod && $paymentMethod->type === 'qris'));
@@ -605,7 +605,7 @@ class TransactionController extends Controller
                     }
                     return redirect()->away($hostedUrl);
                 }
-                
+
                 Log::info('iPaymu: Data lokal tersedia, menampilkan dashboard premium.', ['order_id' => $order->order_id]);
             }
 
@@ -622,7 +622,7 @@ class TransactionController extends Controller
             if ($isQris) {
                 // Try multiple potential sources for the QR data
                 $qrInput = $qrString ?? $paymentNo ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
-                
+
                 if ($qrImage && filter_var($qrImage, FILTER_VALIDATE_URL)) {
                     $qrUrl = $qrImage;
                 } elseif ($qrInput && is_string($qrInput) && str_starts_with($qrInput, '000201')) {
@@ -1572,7 +1572,7 @@ class TransactionController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('CheckID Exception', ['msg' => $e->getMessage()]);
-            
+
             // Return 200 with error message instead of 500 to prevent JS crash
             return response()->json([
                 'success' => false,
@@ -1729,7 +1729,7 @@ class TransactionController extends Controller
 
         // Cancel order locally
         $order->logStatus('cancelled', 'Dibatalkan oleh pengguna.');
-        
+
         return back()->with('success', 'Pembayaran berhasil dibatalkan.');
     }
 }

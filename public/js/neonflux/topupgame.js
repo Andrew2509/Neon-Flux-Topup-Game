@@ -196,10 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedProduct2 && summaryTotal) {
             let basePrice = parseInt(selectedProduct2.dataset.price.replace(/\./g, ''), 10);
             let feeAmount = 0;
-            
+
             if (selectedPayment2) {
                 const feeStr = (selectedPayment2.dataset.fee || '0').toString().replace(/\s/g, '');
-                
+
                 // Mendukung format hybrid seperti "2.5%+2000"
                 const components = feeStr.split('+');
                 components.forEach(comp => {
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (displayFee) displayFee.textContent = zeroPrice;
             if (summaryTotal) summaryTotal.textContent = zeroPrice;
             if (receiptTotal) receiptTotal.textContent = zeroPrice;
-            
+
             const stickyTotalZero = document.getElementById('sticky-total');
             if (stickyTotalZero) stickyTotalZero.textContent = zeroPrice;
 
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const paymentSelected = (document.querySelector('input[name="payment"]:checked')) !== null;
 
         const steps = document.querySelectorAll('.step-item');
-        
+
         // Show/Hide Sticky Bar
         const stickyBar = document.querySelector('.sticky-action-bar');
         if (stickyBar) {
@@ -436,12 +436,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!paymentSection) return;
         const userId = (userIdInput ? userIdInput.value.trim() : '');
         const hasNominal = getSelectedProductCode() !== '';
-        
+
         // Locked if nominal section is locked OR no nominal is selected
         if (whatsappDigitsOk() && userId.length >= 3 && hasNominal) {
             paymentSection.classList.remove('opacity-50', 'is-locked');
             paymentSection.classList.add('transition-opacity', 'duration-500');
-            // Remove pointer-events-none if we were using it, 
+            // Remove pointer-events-none if we were using it,
             // but we're handling clicks in JS for better feedback
         } else {
             paymentSection.classList.add('opacity-50', 'is-locked');
@@ -452,16 +452,16 @@ document.addEventListener('DOMContentLoaded', () => {
         nominalSection.addEventListener('click', (e) => {
             if (nominalSection.classList.contains('is-locked')) {
                 // Check if the click target or its parent is a category tab button
-                const isTabBtn = e.target.closest('.tab-btn') || 
-                                 e.target.closest('[role="tab"]') || 
+                const isTabBtn = e.target.closest('.tab-btn') ||
+                                 e.target.closest('[role="tab"]') ||
                                  e.target.closest('.category-tab'); // Common classes in the UI
-                
+
                 if (isTabBtn) return; // Allow interaction with tabs
 
                 // Prevent all other child interactions if locked
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 // Show toast message
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
                     });
                 }
-                
+
                 const userId = userIdInput ? userIdInput.value.trim() : '';
                 let targetInput = null;
                 if (!whatsappDigitsOk() && customerWhatsappInput) {
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (targetInput) {
                     targetInput.focus();
                     targetInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
+
                     targetInput.classList.add('ring-2', 'ring-primary', 'animate-pulse');
                     setTimeout(() => {
                         targetInput.classList.remove('ring-2', 'ring-primary', 'animate-pulse');
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Prevent interaction if locked
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 const hasNominal = getSelectedProductCode() !== '';
                 let title = 'Silahkan pilih nominal terlebih dahulu';
                 let targetEl = null;
@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     paymentRadios.forEach(r => r.addEventListener('change', () => {
         updateSummary();
-        
+
         // Auto scroll to summary/checkout
         setTimeout(() => {
             const summaryEl = document.getElementById('summary-section');
@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateSummary();
             updateNominalSectionState();
             updatePaymentSectionState();
-            
+
             if (whatsappDigitsOk() && userIdInput && userIdInput.value.length < 3) {
                 userIdInput.focus();
             }
@@ -810,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (hasNickUi) {
                     const msg = (data && data.message) ? data.message : 'Invalid ID';
                     playerNickname.textContent = msg;
-                    
+
                     // If it's the "connection busy" message, don't make it red/blocked
                     if (msg.includes('sibuk') || msg.includes('koneksi')) {
                         playerNickname.classList.remove('text-red-500');
@@ -1002,10 +1002,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Update UI & State
                     if (appliedCodeInput) appliedCodeInput.value = data.data.code;
                     if (appliedDiscountInput) appliedDiscountInput.value = discountValue;
-                    
+
                     if (discountDisplay) discountDisplay.textContent = '-Rp ' + discountValue.toLocaleString('id-ID');
                     if (discountRow) discountRow.classList.remove('hidden');
-                    
+
                     showVoucherMessage(data.message, 'text-green-500');
                     updateSummary();
                 } else {

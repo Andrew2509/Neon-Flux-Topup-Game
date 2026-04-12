@@ -123,7 +123,7 @@
                     @if(($ipaymuData['Via'] ?? '') == 'QRIS')
                         <div class="text-center w-full">
                             <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6">Scan QR Code Berikut</p>
-                            
+
                             <div class="relative inline-block p-4 bg-white rounded-2xl shadow-2xl mb-6 group">
                                 @if(!empty($qrUrl))
                                     <img alt="Payment QR Code" src="{{ $qrUrl }}" class="w-48 h-48 object-contain">
@@ -149,7 +149,7 @@
                         <!-- VA Number Area -->
                         <div class="text-center w-full">
                             <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6">Nomor Virtual Account</p>
-                            
+
                             @if(!empty($ipaymuData['PaymentNo']))
                                 <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 group hover:border-cyan-400/30 transition-all cursor-pointer relative" onclick="copyToClipboard('{{ $ipaymuData['PaymentNo'] }}')">
                                     <h2 class="text-3xl font-headline font-black text-white tracking-widest mb-4 group-hover:text-cyan-400 transition-colors">
@@ -215,7 +215,7 @@
                         <span class="material-symbols-outlined text-lg">sync_alt</span>
                         Update Payment Status
                     </a>
-                    
+
                     <div class="grid grid-cols-2 gap-4">
                         <button onclick="window.print()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all uppercase tracking-widest text-[9px]">
                             <span class="material-symbols-outlined text-lg opacity-60">print</span>

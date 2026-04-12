@@ -193,7 +193,7 @@
             <span class="material-symbols-outlined text-primary">receipt_long</span>
             Tinjau Pesanan
         </h3>
-        
+
         <div class="space-y-4">
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
@@ -218,7 +218,7 @@
 
                 <!-- Voucher Input in Summary -->
                 <div class="relative group">
-                    <input type="text" id="voucher_code" placeholder="Punya Kode Promo?" 
+                    <input type="text" id="voucher_code" placeholder="Punya Kode Promo?"
                         class="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden text-slate-900 dark:text-white font-black uppercase tracking-widest transition-all">
                     <button type="button" id="apply-voucher" class="absolute right-2 top-2 bottom-2 px-5 bg-slate-900 text-white dark:bg-primary dark:text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md active:scale-95 transition-all">
                         Pakai
@@ -239,7 +239,7 @@
                 <span class="text-xl font-display font-black text-slate-900 dark:text-white leading-tight" id="summary-total">Rp 0</span>
             </div>
             <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[9px] text-primary font-bold truncate max-w-[40vw] mt-0.5"></span>
-            
+
             {{-- New Detailed Selection Row --}}
             <div id="footer-selection-details" class="flex items-center gap-1.5 mt-1 hidden animate-in fade-in slide-in-from-left-2 duration-300">
                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">

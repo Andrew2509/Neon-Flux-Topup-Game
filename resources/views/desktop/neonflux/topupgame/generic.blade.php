@@ -248,7 +248,7 @@
                     <!-- Voucher Input in Sidebar -->
                     <div class="mb-6 pb-6 border-b border-dashed border-black/10 dark:border-white/20">
                         <div class="flex gap-2">
-                            <input type="text" id="voucher_code" placeholder="Kode Voucher" 
+                            <input type="text" id="voucher_code" placeholder="Kode Voucher"
                                 class="flex-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs focus:ring-primary focus:border-primary outline-hidden text-slate-950 dark:text-white font-mono uppercase">
                             <button type="button" id="apply-voucher" class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
                                 Pakai
@@ -280,7 +280,7 @@
     </div>
     </form>
 </main>
- 
+
  {{-- Sticky Bottom Action Bar --}}
  <div class="fixed bottom-[56px] inset-x-0 z-40 sticky-action-bar p-4 pb-safe flex items-center justify-center shadow-[0_-12px_40px_rgba(0,0,0,0.1)]">
      <div class="w-full max-w-5xl flex items-center justify-between gap-4">

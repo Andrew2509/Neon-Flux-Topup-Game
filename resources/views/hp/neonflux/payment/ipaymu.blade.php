@@ -124,7 +124,7 @@
                     <span>SAVE</span>
                 </button>
             </div>
-            
+
             <form id="cancelOrderForm" action="{{ route('order.cancel', $order->order_id) }}" method="POST">
                 @csrf
                 <button type="button" onclick="confirmCancelOrder()" class="w-full bg-red-500/10 text-red-500 border border-red-500/20 font-black text-[10px] py-4 rounded-2xl flex items-center justify-center gap-2 uppercase tracking-widest active:scale-95 transition-transform">
