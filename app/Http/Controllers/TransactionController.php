@@ -587,18 +587,16 @@ class TransactionController extends Controller
             $isEwallet = str_contains($via, 'ewallet') || str_contains($via, 'shopeepay') || str_contains($via, 'ovo') || str_contains($via, 'linkaja') || str_contains($via, 'dana');
             $isQris = ($via === 'qris' || ($paymentMethod && $paymentMethod->type === 'qris'));
 
-            // Redirect only if it's a redirect-mandatory method OR we don't have local data to show
+            // Redirect only if it's a redirect-mandatory method
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                // If it's ewallet, we MUST redirect as they usually require app-switching or specific hosted flows.
+                // E-wallet (OVO, DANA, dll) tetap redirect karena biasanya butuh header/flow khusus dari iPaymu
                 if ($isEwallet) {
                     return redirect()->away($hostedUrl);
                 }
                 
-                // For other methods (VA/QRIS), only redirect if we have absolutely no local data to display.
-                if (!$hasLocalData) {
-                    Log::info('iPaymu redirecting due to lack of local data', ['order_id' => $order->order_id]);
-                    return redirect()->away($hostedUrl);
-                }
+                // Untuk metode lain (VA/QRIS), kita TIDAK LAGI melakukan redirect otomatis.
+                // Kita akan menampilkan halaman Neon Flux lokal dan memberikan tombol cadangan jika kodenya kosong.
+                Log::info('iPaymu memberikan hosted URL tapi tetap di tampilan lokal', ['order_id' => $order->order_id]);
             }
 
             // Detect device for proper view folder
@@ -641,6 +639,7 @@ class TransactionController extends Controller
                 'order' => $order,
                 'ipaymuData' => $data,
                 'qrUrl' => $qrUrl,
+                'hostedUrl' => $hostedUrl,
             ]);
         }
 

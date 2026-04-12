@@ -49,6 +49,16 @@
                                 Klik di sini jika barcode tidak muncul
                             </a>
                         </div>
+                    @elseif(!empty($hostedUrl))
+                        <div class="w-full aspect-square flex flex-col items-center justify-center text-slate-800 gap-4 bg-slate-50 rounded-xl py-8 px-4 text-center">
+                            <span class="material-icons-round text-4xl text-primary">qr_code_2</span>
+                            <div class="space-y-1">
+                                <p class="text-[9px] font-black uppercase tracking-tight">QR Tidak Muncul</p>
+                                <a href="{{ $hostedUrl }}" target="_blank" class="bg-primary text-slate-950 font-black py-3 px-6 rounded-xl inline-flex items-center justify-center gap-2 text-[9px] uppercase tracking-widest no-underline shadow-lg active:scale-95 transition-all">
+                                    Portal Bayar
+                                </a>
+                            </div>
+                        </div>
                     @else
                         <div class="w-full aspect-square flex flex-col items-center justify-center text-slate-400 gap-3 bg-slate-50 rounded-xl py-8">
                             <span class="material-icons-round text-4xl animate-pulse">qr_code_2</span>
@@ -61,16 +71,34 @@
                 </div>
             @else
                 <!-- VA Display -->
-                <div class="bg-white/5 border border-white/5 rounded-3xl p-6 mb-6 text-center">
-                    <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Virtual Account / Pembayaran</p>
-                    <div class="flex flex-col items-center gap-3">
-                        <h2 class="text-3xl font-black text-white tracking-tighter">{{ $ipaymuData['PaymentNo'] ?? '' }}</h2>
-                        <button onclick="copyToClipboard('{{ $ipaymuData['PaymentNo'] ?? '' }}')" class="w-full py-3 rounded-2xl bg-primary text-slate-950 font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
-                            <span class="material-icons-round text-sm">content_copy</span>
-                            <span>Salin Kode</span>
-                        </button>
+                @if(!empty($ipaymuData['PaymentNo']))
+                    <div class="bg-white/5 border border-white/5 rounded-3xl p-6 mb-6 text-center">
+                        <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Virtual Account / Pembayaran</p>
+                        <div class="flex flex-col items-center gap-3">
+                            <h2 class="text-3xl font-black text-white tracking-tighter">{{ $ipaymuData['PaymentNo'] ?? '' }}</h2>
+                            <button onclick="copyToClipboard('{{ $ipaymuData['PaymentNo'] ?? '' }}')" class="w-full py-3 rounded-2xl bg-primary text-slate-950 font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                <span class="material-icons-round text-sm">content_copy</span>
+                                <span>Salin Kode</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
+                @elseif(!empty($hostedUrl))
+                    <div class="bg-white/5 border border-white/5 rounded-3xl p-6 mb-6 text-center">
+                        <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-4 px-4">Nomor VA belum tersedia. Lanjutkan di portal aman iPaymu.</p>
+                        <a href="{{ $hostedUrl }}" target="_blank" class="w-full py-4 rounded-2xl bg-primary text-slate-950 font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 no-underline">
+                            <span class="material-icons-round text-sm">payments</span>
+                            <span>Lanjut Ke Pembayaran</span>
+                        </a>
+                        <p class="text-[7px] text-slate-500 mt-3 italic opacity-60">Klik tombol jika nomor VA tidak muncul otomatis</p>
+                    </div>
+                @else
+                    <div class="bg-white/5 border border-white/5 rounded-3xl p-8 mb-6 text-center">
+                        <div class="animate-pulse flex flex-col items-center gap-2">
+                            <span class="material-icons-round text-2xl text-slate-600">hourglass_empty</span>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Menunggu Data iPaymu...</p>
+                        </div>
+                    </div>
+                @endif
             @endif
 
             <!-- Order Details -->
