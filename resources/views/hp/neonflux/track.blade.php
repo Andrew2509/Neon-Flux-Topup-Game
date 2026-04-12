@@ -32,7 +32,7 @@
 
     @if(isset($order))
         <!-- Order Result Card -->
-        <div class="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div class="space-y-4">
             <div class="glass-panel-mobile p-5 rounded-3xl border-slate-200 shadow-sm space-y-5">
                 <!-- Status & ID -->
                 <div class="flex justify-between items-start gap-3">

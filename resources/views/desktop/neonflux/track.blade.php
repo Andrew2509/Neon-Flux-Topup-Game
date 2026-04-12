@@ -36,7 +36,7 @@
 
             @if(isset($order))
                 <!-- Result Section -->
-                <div class="mt-12 pt-10 border-t border-white/5 space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                <div class="mt-12 pt-10 border-t border-white/5 space-y-8">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Status Pesanan</p>
@@ -165,7 +165,7 @@
     </div>
 
     <!-- Latest Transactions Table -->
-    <div class="w-full max-w-5xl mt-16 z-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+    <div class="w-full max-w-5xl mt-16 z-10">
         <div class="glass-panel rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
             <div class="px-8 py-6 border-b border-white/5 bg-white/2 flex items-center justify-between">
                 <div class="flex items-center gap-3">
