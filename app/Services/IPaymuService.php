@@ -440,6 +440,7 @@ class IPaymuService
         }
 
         $url = $this->baseUrl.'/api/v2/transaction';
+        $body = ['transactionId' => $transactionId];
         $jsonBody = json_encode($body, JSON_UNESCAPED_SLASHES);
         $headers = $this->generateHeaders($jsonBody, 'POST');
 
