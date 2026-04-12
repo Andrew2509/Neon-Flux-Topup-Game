@@ -255,6 +255,11 @@ Route::group(['middleware' => []], function () {
         Route::post('/admin/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('admin.settings.update');
     });
 
+    // Admin Visitor Tracking
+    Route::middleware(['auth', 'permission:view-visitors'])->group(function () {
+        Route::get('/admin/visitors', [App\Http\Controllers\Admin\VisitorController::class, 'index'])->name('admin.visitors');
+    });
+
     // Management User & Role Routes
     Route::middleware(['auth', 'permission:manajemen-user-akses'])->prefix('admin/management')->name('admin.management.')->group(function () {
         // User Management

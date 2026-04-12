@@ -116,6 +116,12 @@
                 <span class="text-sm font-semibold hidden-on-collapse">Dashboard</span>
             </a>
             @endcan
+            @can('view-visitors')
+            <a href="{{ route('admin.visitors') }}" class="{{ request()->routeIs('admin.visitors') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer centered-on-collapse" title="Visitor Tracking">
+                <span class="material-symbols-outlined shrink-0">query_stats</span>
+                <span class="text-sm font-medium hidden-on-collapse">Visitor Tracking</span>
+            </a>
+            @endcan
             @can('kelola-pesanan')
             <a href="{{ route('admin.orders') }}" class="{{ request()->routeIs('admin.orders') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer centered-on-collapse" title="Pesanan">
                 <span class="material-symbols-outlined shrink-0">shopping_cart</span>

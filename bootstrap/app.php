@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(prepend: [
             \App\Http\Middleware\RedirectToWww::class,
+            \App\Http\Middleware\TrackVisitor::class,
         ]);
 
         $middleware->alias([
