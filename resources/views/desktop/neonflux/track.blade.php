@@ -113,6 +113,56 @@
                         </div>
                     @endif
 
+                    <!-- Testimonial Form Fallback -->
+                    @if(in_array($order->status, ['success', 'paid', 'processing']) && !$testimonialAlreadySent)
+                    <div id="bagian-ulasan" class="mt-8 pt-8 border-t border-white/5 space-y-6">
+                        <div class="flex items-center gap-3">
+                            <div class="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                                <span class="material-icons-round text-xl">rate_review</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-black text-white tracking-tight">Kirim Ulasan</h3>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Sangat berarti bagi kami!</p>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('testimoni.store') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="order_id" value="{{ $order->order_id }}">
+                            
+                            <div class="flex flex-col gap-2">
+                                <span class="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Rating Anda</span>
+                                <div class="flex gap-2">
+                                    <input type="hidden" name="stars" id="stars-value" value="5">
+                                    @for($i=1; $i<=5; $i++)
+                                    <button type="button" data-star="{{ $i }}" class="nf-star-btn transition-transform hover:scale-110 active:scale-95">
+                                        <span class="material-icons-round text-amber-400 text-3xl">star</span>
+                                    </button>
+                                    @endfor
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold uppercase text-slate-500 tracking-wider ml-1">Nama / Nickname (Opsional)</label>
+                                    <input type="text" name="author_nickname" maxlength="40" placeholder="Pemain Anonim"
+                                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold uppercase text-slate-500 tracking-wider ml-1">Kesan Pesanan (Wajib)</label>
+                                    <textarea name="comment" rows="3" required minlength="8" maxlength="500" placeholder="Contoh: Prosesnya kilat bgt, top up ML paling murah..."
+                                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm font-bold text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"></textarea>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-primary text-slate-950 py-4 rounded-2xl font-black transition-all flex items-center justify-center gap-2 group shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.01] active:scale-[0.98]">
+                                <span class="material-icons-round text-lg">send</span>
+                                <span>Kirim Testimoni</span>
+                            </button>
+                        </form>
+                    </div>
+                    @endif
+
                     @if($order->status === 'pending_payment')
                         @if(!empty($ipaymu))
                         <div class="pt-4">
@@ -242,3 +292,34 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var section = document.getElementById('bagian-ulasan');
+    if (section && {{ request()->has('order_id') ? 'true' : 'false' }}) {
+        // Scroll to review if coming from successful payment or deep link
+        // but only if it's explicitly tracked
+    }
+    
+    var hidden = document.getElementById('stars-value');
+    var btns = document.querySelectorAll('.nf-star-btn');
+    
+    function paint(n) {
+        btns.forEach(function (b) {
+            var v = parseInt(b.getAttribute('data-star'), 10);
+            b.style.opacity = v <= n ? '1' : '0.35';
+        });
+        if (hidden) hidden.value = String(n);
+    }
+    
+    paint(5);
+    
+    btns.forEach(function (b) {
+        b.addEventListener('click', function () {
+            paint(parseInt(b.getAttribute('data-star'), 10));
+        });
+    });
+});
+</script>
+@endpush

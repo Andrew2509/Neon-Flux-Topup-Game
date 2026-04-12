@@ -110,6 +110,56 @@
                     </div>
                 @endif
 
+                <!-- Testimonial Form Mobile Fallback -->
+                @if(in_array($order->status, ['success', 'paid', 'processing']) && !$testimonialAlreadySent)
+                <div id="bagian-ulasan" class="pt-4 border-t border-slate-100 space-y-4">
+                    <div class="flex items-center gap-2">
+                        <div class="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                            <span class="material-icons-round text-sm">rate_review</span>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 tracking-tight">Kirim Ulasan</h3>
+                            <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Feedback Anda sangat berharga</p>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('testimoni.store') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="order_id" value="{{ $order->order_id }}">
+                        
+                        <div class="space-y-2">
+                            <span class="text-[9px] font-bold uppercase text-slate-400 tracking-wider">Rating</span>
+                            <div class="flex gap-1.5">
+                                <input type="hidden" name="stars" id="stars-value" value="5">
+                                @for($i=1; $i<=5; $i++)
+                                <button type="button" data-star="{{ $i }}" class="nf-star-btn active:scale-90 transition-transform">
+                                    <span class="material-icons-round text-amber-400 text-2xl">star</span>
+                                </button>
+                                @endfor
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold uppercase text-slate-400 tracking-wider ml-1">Nama / Nickname (Opsional)</label>
+                                <input type="text" name="author_nickname" maxlength="40" placeholder="Pemain Anonim"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-primary focus:border-transparent outline-none">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold uppercase text-slate-400 tracking-wider ml-1">Kesan Pesanan (Wajib)</label>
+                                <textarea name="comment" rows="3" required minlength="8" maxlength="500" placeholder="Contoh: Kilat bgt, harganya termurah se-indo..."
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-primary focus:border-transparent outline-none resize-none"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-primary text-slate-900 py-3.5 rounded-2xl font-black text-xs uppercase flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                            <span class="material-icons-round text-sm">send</span>
+                            <span>Kirim Testimoni</span>
+                        </button>
+                    </form>
+                </div>
+                @endif
+
                 @if($order->status === 'pending_payment')
                     @if(!empty($ipaymu))
                     <div class="pt-2">
@@ -214,3 +264,28 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var hidden = document.getElementById('stars-value');
+    var btns = document.querySelectorAll('.nf-star-btn');
+    
+    function paint(n) {
+        btns.forEach(function (b) {
+            var v = parseInt(b.getAttribute('data-star'), 10);
+            b.style.opacity = v <= n ? '1' : '0.35';
+        });
+        if (hidden) hidden.value = String(n);
+    }
+    
+    paint(5);
+    
+    btns.forEach(function (b) {
+        b.addEventListener('click', function () {
+            paint(parseInt(b.getAttribute('data-star'), 10));
+        });
+    });
+});
+</script>
+@endpush

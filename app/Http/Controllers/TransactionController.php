@@ -279,8 +279,8 @@ class TransactionController extends Controller
             'name' => $buyerName,
             'email' => $buyerEmail,
             'phone' => $buyerPhone,
-            'returnUrl' => route('track.order', ['order_id' => $order->order_id]),
-            'cancelUrl' => route('track.order', ['order_id' => $order->order_id]),
+            'returnUrl' => route('topup.success', ['order_id' => $order->order_id]),
+            'cancelUrl' => route('topup.success', ['order_id' => $order->order_id]),
             'notifyUrl' => url('/api/ipaymu/callback'),
             'paymentMethod' => $paymentMethod ? $paymentMethod->type : 'va',
             'paymentChannel' => $paymentMethod ? $paymentMethod->code : null,
@@ -1034,7 +1034,13 @@ class TransactionController extends Controller
             $view = 'desktop.neonflux.track'; // Fallback to desktop
         }
 
-        return view($view, compact('order', 'latestOrders', 'ipaymu'));
+        $testimonialAlreadySent = false;
+        if ($order && in_array($order->status, ['success', 'paid', 'processing'])) {
+            session(['testimonial_eligible_order_id' => $order->order_id]);
+            $testimonialAlreadySent = Rating::where('order_id', $order->order_id)->exists();
+        }
+
+        return view($view, compact('order', 'latestOrders', 'ipaymu', 'testimonialAlreadySent'));
     }
 
     /**
@@ -1117,7 +1123,7 @@ class TransactionController extends Controller
             return redirect()->route('track.order')->with('error', 'Pesanan tidak ditemukan.');
         }
 
-        if ($order->status !== 'success') {
+        if (!in_array($order->status, ['success', 'paid', 'processing'])) {
             return redirect()->route('track.order', ['order_id' => $order_id]);
         }
 
