@@ -10,7 +10,7 @@
     <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(0deg, rgba(13,18,28,0.8) 0px, rgba(13,18,28,0.8) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, rgba(13,18,28,0.8) 0px, rgba(13,18,28,0.8) 1px, transparent 1px, transparent 40px);"></div>
 </div>
 
-<main class="relative z-10 max-w-6xl mx-auto px-6 pt-28 pb-12">
+<main class="relative z-10 max-w-6xl mx-auto px-6 pt-36 pb-12">
     <div class="flex flex-col lg:flex-row gap-8">
 
         {{-- ═══════════════════════════════════════════════════ --}}

@@ -19,8 +19,8 @@
         @csrf
     <!-- Header: MLBB Logo & Title -->
     <div class="flex flex-col md:flex-row items-center md:items-end gap-6 mb-10 pl-2">
-        <div class="relative w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-neon-cyan border-2 border-primary/50 group">
-            <img alt="{{ $category->name }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" src="{{ $category->icon ?: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200&auto=format&fit=crop' }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($category->name) }}&background=random&color=fff'" />
+        <div class="relative w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-neon-cyan border-2 border-primary/50 group bg-black/20">
+            <img src="{{ get_image_url('site_logo') ?: $category->icon }}" alt="Logo" class="w-full h-full object-contain p-4 transform group-hover:scale-110 transition-transform duration-500">
         </div>
         <div class="flex-1 text-center md:text-left transition-colors">
             <h1 class="text-4xl md:text-5xl font-display font-bold text-slate-950 dark:text-white mb-2 dark:text-glow">{{ $category->name }}</h1>
@@ -117,7 +117,7 @@
                                 <span class="bg-secondary text-[10px] font-bold px-1.5 py-0.5 rounded text-white shadow-none dark:shadow-neon-magenta">HOT</span>
                             </div>
                             @endif
-                            <img alt="{{ $category->name }}" class="w-8 h-8 mb-2 rounded-lg object-cover" src="{{ $category->icon ?: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200&auto=format&fit=crop' }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($category->name) }}&background=random&color=fff'" />
+                            <img alt="{{ $s->name }}" class="w-10 h-10 mb-2 rounded-lg object-contain shadow-neon-cyan" src="{{ $category->icon }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($s->name) }}&background=random&color=fff'" />
                             <span class="font-bold text-center text-sm md:text-base text-slate-950 dark:text-white">{{ $s->name }}</span>
                             <div class="mt-3 bg-slate-100 dark:bg-black/30 rounded-lg px-3 py-1 w-full text-center border border-slate-200 dark:border-white/5 group-hover:border-primary/30 transition-colors">
                                 <span class="text-sm font-semibold text-primary">Rp {{ number_format($s->price, 0, ',', '.') }}</span>
