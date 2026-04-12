@@ -43,9 +43,9 @@
                     </div>
                 </div>
 
-                {{-- QRIS / VA / ERROR Display --}}
+                {{-- QRIS / VA / REDIRECT / ERROR Display --}}
                 <div class="py-4">
-                    @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_image']) && empty($ipaymu['payment_no'])))
+                    @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_image']) && empty($ipaymu['payment_no']) && empty($ipaymu['payment_url'])))
                         {{-- ERROR / FALLBACK --}}
                         <div class="bg-red-500/10 border border-red-500/20 rounded-3xl p-8 text-center space-y-4">
                             <span class="material-icons-round text-red-500 text-5xl">warning</span>
@@ -67,6 +67,22 @@
                                 <h3 class="text-xl font-bold text-white tracking-tight">Scan Kode QR di Atas</h3>
                                 <p class="text-sm text-white/40 max-w-sm">Dapat dipindah menggunakan aplikasi M-Banking (BCA, Mandiri, BRI, dll) atau E-Wallet (OVO, Dana, GoPay, ShopeePay).</p>
                             </div>
+                        </div>
+                    @elseif(!empty($ipaymu['payment_url']))
+                        {{-- REDIRECT (Session based) --}}
+                        <div class="bg-primary/5 border border-primary/20 rounded-3xl p-10 text-center space-y-6">
+                            <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <span class="material-icons-round text-primary text-5xl">rocket_launch</span>
+                            </div>
+                            <div class="space-y-2">
+                                <h3 class="text-2xl font-display font-black text-white uppercase tracking-tighter">Langkah Terakhir!</h3>
+                                <p class="text-sm text-white/50 max-w-sm mx-auto">Klik tombol di bawah untuk menyelesaikan pembayaran via portal aman <b>iPaymu</b>.</p>
+                            </div>
+                            <a href="{{ $ipaymu['payment_url'] }}" target="_blank" class="inline-flex items-center gap-3 px-10 py-5 bg-primary text-black font-display font-black text-lg rounded-2xl shadow-neon-cyan hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                LANJUTKAN KE PEMBAYARAN
+                                <span class="material-icons-round">open_in_new</span>
+                            </a>
+                            <p class="text-[10px] text-white/20 uppercase tracking-widest font-bold font-mono">ID Sesi: {{ $ipaymu['transaction_id'] ?? '-' }}</p>
                         </div>
                     @else
                         {{-- VA --}}

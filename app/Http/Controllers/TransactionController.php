@@ -561,6 +561,7 @@ class TransactionController extends Controller
                 'payment_no' => $data['PaymentNo'] ?? $data['payment_no'] ?? null,
                 'qr_image' => $data['QrImage'] ?? $data['qr_image'] ?? null,
                 'qr_string' => $data['QrString'] ?? $data['qr_string'] ?? null,
+                'payment_url' => $data['Url'] ?? $data['url'] ?? null,
                 'total' => $data['Total'] ?? $data['total'] ?? $order->total_price,
                 'expired' => $data['Expired'] ?? $data['expired'] ?? null,
                 'via' => $data['Via'] ?? $data['via'] ?? $paymentMethod?->name ?? 'Bank',
@@ -573,6 +574,7 @@ class TransactionController extends Controller
                 'tid' => $ipaymuTid,
                 'has_qr' => !empty($p['ipaymu']['qr_image']),
                 'has_va' => !empty($p['ipaymu']['payment_no']),
+                'has_url' => !empty($p['ipaymu']['payment_url']),
             ]);
 
             // Jika AJAX request, kembalikan JSON (seperti checkout Ajax)
@@ -833,6 +835,12 @@ class TransactionController extends Controller
 
         $tid = data_get($order->payload, 'ipaymu.transaction_id');
         if (! is_string($tid) || trim($tid) === '') {
+            return;
+        }
+
+        // iPaymu: Jangan sync jika TID adalah UUID (berarti SessionID, bukan TransactionID).
+        // API /api/v2/transaction akan return 400 Invalid Transaction jika dikasih SessionID.
+        if (preg_match('/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i', $tid)) {
             return;
         }
 

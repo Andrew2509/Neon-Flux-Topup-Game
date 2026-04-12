@@ -27,7 +27,7 @@
 
         {{-- Payment Content --}}
         <div class="bg-black/40 rounded-2xl p-4 border border-white/5">
-            @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_image']) && empty($ipaymu['payment_no'])))
+            @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_image']) && empty($ipaymu['payment_no']) && empty($ipaymu['payment_url'])))
                 {{-- ERROR / FALLBACK --}}
                 <div class="text-center py-6 space-y-4">
                     <span class="material-icons-round text-red-500 text-4xl">report_problem</span>
@@ -78,6 +78,20 @@
                             </button>
                         </div>
                     </div>
+                </div>
+            @elseif(!empty($ipaymu['payment_url']))
+                {{-- REDIRECT (Mobile) --}}
+                <div class="text-center py-4 space-y-5">
+                    <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto shadow-inner shadow-primary/20">
+                        <span class="material-icons-round text-primary text-4xl">rocket_launch</span>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-white font-black uppercase italic tracking-tighter">Langkah Terakhir</h3>
+                        <p class="text-[10px] text-white/40 leading-relaxed px-4">Klik tombol di bawah untuk diarahkan ke halaman pembayaran aman <b>iPaymu</b>.</p>
+                    </div>
+                    <a href="{{ $ipaymu['payment_url'] }}" target="_blank" class="block w-full py-4 bg-primary text-black font-display font-black text-sm rounded-xl shadow-neon-cyan active:scale-95 transition-all uppercase tracking-wider">
+                        LANJUTKAN KE PEMBAYARAN
+                    </a>
                 </div>
             @endif
         </div>
