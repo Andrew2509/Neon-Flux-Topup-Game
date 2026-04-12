@@ -125,6 +125,45 @@
         </div>
     </div>
 
+    {{-- Order Summary --}}
+    <div class="glass-panel-mobile p-5 rounded-2xl border border-white/10 space-y-3 mt-4">
+        <h3 class="text-sm font-display font-black text-white uppercase tracking-wider flex items-center gap-2">
+            <span class="material-icons-round text-primary text-base">shopping_bag</span>
+            Ringkasan Pesanan
+        </h3>
+        <div class="space-y-2">
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span class="text-[10px] text-white/40 uppercase font-black">Produk</span>
+                <span class="text-xs text-white font-bold text-right max-w-[60%] truncate">{{ $order->product_name }}</span>
+            </div>
+            @if($order->data)
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span class="text-[10px] text-white/40 uppercase font-black">Tujuan</span>
+                <span class="text-xs text-white font-mono font-bold">{{ $order->data }}</span>
+            </div>
+            @endif
+            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
+                <span class="text-[10px] text-white/40 uppercase font-black">Metode</span>
+                <span class="text-xs text-white font-bold">{{ $order->payment_method }}</span>
+            </div>
+            <div class="flex justify-between items-center pt-1.5">
+                <span class="text-[10px] text-white/40 uppercase font-black">Total</span>
+                <span class="text-base text-primary font-display font-black">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Cancel Button --}}
+    <div class="mt-4">
+        <form action="{{ route('order.cancel', $order->order_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')">
+            @csrf
+            <button type="submit" class="w-full py-3.5 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest active:bg-red-500/10 transition-all flex items-center justify-center gap-2">
+                <span class="material-icons-round text-sm">close</span>
+                Batalkan Pesanan
+            </button>
+        </form>
+    </div>
+
     {{-- Footer Info --}}
     <div class="mt-8 mb-12 flex flex-col items-center gap-4">
         <div class="flex items-center gap-2 opacity-30">

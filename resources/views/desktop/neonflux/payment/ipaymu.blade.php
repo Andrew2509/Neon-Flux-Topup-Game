@@ -138,6 +138,34 @@
 
         {{-- Right: Sidebar Info --}}
         <div class="md:col-span-5 space-y-6">
+            {{-- Order Summary --}}
+            <div class="glass-panel p-6 rounded-[2rem] border border-white/10">
+                <h3 class="text-lg font-display font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span class="material-icons-round text-primary">shopping_bag</span>
+                    Ringkasan Pesanan
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+                        <span class="text-xs text-white/40 uppercase font-black">Produk</span>
+                        <span class="text-sm text-white font-bold">{{ $order->product_name }}</span>
+                    </div>
+                    @if($order->data)
+                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+                        <span class="text-xs text-white/40 uppercase font-black">Tujuan</span>
+                        <span class="text-sm text-white font-mono font-bold">{{ $order->data }}</span>
+                    </div>
+                    @endif
+                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+                        <span class="text-xs text-white/40 uppercase font-black">Metode</span>
+                        <span class="text-sm text-white font-bold">{{ $order->payment_method }}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-xs text-white/40 uppercase font-black">Total Tagihan</span>
+                        <span class="text-lg text-primary font-display font-black">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+
             {{-- Instructions --}}
             <div class="glass-panel p-6 rounded-[2rem] border border-white/10">
                 <h3 class="text-lg font-display font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -173,6 +201,18 @@
                         </a>
                     </div>
                 </div>
+            </div>
+            </div>
+
+            {{-- Cancel Button --}}
+            <div class="pt-4">
+                <form action="{{ route('order.cancel', $order->order_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')">
+                    @csrf
+                    <button type="submit" class="w-full py-4 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 text-xs font-black uppercase tracking-widest hover:bg-red-500/10 transition-all flex items-center justify-center gap-2">
+                        <span class="material-icons-round text-sm">close</span>
+                        Batalkan Pesanan
+                    </button>
+                </form>
             </div>
         </div>
     </div>
