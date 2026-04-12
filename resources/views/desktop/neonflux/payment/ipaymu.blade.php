@@ -87,17 +87,25 @@
 
                     @if(($ipaymuData['Via'] ?? '') == 'QRIS')
                         <!-- QR Display -->
-                        <div class="relative p-6 bg-white rounded-3xl shadow-[0_0_60px_rgba(153,247,255,0.1)] mb-10 group overflow-hidden">
-                            <img alt="Payment QR Code" src="{{ $qrUrl ?? '' }}" class="w-52 h-52 md:w-64 md:h-64 object-contain relative z-10">
-                            <div class="absolute inset-0 border-4 border-cyan-400/5 rounded-3xl pointer-events-none"></div>
-                            
-                            @if($qrUrl)
-                            <div class="absolute inset-0 bg-white/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 z-20 px-6">
-                                <a href="{{ $qrUrl }}" target="_blank" class="text-[11px] text-slate-800 font-bold flex flex-col items-center gap-3 text-center no-underline">
-                                    <span class="material-symbols-outlined text-2xl text-cyan-600">open_in_new</span>
-                                    <span>Gagal scan? Klik untuk lihat gambar manual</span>
-                                </a>
-                            </div>
+                        <div class="relative p-6 bg-white rounded-3xl shadow-[0_0_60px_rgba(153,247,255,0.1)] mb-10 group overflow-hidden flex items-center justify-center">
+                            @if(!empty($qrUrl))
+                                <img alt="Payment QR Code" src="{{ $qrUrl }}" class="w-52 h-52 md:w-64 md:h-64 object-contain relative z-10">
+                                <div class="absolute inset-0 border-4 border-cyan-400/5 rounded-3xl pointer-events-none"></div>
+                                
+                                <div class="absolute inset-0 bg-white/95 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 z-20 px-6">
+                                    <a href="{{ $qrUrl }}" target="_blank" class="text-[11px] text-slate-800 font-bold flex flex-col items-center gap-3 text-center no-underline">
+                                        <span class="material-symbols-outlined text-2xl text-cyan-600">open_in_new</span>
+                                        <span>Gagal scan? Klik untuk lihat gambar manual</span>
+                                    </a>
+                                </div>
+                            @else
+                                <div class="w-52 h-52 md:w-64 md:h-64 flex flex-col items-center justify-center text-slate-400 gap-4 bg-slate-50 rounded-2xl">
+                                    <span class="material-symbols-outlined text-5xl animate-pulse">qr_code_2</span>
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-center px-4">
+                                        QR Code Sedang Diproses...<br>
+                                        <span class="text-[8px] opacity-60">Silakan Tunggu atau Hubungi CS</span>
+                                    </p>
+                                </div>
                             @endif
                         </div>
                     @else

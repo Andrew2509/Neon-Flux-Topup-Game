@@ -565,19 +565,38 @@ class TransactionController extends Controller
 
             $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
             $paymentNo = $data['PaymentNo'] ?? $data['payment_no'] ?? null;
-            $qrString = $data['QrString'] ?? $data['qr_string'] ?? null;
-            $qrImage = $data['QrImage'] ?? $data['qr_image'] ?? null;
-            $via = strtolower((string)($data['Via'] ?? $data['via'] ?? ''));
+            $qrString  = $data['QrString'] ?? $data['qr_string'] ?? null;
+            $qrImage   = $data['QrImage'] ?? $data['qr_image'] ?? null;
+            $via       = strtolower((string)($data['Via'] ?? $data['via'] ?? ''));
             
+            // Additional logging for debugging iPaymu responses
+            Log::info('iPaymu Direct Response Data', [
+                'order_id' => $order->order_id,
+                'via' => $via,
+                'has_payment_no' => !empty($paymentNo),
+                'has_qr_string' => !empty($qrString),
+                'has_qr_image' => !empty($qrImage),
+                'has_qr_template' => !empty($data['QrTemplate']) || !empty($data['qr_template']),
+                'hosted_url' => $hostedUrl
+            ]);
+
             // Check if we have enough data to show local Neon Flux view
-            $hasLocalData = !empty($paymentNo) || !empty($qrString) || !empty($qrImage);
+            $hasLocalData = !empty($paymentNo) || !empty($qrString) || !empty($qrImage) || !empty($data['QrTemplate']) || !empty($data['qr_template']);
             
             // Methods that MUST redirect (E-Wallet, etc.)
             $isEwallet = str_contains($via, 'ewallet') || str_contains($via, 'shopeepay') || str_contains($via, 'ovo') || str_contains($via, 'linkaja') || str_contains($via, 'dana');
+            $isQris = ($via === 'qris' || ($paymentMethod && $paymentMethod->type === 'qris'));
 
             // Redirect only if it's a redirect-mandatory method OR we don't have local data to show
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                if ($isEwallet || !$hasLocalData) {
+                // If it's ewallet, we MUST redirect as they usually require app-switching or specific hosted flows.
+                if ($isEwallet) {
+                    return redirect()->away($hostedUrl);
+                }
+                
+                // For other methods (VA/QRIS), only redirect if we have absolutely no local data to display.
+                if (!$hasLocalData) {
+                    Log::info('iPaymu redirecting due to lack of local data', ['order_id' => $order->order_id]);
                     return redirect()->away($hostedUrl);
                 }
             }
@@ -592,15 +611,31 @@ class TransactionController extends Controller
 
             // Normalize QR Source for QRIS
             $qrUrl = null;
-            if ($via == 'qris') {
-                $qrInput = $qrString ?? $paymentNo; 
-                // If it looks like a valid QRIS string (starting with 000201), use external generator
-                if ($qrInput && str_starts_with($qrInput, '000201')) {
+            if ($isQris) {
+                // Try multiple potential sources for the QR data
+                $qrInput = $qrString ?? $paymentNo ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
+                
+                if ($qrImage && filter_var($qrImage, FILTER_VALIDATE_URL)) {
+                    $qrUrl = $qrImage;
+                } elseif ($qrInput && is_string($qrInput) && str_starts_with($qrInput, '000201')) {
+                    // It's a raw QRIS payload (EMVCo format) - generate image via qrserver
                     $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?data='.urlencode($qrInput).'&size=400x400';
-                } else {
-                    $qrUrl = $qrImage ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
+                } elseif ($qrInput && filter_var($qrInput, FILTER_VALIDATE_URL)) {
+                    // It's already a URL (common for some iPaymu channels)
+                    $qrUrl = $qrInput;
                 }
             }
+
+            // Normalize Via & Channel to uppercase for consistency in Blade views
+            if (isset($data['Via'])) $data['Via'] = strtoupper($data['Via']);
+            if (isset($data['via'])) {
+                $data['Via'] = strtoupper($data['via']);
+            } elseif (!isset($data['Via'])) {
+                $data['Via'] = strtoupper($via);
+            }
+
+            if (isset($data['Channel'])) $data['Channel'] = strtoupper($data['Channel']);
+            if (isset($data['channel'])) $data['Channel'] = strtoupper($data['channel']);
 
             return view($view, [
                 'order' => $order,

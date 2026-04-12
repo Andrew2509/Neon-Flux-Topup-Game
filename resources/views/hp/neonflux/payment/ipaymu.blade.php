@@ -39,17 +39,24 @@
 
             @if(($ipaymuData['Via'] ?? '') == 'QRIS')
                 <!-- QR Code Display -->
-                <div class="bg-white rounded-3xl p-6 shadow-xl mb-6 relative mx-auto max-w-[240px]">
-                    <div class="relative w-full aspect-square overflow-hidden rounded-xl border border-slate-50">
-                        <img src="{{ $qrUrl ?? '' }}" alt="QRIS Payment" class="w-full h-full object-contain">
-                    </div>
-                    
-                    @if($qrUrl)
-                    <div class="mt-4 text-center">
-                        <a href="{{ $qrUrl }}" target="_blank" class="text-[10px] text-slate-400 font-medium">
-                            Klik di sini jika barcode tidak muncul
-                        </a>
-                    </div>
+                <div class="bg-white rounded-3xl p-6 shadow-xl mb-6 relative mx-auto max-w-[240px] flex items-center justify-center">
+                    @if(!empty($qrUrl))
+                        <div class="relative w-full aspect-square overflow-hidden rounded-xl border border-slate-50">
+                            <img src="{{ $qrUrl }}" alt="QRIS Payment" class="w-full h-full object-contain">
+                        </div>
+                        <div class="mt-4 text-center">
+                            <a href="{{ $qrUrl }}" target="_blank" class="text-[10px] text-slate-400 font-medium">
+                                Klik di sini jika barcode tidak muncul
+                            </a>
+                        </div>
+                    @else
+                        <div class="w-full aspect-square flex flex-col items-center justify-center text-slate-400 gap-3 bg-slate-50 rounded-xl py-8">
+                            <span class="material-icons-round text-4xl animate-pulse">qr_code_2</span>
+                            <p class="text-[9px] font-bold uppercase tracking-widest text-center px-4 leading-relaxed">
+                                QRIS Sedang Diproses...<br>
+                                <span class="text-[7px] opacity-60">Silakan Refresh atau Hubungi CS</span>
+                            </p>
+                        </div>
                     @endif
                 </div>
             @else
