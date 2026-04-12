@@ -131,7 +131,7 @@ class IPaymuService
                     'headers' => $headers,
                     'body' => $body,
                 ]);
-                $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
+                $response = $this->ipaymuHttp()->withHeaders($headers)->withBody($jsonBody, 'application/json')->post($url);
                 $result = $response->json();
 
                 if ($response->successful()) {
