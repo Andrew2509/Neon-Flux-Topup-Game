@@ -19,7 +19,7 @@ class RatingSeeder extends Seeder
             [
                 'product_name' => 'Mobile Legends',
                 'stars' => 5,
-                'comment' => 'Prosesnya cepet banget, gak sampe 5 menit diamond udah masuk. Mantap PrincePay!',
+                'comment' => 'Prosesnya cepet banget, gak sampe 5 menit diamond udah masuk. Mantap NeonFlux!',
                 'author_nickname' => 'Ahmad Fauzi',
             ],
             [
@@ -55,7 +55,7 @@ class RatingSeeder extends Seeder
             [
                 'product_name' => 'Mobile Legends',
                 'stars' => 5,
-                'comment' => 'Pelayanan bintang 5, sukses terus buat PrincePay Gaming!',
+                'comment' => 'Pelayanan bintang 5, sukses terus buat NeonFlux!',
                 'author_nickname' => 'Aditya Wijaya',
             ],
             [
