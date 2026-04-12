@@ -465,27 +465,11 @@ class TransactionController extends Controller
         $buyerEmail = $user->email ?? $guestEmail;
         $buyerPhone = $user->phone ?? ('08'.str_pad((string) (abs(crc32($order->order_id.(string) $order->id)) % 1000000000), 9, '0', STR_PAD_LEFT));
 
-        // iPaymu direct VA: bank channel biasanya minimal Rp 10.000; di bawah itu sering gagal generate VA.
-        if ($paymentMethod
-            && ($paymentMethod->type ?? '') === 'bank'
-            && filled($paymentMethod->code)
-            && (int) $order->total_price < 10000) {
-            $order->update([
-                'status' => 'failed',
-                'payload' => array_merge($order->payload ?? [], ['ipaymu_error' => 'below_va_minimum']),
-            ]);
-            $msg = 'Nominal untuk Virtual Account iPaymu minimal Rp 10.000. Pilih nominal lebih besar atau gunakan metode lain (mis. QRIS).';
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 400);
-            }
-
-            return back()->with('error', 'Pesanan gagal diinisiasi: '.$msg);
-        }
-
+        // iPaymu Redirect Mode: Langsung lempar ke halaman iPaymu
         $ipaymuPayload = [
             'orderId' => $order->order_id,
             'amount' => $order->total_price,
-            'product' => $order->product_name,
+            'product' => $order->product_name ?? 'Topup Game',
             'name' => $buyerName,
             'email' => $buyerEmail,
             'phone' => $buyerPhone,
@@ -494,127 +478,60 @@ class TransactionController extends Controller
             'notifyUrl' => url('/api/ipaymu/callback'),
             'paymentMethod' => $paymentMethod ? $paymentMethod->type : 'va',
             'paymentChannel' => $paymentMethod ? $paymentMethod->code : null,
+            'forceRedirect' => true,
         ];
 
         $ipaymuService = new IPaymuService;
         $res = $ipaymuService->createPayment($ipaymuPayload);
 
-        Log::info('iPaymu Response API:', ['res' => $res]);
+        Log::info('iPaymu Redirect Initiation:', ['order_id' => $order->order_id, 'res' => $res]);
 
-        // Normalize iPaymu response keys (Case Insensitivity Fix)
         $status = $res['Status'] ?? $res['status'] ?? null;
         $data = $res['Data'] ?? $res['data'] ?? null;
+        $message = $res['Message'] ?? $res['message'] ?? 'Gagal membuat sesi pembayaran iPaymu.';
 
-        $directVaFailed = $paymentMethod
-            && filled($paymentMethod->code)
-            && (
-                (int) $status === 406
-                || stripos((string) ($res['Message'] ?? $res['message'] ?? ''), 'Failed to generate VA') !== false
-                || in_array((int) $status, [500, 502, 503, 504], true)
-            );
-
-        if ($directVaFailed) {
-            Log::notice('iPaymu: direct gagal (406/VA/5xx), fallback ke hosted checkout (tanpa paymentChannel)', [
-                'order_id' => $order->order_id,
-                'channel' => $paymentMethod->code,
-                'http_status' => $status,
-            ]);
-            $ipaymuPayload['paymentChannel'] = null;
-            $ipaymuPayload['paymentMethod'] = 'va';
-            $res = $ipaymuService->createPayment($ipaymuPayload);
-            Log::info('iPaymu Response API (fallback redirect):', ['res' => $res]);
-            $status = $res['Status'] ?? $res['status'] ?? null;
-            $data = $res['Data'] ?? $res['data'] ?? null;
-        }
-
-        $message = $res['Message'] ?? $res['message'] ?? 'Gagal membuat pembayaran iPaymu.';
-        if (stripos((string) $message, 'Suspicious buyer') !== false) {
-            $message = 'Pembayaran ditolak oleh iPaymu (pembeli terdeteksi risiko). Coba tanpa VPN, jaringan lain, atau login dengan data asli. Jika terus terjadi, hubungi iPaymu atau gunakan metode bayar lain.';
-        }
-        if (stripos((string) $message, 'unauthorized credential') !== false) {
-            $message = 'iPaymu menolak kredensial: periksa nomor VA dan API Key di Admin → Provider (salin dari dashboard iPaymu). Pastikan mode Sandbox/Production sama dengan akun Anda (sandbox.ipaymu.com vs my.ipaymu.com). Hapus spasi di awal/akhir kunci jika ada.';
-        }
-        if (stripos((string) $message, 'Failed to generate VA') !== false) {
-            $message = 'iPaymu gagal membuat nomor Virtual Account untuk bank yang dipilih (gangguan channel atau VA belum diaktifkan). Coba bank lain atau QRIS; pastikan channel tersebut aktif di dashboard iPaymu (Konfigurasi Layanan) dan nominal ≥ Rp 10.000. Jika terus gagal, hubungi support iPaymu.';
-        }
-
-        if (stripos((string) $message, 'sandbox.ipaymu.com') !== false
-            || (stripos((string) $message, 'test transaksi') !== false && stripos((string) $message, 'ipaymu') !== false)) {
-            $message = 'Kunci/VA iPaymu Anda untuk SANDBOX, tetapi permintaan terkirim ke server PRODUCTION (atau sebaliknya). Di Admin → kelola Provider iPaymu: isi mode **sandbox** jika VA & API Key dari https://sandbox.ipaymu.com; isi **production** (atau live/prod) hanya jika merchant sudah live di https://my.ipaymu.com. Simpan lalu coba checkout lagi.';
-        }
-
-        if (stripos((string) $message, 'Operation timed out') !== false
-            || stripos((string) $message, 'cURL error 28') !== false
-            || stripos((string) $message, 'Connection timed out') !== false) {
-            $message = 'Server tidak mendapat balasan dari iPaymu dalam batas waktu (timeout). Biasanya karena jaringan VPS/firewall atau IPv6. Pastikan outbound HTTPS ke my.ipaymu.com tidak diblokir; aplikasi memaksa IPv4 secara default (IPAYMU_FORCE_IPV4 di .env). Coba lagi; dari VPS uji: curl -4 -m 15 -I https://my.ipaymu.com';
-        }
-
-        if ($status == 200 && $data) {
+        if ($status == 200 && !empty($data['Url'])) {
             $ipaymuTid = IPaymuService::extractTransactionIdFromPaymentData($data);
             
-            // Perkaya payload order dengan data dari iPaymu Direct
+            // Simpan data esensial ke payload
             $p = $order->payload ?? [];
             $p['ipaymu'] = array_merge($p['ipaymu'] ?? [], [
                 'transaction_id' => $ipaymuTid,
-                'created_via' => 'payment_api',
+                'created_via' => 'redirect_only',
                 'status_code' => $status,
-                'payment_no' => $data['PaymentNo'] ?? $data['payment_no'] ?? null,
-                'qr_image' => $data['QrImage'] ?? $data['qr_image'] ?? null,
-                'qr_string' => $data['QrString'] ?? $data['qr_string'] ?? null,
-                'payment_url' => $data['Url'] ?? $data['url'] ?? null,
-                'total' => $data['Total'] ?? $data['total'] ?? $order->total_price,
-                'expired' => $data['Expired'] ?? $data['expired'] ?? null,
-                'via' => $data['Via'] ?? $data['via'] ?? $paymentMethod?->name ?? 'Bank',
+                'payment_url' => $data['Url'],
+                'total' => $data['Total'] ?? $order->total_price,
+                'via' => $paymentMethod?->name ?? 'iPaymu',
                 'channel' => $paymentMethod?->code,
             ]);
             $order->update(['payload' => $p]);
 
-            Log::info('iPaymu Direct Payment Initiated', [
-                'order_id' => $order->order_id,
-                'tid' => $ipaymuTid,
-                'has_qr' => !empty($p['ipaymu']['qr_image']),
-                'has_va' => !empty($p['ipaymu']['payment_no']),
-                'has_url' => !empty($p['ipaymu']['payment_url']),
-            ]);
+            $redirectUrl = $data['Url'];
 
-            // Jika AJAX request, kembalikan JSON (seperti checkout Ajax)
-            // Tapi untuk Neon Flux flow standar, kita lempar ke view pembayaran IPAYMU lokal.
-            $viewData = [
-                'order' => $order,
-                'paymentMethod' => $paymentMethod,
-                'ipaymu' => $p['ipaymu'],
-            ];
-
-            // Deteksi device/template neonflux
-            $tpl = (\is_mobile_neonflux() ? 'hp' : 'desktop') . '.neonflux.payment.ipaymu';
-            
-            if (view()->exists($tpl)) {
-                return view($tpl, $viewData);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect_url' => $redirectUrl,
+                    'order_id' => $order->order_id
+                ]);
             }
 
-            // Fallback ke tracking page jika view khusus belum ada
-            return redirect()->route('track.order', ['order_id' => $order->order_id])
-                ->with('success', 'Silakan selesaikan pembayaran sesuai instruksi di bawah.');
+            return redirect()->away($redirectUrl);
         }
 
+        // Error handling if redirect init fails
         $order->update(['status' => 'failed', 'payload' => $res]);
-        Log::warning('iPaymu createPayment gagal', [
+        Log::warning('iPaymu Redirect Failed', [
             'order_id' => $order->order_id,
-            'amount' => $order->total_price,
-            'channel' => $paymentMethod?->code,
-            'type' => $paymentMethod?->type,
             'status' => $status,
-            'message' => $res['Message'] ?? $res['message'] ?? null,
+            'message' => $message
         ]);
+
         if ($request->expectsJson()) {
-            return response()->json(['success' => false, 'message' => $message, 'debug' => $res], 400);
-        }
-        $errMsg = 'Pesanan gagal diinisiasi: '.$message;
-        if (config('app.debug')) {
-            $errMsg .= ' (Raw: '.json_encode($res).')';
+            return response()->json(['success' => false, 'message' => $message], 400);
         }
 
-        return back()->with('error', $errMsg);
+        return back()->with('error', 'Gagal memproses pembayaran: ' . $message);
     }
 
     private function processMidtrans($order, $paymentMethod, Request $request)
