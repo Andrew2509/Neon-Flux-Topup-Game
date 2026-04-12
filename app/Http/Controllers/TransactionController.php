@@ -595,16 +595,18 @@ class TransactionController extends Controller
                 Log::notice('iPaymu: Force identify as QRIS because Via was empty', ['order_id' => $order->order_id]);
             }
 
-            // Redirect only if it's a redirect-mandatory method
+            // Logic: Redirect to iPaymu portal if:
+            // 1. It's an E-wallet (requires specific flow)
+            // 2. We don't have local QR/VA data (fallback triggered by iPaymu, e.g. "Suspicious Buyer")
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                // E-wallet (OVO, DANA, dll) tetap redirect karena biasanya butuh header/flow khusus dari iPaymu
-                if ($isEwallet) {
+                if ($isEwallet || !$hasLocalData) {
+                    if (!$hasLocalData) {
+                        Log::info('iPaymu: Data lokal kosong (mungkin fallback), redirect ke portal bayar.', ['order_id' => $order->order_id]);
+                    }
                     return redirect()->away($hostedUrl);
                 }
                 
-                // Untuk metode lain (VA/QRIS), kita TIDAK LAGI melakukan redirect otomatis.
-                // Kita akan menampilkan halaman Neon Flux lokal dan memberikan tombol cadangan jika kodenya kosong.
-                Log::info('iPaymu memberikan hosted URL tapi tetap di tampilan lokal', ['order_id' => $order->order_id]);
+                Log::info('iPaymu: Data lokal tersedia, menampilkan dashboard premium.', ['order_id' => $order->order_id]);
             }
 
             // Detect device for proper view folder
