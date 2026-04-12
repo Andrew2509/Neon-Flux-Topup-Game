@@ -285,7 +285,7 @@ class TransactionController extends Controller
         $data = $res['Data'] ?? $res['data'] ?? null;
         $message = $res['Message'] ?? $res['message'] ?? 'Gagal membuat sesi pembayaran iPaymu.';
 
-        if ($status == 200 && !empty($data['Url'])) {
+        if ($status == 200 && !empty($data)) {
             $ipaymuTid = IPaymuService::extractTransactionIdFromPaymentData($data);
             
             // Simpan data esensial ke payload
