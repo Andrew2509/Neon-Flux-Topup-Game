@@ -48,3 +48,25 @@
 .hero-overlay-left {
     background: linear-gradient(to right, var(--hero-overlay), transparent);
 }
+
+/* --- Animations for Footer Selection --- */
+@keyframes slideFromLeft {
+    from { transform: translateX(-10px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-in {
+    animation-fill-mode: forwards;
+}
+
+.slide-in-from-left-2 {
+    animation-name: slideFromLeft;
+}
+
+.fade-in {
+    opacity: 0; /* Initial state for animation */
+}
+
+.duration-300 {
+    animation-duration: 300ms;
+}
