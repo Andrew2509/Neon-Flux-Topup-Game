@@ -158,7 +158,7 @@
                     $gameIcon = null;
                     $productCode = $order->payload['product_code'] ?? null;
                     if ($productCode) {
-                        $svc = \App\Models\Service::where('code', $productCode)->first();
+                        $svc = \App\Models\Service::where('product_code', $productCode)->first();
                         if ($svc && $svc->category) {
                             $gameIcon = $svc->category->icon;
                         }
