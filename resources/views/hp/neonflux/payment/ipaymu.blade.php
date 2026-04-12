@@ -9,7 +9,7 @@
     <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[100px] rounded-full"></div>
 </div>
 
-<div class="relative z-10 px-4 py-4 max-w-lg mx-auto space-y-4">
+<div class="relative z-10 px-4 py-2 max-w-lg mx-auto space-y-3">
 
     {{-- Header --}}
     <div class="flex items-center gap-3">
@@ -24,13 +24,13 @@
 
     {{-- Countdown Timer --}}
     @if(!empty($ipaymu['expired']))
-    <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-4 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-            <span class="material-icons-round text-cyan-400 animate-pulse text-lg">schedule</span>
+    <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round text-cyan-400 animate-pulse text-base">schedule</span>
         </div>
         <div class="flex-1">
-            <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-tighter">Batas Pembayaran</p>
-            <p class="text-lg font-black text-white" id="countdown-timer" data-expired="{{ $ipaymu['expired'] }}">
+            <p class="text-[9px] font-bold text-cyan-400 uppercase tracking-tighter">Batas Pembayaran</p>
+            <p class="text-sm font-black text-white" id="countdown-timer" data-expired="{{ $ipaymu['expired'] }}">
                 {{ \Carbon\Carbon::parse($ipaymu['expired'])->format('d M Y, H:i') }}
             </p>
         </div>
@@ -38,22 +38,22 @@
     @endif
 
     {{-- Main Payment Card --}}
-    <div class="bg-gradient-to-b from-slate-900/80 to-black/80 border border-white/10 rounded-3xl p-5 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
+    <div class="bg-gradient-to-b from-slate-900/80 to-black/80 border border-white/10 rounded-2xl p-4 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
         {{-- Top Glow Line --}}
         <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"></div>
 
         {{-- Amount Header --}}
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-3">
             <div>
-                <p class="text-[10px] uppercase tracking-[0.15em] text-cyan-400 font-bold mb-0.5">Total Pembayaran</p>
-                <h2 class="text-3xl font-black text-white flex items-baseline gap-1.5">
-                    <span class="text-sm font-medium text-slate-500 italic">Rp</span>
+                <p class="text-[9px] uppercase tracking-[0.15em] text-cyan-400 font-bold mb-0.5">Total Pembayaran</p>
+                <h2 class="text-2xl font-black text-white flex items-baseline gap-1">
+                    <span class="text-xs font-medium text-slate-500 italic">Rp</span>
                     {{ number_format($ipaymu['total'] ?? $order->total_price, 0, ',', '.') }}
                 </h2>
             </div>
-            <div class="bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 text-right">
-                <p class="text-[9px] uppercase text-slate-500 font-bold">Metode</p>
-                <p class="text-[11px] font-bold text-white uppercase tracking-wider">{{ $ipaymu['via'] ?? 'iPaymu' }}</p>
+            <div class="bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 text-right">
+                <p class="text-[8px] uppercase text-slate-500 font-bold">Metode</p>
+                <p class="text-[10px] font-bold text-white uppercase tracking-wider">{{ $ipaymu['via'] ?? 'iPaymu' }}</p>
             </div>
         </div>
 
@@ -77,22 +77,22 @@
                         ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($ipaymu['qr_string']) 
                         : $ipaymu['qr_image'];
                 @endphp
-                <div class="flex flex-col items-center space-y-4">
-                    <div class="relative p-4 bg-white rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.08)]">
-                        <img src="{{ $qrSrc }}" alt="QRIS Code" class="w-52 h-52">
+                <div class="flex flex-col items-center space-y-2.5">
+                    <div class="relative p-3 bg-white rounded-xl shadow-[0_0_30px_rgba(255,255,255,0.06)]">
+                        <img src="{{ $qrSrc }}" alt="QRIS Code" class="w-40 h-40">
                         {{-- Corner Decorations --}}
-                        <div class="absolute -top-1.5 -left-1.5 w-6 h-6 border-t-[3px] border-l-[3px] border-cyan-500 rounded-tl-md"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 border-b-[3px] border-r-[3px] border-cyan-500 rounded-br-md"></div>
+                        <div class="absolute -top-1 -left-1 w-5 h-5 border-t-2 border-l-2 border-cyan-500 rounded-tl-sm"></div>
+                        <div class="absolute -bottom-1 -right-1 w-5 h-5 border-b-2 border-r-2 border-cyan-500 rounded-br-sm"></div>
                         {{-- Center Logo --}}
                         <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div class="bg-white p-1.5 rounded-md shadow-md">
-                                <div class="w-6 h-6 bg-black rounded flex items-center justify-center">
-                                    <span class="text-[7px] font-black text-cyan-400 leading-none">NF</span>
+                            <div class="bg-white p-1 rounded shadow">
+                                <div class="w-5 h-5 bg-black rounded flex items-center justify-center">
+                                    <span class="text-[6px] font-black text-cyan-400 leading-none">NF</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-400 text-center max-w-[200px]">Scan menggunakan M-Banking atau E-Wallet</p>
+                    <p class="text-[10px] text-slate-400 text-center">Scan menggunakan M-Banking atau E-Wallet</p>
                 </div>
 
             @elseif(!empty($ipaymu['payment_no']))
@@ -128,10 +128,10 @@
         </div>
 
         {{-- Action Buttons --}}
-        <div class="pt-4 border-t border-white/5 space-y-3 mt-2">
+        <div class="pt-3 border-t border-white/5 mt-1">
             <button id="btn-check-status" 
-                    class="w-full py-3.5 bg-cyan-500 text-black font-black text-sm uppercase tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
-                <span class="material-icons-round animate-spin-slow text-lg">sync</span>
+                    class="w-full py-3 bg-cyan-500 text-black font-black text-xs uppercase tracking-widest rounded-xl shadow-[0_8px_25px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+                <span class="material-icons-round animate-spin-slow text-base">sync</span>
                 Konfirmasi Pembayaran
             </button>
         </div>
