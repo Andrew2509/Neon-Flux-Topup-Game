@@ -84,11 +84,14 @@ class IPaymuService
                 'referenceId' => $data['orderId'],
                 'paymentMethod' => $ipaymuMethod,
                 'paymentChannel' => $data['paymentChannel'],
+                'product' => [$data['product'] ?? 'Topup Game'],
+                'qty' => [1],
+                'price' => [(int) round((float) $data['amount'])],
             ];
         } else {
             // Body structure for Redirect Payment
             $body = [
-                'product' => [$data['product']],
+                'product' => [$data['product'] ?? 'Topup Game'],
                 'qty' => [1],
                 'price' => [(int) round((float) $data['amount'])],
                 'returnUrl' => $data['returnUrl'],

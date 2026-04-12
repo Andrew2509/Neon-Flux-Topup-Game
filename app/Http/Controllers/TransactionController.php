@@ -551,31 +551,48 @@ class TransactionController extends Controller
 
         if ($status == 200 && $data) {
             $ipaymuTid = IPaymuService::extractTransactionIdFromPaymentData($data);
-            if ($ipaymuTid !== null) {
-                $p = $order->payload ?? [];
-                $p['ipaymu'] = array_merge($p['ipaymu'] ?? [], [
-                    'transaction_id' => $ipaymuTid,
-                    'created_via' => 'payment_api',
-                ]);
-                $order->update(['payload' => $p]);
-            }
-
-            $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
             
-            Log::info('iPaymu Payment Initiated', [
+            // Perkaya payload order dengan data dari iPaymu Direct
+            $p = $order->payload ?? [];
+            $p['ipaymu'] = array_merge($p['ipaymu'] ?? [], [
+                'transaction_id' => $ipaymuTid,
+                'created_via' => 'payment_api',
+                'status_code' => $status,
+                'payment_no' => $data['PaymentNo'] ?? $data['payment_no'] ?? null,
+                'qr_image' => $data['QrImage'] ?? $data['qr_image'] ?? null,
+                'qr_string' => $data['QrString'] ?? $data['qr_string'] ?? null,
+                'total' => $data['Total'] ?? $data['total'] ?? $order->total_price,
+                'expired' => $data['Expired'] ?? $data['expired'] ?? null,
+                'via' => $data['Via'] ?? $data['via'] ?? $paymentMethod?->name ?? 'Bank',
+                'channel' => $paymentMethod?->code,
+            ]);
+            $order->update(['payload' => $p]);
+
+            Log::info('iPaymu Direct Payment Initiated', [
                 'order_id' => $order->order_id,
-                'hosted_url' => $hostedUrl,
-                'tid' => $ipaymuTid
+                'tid' => $ipaymuTid,
+                'has_qr' => !empty($p['ipaymu']['qr_image']),
+                'has_va' => !empty($p['ipaymu']['payment_no']),
             ]);
 
-            // Always redirect to iPaymu hosted portal as requested
-            if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                return redirect()->away($hostedUrl);
+            // Jika AJAX request, kembalikan JSON (seperti checkout Ajax)
+            // Tapi untuk Neon Flux flow standar, kita lempar ke view pembayaran IPAYMU lokal.
+            $viewData = [
+                'order' => $order,
+                'paymentMethod' => $paymentMethod,
+                'ipaymu' => $p['ipaymu'],
+            ];
+
+            // Deteksi device/template neonflux
+            $tpl = (is_mobile_neonflux() ? 'hp' : 'desktop') . '.neonflux.payment.ipaymu';
+            
+            if (view()->exists($tpl)) {
+                return view($tpl, $viewData);
             }
 
-            // Fallback if URL is missing but status was 200 (should rarely happen)
+            // Fallback ke tracking page jika view khusus belum ada
             return redirect()->route('track.order', ['order_id' => $order->order_id])
-                ->with('error', 'Gagal mendapatkan link pembayaran dari iPaymu. Silakan hubangi admin.');
+                ->with('success', 'Silakan selesaikan pembayaran sesuai instruksi di bawah.');
         }
 
         $order->update(['status' => 'failed', 'payload' => $res]);
