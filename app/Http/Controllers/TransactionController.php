@@ -273,7 +273,7 @@ class TransactionController extends Controller
             'notifyUrl' => url('/api/ipaymu/callback'),
             'paymentMethod' => $paymentMethod ? $paymentMethod->type : 'va',
             'paymentChannel' => $paymentMethod ? $paymentMethod->code : null,
-            'forceRedirect' => true,
+            'forceRedirect' => empty($paymentMethod) || empty($paymentMethod->code), // If no specific channel, fallback to redirect
         ];
 
         $ipaymuService = new IPaymuService;
@@ -292,26 +292,41 @@ class TransactionController extends Controller
             $p = $order->payload ?? [];
             $p['ipaymu'] = array_merge($p['ipaymu'] ?? [], [
                 'transaction_id' => $ipaymuTid,
-                'created_via' => 'redirect_only',
+                'created_via' => isset($data['PaymentNo']) || isset($data['QrString']) ? 'direct' : 'redirect_only',
                 'status_code' => $status,
-                'payment_url' => $data['Url'],
+                'payment_url' => $data['Url'] ?? null,
+                'payment_no' => $data['PaymentNo'] ?? null,
+                'payment_name' => $data['PaymentName'] ?? null,
+                'qr_string' => $data['QrString'] ?? null,
+                'qr_image' => $data['QrImage'] ?? null,
+                'expired' => $data['Expired'] ?? null,
                 'total' => $data['Total'] ?? $order->total_price,
                 'via' => $paymentMethod?->name ?? 'iPaymu',
                 'channel' => $paymentMethod?->code,
             ]);
             $order->update(['payload' => $p]);
 
-            $redirectUrl = $data['Url'];
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'redirect_url' => $redirectUrl,
-                    'order_id' => $order->order_id
-                ]);
+            if (!empty($data['Url']) && empty($data['PaymentNo']) && empty($data['QrString'])) {
+                $redirectUrl = $data['Url'];
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => $redirectUrl,
+                        'order_id' => $order->order_id
+                    ]);
+                }
+                return redirect()->away($redirectUrl);
+            } else {
+                $redirectUrl = route('track.order', ['order_id' => $order->order_id]);
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => $redirectUrl,
+                        'order_id' => $order->order_id
+                    ]);
+                }
+                return redirect($redirectUrl);
             }
-
-            return redirect()->away($redirectUrl);
         }
 
         // Error handling if redirect init fails

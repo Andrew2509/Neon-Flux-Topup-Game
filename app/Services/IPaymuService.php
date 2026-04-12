@@ -22,12 +22,17 @@ class IPaymuService
         $this->va = trim((string) ($provider?->provider_id ?? ''));
         $this->apiKey = trim((string) ($provider?->api_key ?? ''));
 
-        // Mengikuti ENVIRONMENT MODE di Admin → Provider (production).
-        $this->baseUrl = 'https://my.ipaymu.com';
-
-        if (! $provider) {
-            Log::warning('iPaymu: tidak ada Provider dengan nama iPaymu / mengandung "ipaymu" — sandbox URL dipakai dan kredensial kosong.');
+        // Mengikuti ENVIRONMENT MODE di Admin → Provider
+        if ($provider && $provider->usesProductionApi()) {
+            $this->baseUrl = 'https://my.ipaymu.com';
         } else {
+            $this->baseUrl = 'https://sandbox.ipaymu.com';
+            if (! $provider) {
+                Log::warning('iPaymu: tidak ada Provider dengan nama iPaymu / mengandung "ipaymu" — sandbox URL dipakai dan kredensial kosong.');
+            }
+        }
+
+        if ($provider) {
             Log::debug('iPaymu init', [
                 'provider_name' => $provider->name,
                 'base_url' => $this->baseUrl,
