@@ -91,6 +91,10 @@ class IPaymuService
         } else {
             // Body structure for Redirect Payment
             $body = [
+                'name' => $data['name'] ?? 'Guest',
+                'email' => $data['email'] ?? 'guest@princepay.com',
+                'phone' => $data['phone'] ?? '081122334455',
+                'amount' => (int) round((float) $data['amount']),
                 'product' => [$data['product'] ?? 'Topup Game'],
                 'qty' => [1],
                 'price' => [(int) round((float) $data['amount'])],
