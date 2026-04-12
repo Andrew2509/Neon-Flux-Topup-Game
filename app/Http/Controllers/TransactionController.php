@@ -537,19 +537,16 @@ class TransactionController extends Controller
         if (stripos((string) $message, 'Failed to generate VA') !== false) {
             $message = 'iPaymu gagal membuat nomor Virtual Account untuk bank yang dipilih (gangguan channel atau VA belum diaktifkan). Coba bank lain atau QRIS; pastikan channel tersebut aktif di dashboard iPaymu (Konfigurasi Layanan) dan nominal ≥ Rp 10.000. Jika terus gagal, hubungi support iPaymu.';
         }
+
         if (stripos((string) $message, 'sandbox.ipaymu.com') !== false
             || (stripos((string) $message, 'test transaksi') !== false && stripos((string) $message, 'ipaymu') !== false)) {
             $message = 'Kunci/VA iPaymu Anda untuk SANDBOX, tetapi permintaan terkirim ke server PRODUCTION (atau sebaliknya). Di Admin → kelola Provider iPaymu: isi mode **sandbox** jika VA & API Key dari https://sandbox.ipaymu.com; isi **production** (atau live/prod) hanya jika merchant sudah live di https://my.ipaymu.com. Simpan lalu coba checkout lagi.';
         }
+
         if (stripos((string) $message, 'Operation timed out') !== false
             || stripos((string) $message, 'cURL error 28') !== false
             || stripos((string) $message, 'Connection timed out') !== false) {
             $message = 'Server tidak mendapat balasan dari iPaymu dalam batas waktu (timeout). Biasanya karena jaringan VPS/firewall atau IPv6. Pastikan outbound HTTPS ke my.ipaymu.com tidak diblokir; aplikasi memaksa IPv4 secara default (IPAYMU_FORCE_IPV4 di .env). Coba lagi; dari VPS uji: curl -4 -m 15 -I https://my.ipaymu.com';
-        }
-        $msgTrim = trim((string) $message);
-        if ($msgTrim === 'Server Error' || strcasecmp($msgTrim, 'Internal Server Error') === 0) {
-            $httpLabel = ($status !== null && $status !== '' && is_numeric($status)) ? (string) (int) $status : 'tidak diketahui';
-            $message = 'Layanan iPaymu mengembalikan error server (HTTP '.$httpLabel.'). Ini biasanya gangguan sementara di sisi iPaymu. Tunggu sebentar, coba lagi, atau pilih metode pembayaran lain. Jika berulang, hubungi support iPaymu.';
         }
 
         if ($status == 200 && $data) {
@@ -564,93 +561,21 @@ class TransactionController extends Controller
             }
 
             $hostedUrl = $data['Url'] ?? $data['url'] ?? null;
-            $paymentNo = $data['PaymentNo'] ?? $data['payment_no'] ?? null;
-            $qrString  = $data['QrString'] ?? $data['qr_string'] ?? null;
-            $qrImage   = $data['QrImage'] ?? $data['qr_image'] ?? null;
-            $via       = strtolower((string)($data['Via'] ?? $data['via'] ?? ''));
-
-            // Additional logging for debugging iPaymu responses
-            Log::info('iPaymu Direct Response Data', [
+            
+            Log::info('iPaymu Payment Initiated', [
                 'order_id' => $order->order_id,
-                'via' => $via,
-                'has_payment_no' => !empty($paymentNo),
-                'has_qr_string' => !empty($qrString),
-                'has_qr_image' => !empty($qrImage),
-                'has_qr_template' => !empty($data['QrTemplate']) || !empty($data['qr_template']),
-                'hosted_url' => $hostedUrl
+                'hosted_url' => $hostedUrl,
+                'tid' => $ipaymuTid
             ]);
 
-            // Check if we have enough data to show local Neon Flux view
-            $hasLocalData = !empty($paymentNo) || !empty($qrString) || !empty($qrImage) || !empty($data['QrTemplate']) || !empty($data['qr_template']);
-
-            // Methods that MUST redirect (E-Wallet, etc.)
-            $isEwallet = str_contains($via, 'ewallet') || str_contains($via, 'shopeepay') || str_contains($via, 'ovo') || str_contains($via, 'linkaja') || str_contains($via, 'dana');
-            $isQris = ($via === 'qris' || ($paymentMethod && $paymentMethod->type === 'qris'));
-
-            // Force identification if iPaymu returns empty Via but we know it's QRIS
-            if ($isQris && empty($via)) {
-                $via = 'qris';
-                $data['Via'] = 'QRIS';
-                $data['Channel'] = $data['Channel'] ?? $paymentMethod->code ?? 'MPM';
-                Log::notice('iPaymu: Force identify as QRIS because Via was empty', ['order_id' => $order->order_id]);
-            }
-
-            // Logic: Redirect to iPaymu portal if:
-            // 1. It's an E-wallet (requires specific flow)
-            // 2. We don't have local QR/VA data (fallback triggered by iPaymu, e.g. "Suspicious Buyer")
+            // Always redirect to iPaymu hosted portal as requested
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                if ($isEwallet || !$hasLocalData) {
-                    if (!$hasLocalData) {
-                        Log::info('iPaymu: Data lokal kosong (mungkin fallback), redirect ke portal bayar.', ['order_id' => $order->order_id]);
-                    }
-                    return redirect()->away($hostedUrl);
-                }
-
-                Log::info('iPaymu: Data lokal tersedia, menampilkan dashboard premium.', ['order_id' => $order->order_id]);
+                return redirect()->away($hostedUrl);
             }
 
-            // Detect device for proper view folder
-            $device = (new CatalogController)->deviceType();
-            $view = "{$device}.neonflux.payment.ipaymu";
-
-            if (! view()->exists($view)) {
-                $view = 'desktop.neonflux.payment.ipaymu'; // Fallback to desktop
-            }
-
-            // Normalize QR Source for QRIS
-            $qrUrl = null;
-            if ($isQris) {
-                // Try multiple potential sources for the QR data
-                $qrInput = $qrString ?? $paymentNo ?? $data['QrTemplate'] ?? $data['qr_template'] ?? null;
-
-                if ($qrImage && filter_var($qrImage, FILTER_VALIDATE_URL)) {
-                    $qrUrl = $qrImage;
-                } elseif ($qrInput && is_string($qrInput) && str_starts_with($qrInput, '000201')) {
-                    // It's a raw QRIS payload (EMVCo format) - generate image via qrserver
-                    $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?data='.urlencode($qrInput).'&size=400x400';
-                } elseif ($qrInput && filter_var($qrInput, FILTER_VALIDATE_URL)) {
-                    // It's already a URL (common for some iPaymu channels)
-                    $qrUrl = $qrInput;
-                }
-            }
-
-            // Normalize Via & Channel to uppercase for consistency in Blade views
-            if (isset($data['Via'])) $data['Via'] = strtoupper($data['Via']);
-            if (isset($data['via'])) {
-                $data['Via'] = strtoupper($data['via']);
-            } elseif (!isset($data['Via'])) {
-                $data['Via'] = strtoupper($via);
-            }
-
-            if (isset($data['Channel'])) $data['Channel'] = strtoupper($data['Channel']);
-            if (isset($data['channel'])) $data['Channel'] = strtoupper($data['channel']);
-
-            return view($view, [
-                'order' => $order,
-                'ipaymuData' => $data,
-                'qrUrl' => $qrUrl,
-                'hostedUrl' => $hostedUrl,
-            ]);
+            // Fallback if URL is missing but status was 200 (should rarely happen)
+            return redirect()->route('track.order', ['order_id' => $order->order_id])
+                ->with('error', 'Gagal mendapatkan link pembayaran dari iPaymu. Silakan hubangi admin.');
         }
 
         $order->update(['status' => 'failed', 'payload' => $res]);
