@@ -15,6 +15,7 @@ Route::group(['middleware' => []], function () {
 
     Route::get('/', [App\Http\Controllers\CatalogController::class, 'index'])->name('home');
     Route::get('/track', [App\Http\Controllers\TransactionController::class, 'trackOrder'])->name('track.order');
+    Route::get('/payment/{order_id}', [App\Http\Controllers\TransactionController::class, 'showPaymentPage'])->name('order.payment');
     Route::post('/order/{order_id}/cancel', [App\Http\Controllers\TransactionController::class, 'cancelOrder'])->name('order.cancel');
     Route::get('/topup/berhasil', [App\Http\Controllers\TransactionController::class, 'topupSuccess'])->name('topup.success');
     Route::post('/testimoni', [App\Http\Controllers\TestimonialController::class, 'store'])->name('testimoni.store');

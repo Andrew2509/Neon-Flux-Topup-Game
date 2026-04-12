@@ -335,7 +335,7 @@ class TransactionController extends Controller
                 }
                 return redirect()->away($redirectUrl);
             } else {
-                $redirectUrl = route('track.order', ['order_id' => $order->order_id]);
+                $redirectUrl = route('order.payment', ['order_id' => $order->order_id]);
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => true,
@@ -1021,15 +1021,12 @@ class TransactionController extends Controller
         $device = (new CatalogController)->deviceType();
         $view = "{$device}.neonflux.track";
 
+        // Jika order pending_payment dengan data ipaymu, pass data ke track view (bukan redirect)
+        $ipaymu = null;
         if ($order && $order->status === 'pending_payment') {
             $p = $order->payload ?? [];
             if (!empty($p['ipaymu'])) {
                 $ipaymu = $p['ipaymu'];
-                $paymentView = "{$device}.neonflux.payment.ipaymu";
-                if (! view()->exists($paymentView)) {
-                    $paymentView = 'desktop.neonflux.payment.ipaymu';
-                }
-                return view($paymentView, compact('order', 'ipaymu', 'latestOrders'));
             }
         }
 
@@ -1037,7 +1034,34 @@ class TransactionController extends Controller
             $view = 'desktop.neonflux.track'; // Fallback to desktop
         }
 
-        return view($view, compact('order', 'latestOrders'));
+        return view($view, compact('order', 'latestOrders', 'ipaymu'));
+    }
+
+    /**
+     * Halaman pembayaran iPaymu dedicated (diakses via tombol "Lanjutkan Pembayaran")
+     */
+    public function showPaymentPage(string $order_id)
+    {
+        $order = Order::where('order_id', $order_id)->first();
+
+        if (!$order || $order->status !== 'pending_payment') {
+            return redirect()->route('track.order', ['order_id' => $order_id]);
+        }
+
+        $ipaymu = $order->payload['ipaymu'] ?? null;
+        if (!$ipaymu) {
+            return redirect()->route('track.order', ['order_id' => $order_id])
+                ->with('error', 'Data pembayaran tidak ditemukan.');
+        }
+
+        $latestOrders = Order::latest()->take(10)->get();
+        $device = (new CatalogController)->deviceType();
+        $paymentView = "{$device}.neonflux.payment.ipaymu";
+        if (!view()->exists($paymentView)) {
+            $paymentView = 'desktop.neonflux.payment.ipaymu';
+        }
+
+        return view($paymentView, compact('order', 'ipaymu', 'latestOrders'));
     }
 
     /**

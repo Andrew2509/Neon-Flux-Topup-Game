@@ -111,6 +111,15 @@
                 @endif
 
                 @if($order->status === 'pending_payment')
+                    @if(!empty($ipaymu))
+                    <div class="pt-2">
+                        <a href="{{ route('order.payment', $order->order_id) }}" class="w-full bg-primary text-slate-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                            <span class="material-icons-round text-lg">payment</span>
+                            Lanjutkan Pembayaran
+                            <span class="material-icons-round text-lg">arrow_forward</span>
+                        </a>
+                    </div>
+                    @endif
                     <div class="pt-2">
                         <form id="cancelOrderForm" action="{{ route('order.cancel', $order->order_id) }}" method="POST">
                             @csrf
