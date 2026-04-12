@@ -22,10 +22,8 @@ class IPaymuService
         $this->va = trim((string) ($provider?->provider_id ?? ''));
         $this->apiKey = trim((string) ($provider?->api_key ?? ''));
 
-        // Mengikuti ENVIRONMENT MODE di Admin → Provider (sandbox | production).
-        $this->baseUrl = ($provider && $provider->usesProductionApi())
-            ? 'https://my.ipaymu.com'
-            : 'https://sandbox.ipaymu.com';
+        // Mengikuti ENVIRONMENT MODE di Admin → Provider (production).
+        $this->baseUrl = 'https://my.ipaymu.com';
 
         if (! $provider) {
             Log::warning('iPaymu: tidak ada Provider dengan nama iPaymu / mengandung "ipaymu" — sandbox URL dipakai dan kredensial kosong.');
