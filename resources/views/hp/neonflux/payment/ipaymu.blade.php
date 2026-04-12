@@ -3,174 +3,238 @@
 @section('title', 'Selesaikan Pembayaran — ' . get_setting('site_name'))
 
 @section('content')
-<div class="px-4 py-2 max-w-lg mx-auto">
+{{-- Background Decor --}}
+<div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-cyan-500/10 blur-[100px] rounded-full"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[100px] rounded-full"></div>
+</div>
+
+<div class="relative z-10 px-4 py-4 max-w-lg mx-auto space-y-4">
+
     {{-- Header --}}
-    <div class="flex items-center gap-3 mb-6">
+    <div class="flex items-center gap-3">
         <a href="{{ route('track.order', ['order_id' => $order->order_id]) }}" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 active:scale-90 transition-all">
             <span class="material-icons-round text-white">arrow_back</span>
         </a>
         <div>
-            <h1 class="text-xl font-display font-black text-white tracking-tight uppercase leading-tight">Pembayaran</h1>
-            <p class="text-xs text-white/50 font-medium">Order #{{ $order->order_id }}</p>
+            <h1 class="text-lg font-display font-black text-white tracking-tight uppercase leading-tight">Pembayaran</h1>
+            <p class="text-[10px] text-slate-500 font-mono">#{{ $order->order_id }}</p>
         </div>
     </div>
 
-    {{-- Main Card --}}
-    <div class="glass-panel-mobile p-6 rounded-3xl relative overflow-hidden border border-white/10 shadow-2xl space-y-6">
-        {{-- Total Amount --}}
-        <div class="text-center space-y-1">
-            <p class="text-xs font-bold text-white/40 uppercase tracking-widest leading-none">Total Pembayaran</p>
-            <h2 class="text-3xl font-display font-black text-primary drop-shadow-[0_0_15px_rgba(0,242,255,0.4)]">
-                Rp {{ number_format($ipaymu['total'] ?? $order->total_price, 0, ',', '.') }}
-            </h2>
+    {{-- Countdown Timer --}}
+    @if(!empty($ipaymu['expired']))
+    <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+            <span class="material-icons-round text-cyan-400 animate-pulse text-lg">schedule</span>
+        </div>
+        <div class="flex-1">
+            <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-tighter">Batas Pembayaran</p>
+            <p class="text-lg font-black text-white" id="countdown-timer" data-expired="{{ $ipaymu['expired'] }}">
+                {{ \Carbon\Carbon::parse($ipaymu['expired'])->format('d M Y, H:i') }}
+            </p>
+        </div>
+    </div>
+    @endif
+
+    {{-- Main Payment Card --}}
+    <div class="bg-gradient-to-b from-slate-900/80 to-black/80 border border-white/10 rounded-3xl p-5 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
+        {{-- Top Glow Line --}}
+        <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"></div>
+
+        {{-- Amount Header --}}
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <p class="text-[10px] uppercase tracking-[0.15em] text-cyan-400 font-bold mb-0.5">Total Pembayaran</p>
+                <h2 class="text-3xl font-black text-white flex items-baseline gap-1.5">
+                    <span class="text-sm font-medium text-slate-500 italic">Rp</span>
+                    {{ number_format($ipaymu['total'] ?? $order->total_price, 0, ',', '.') }}
+                </h2>
+            </div>
+            <div class="bg-white/5 px-3 py-1.5 rounded-xl border border-white/10 text-right">
+                <p class="text-[9px] uppercase text-slate-500 font-bold">Metode</p>
+                <p class="text-[11px] font-bold text-white uppercase tracking-wider">{{ $ipaymu['via'] ?? 'iPaymu' }}</p>
+            </div>
         </div>
 
         {{-- Payment Content --}}
-        <div class="bg-black/40 rounded-2xl p-4 border border-white/5">
-            @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_image']) && empty($ipaymu['payment_no']) && empty($ipaymu['payment_url'])))
-                {{-- ERROR / FALLBACK --}}
-                <div class="text-center py-6 space-y-4">
+        <div class="py-2">
+            @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_string']) && empty($ipaymu['qr_image']) && empty($ipaymu['payment_no']) && empty($ipaymu['payment_url'])))
+                {{-- ERROR --}}
+                <div class="text-center py-6 space-y-3">
                     <span class="material-icons-round text-red-500 text-4xl">report_problem</span>
                     <div class="space-y-1">
                         <h3 class="text-sm font-black text-white uppercase italic tracking-tighter">Gagal Inisiasi</h3>
-                        <p class="text-[10px] text-white/40 px-2 leading-relaxed">Sistem gagal menghubungi gateway iPaymu. (IP Server mungkin belum di-whitelist).</p>
+                        <p class="text-[10px] text-slate-400 px-2 leading-relaxed">Sistem gagal menghubungi gateway iPaymu.</p>
                     </div>
+                    <button onclick="window.location.reload()" class="px-4 py-1.5 bg-white/10 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest">Coba Lagi</button>
                 </div>
+
             @elseif(!empty($ipaymu['qr_string']) || !empty($ipaymu['qr_image']))
                 {{-- QRIS --}}
+                @php
+                    $qrSrc = !empty($ipaymu['qr_string']) 
+                        ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($ipaymu['qr_string']) 
+                        : $ipaymu['qr_image'];
+                @endphp
                 <div class="flex flex-col items-center space-y-4">
-                    <div class="relative p-3 bg-white rounded-2xl shadow-xl">
-                        @php
-                            $qrSrc = !empty($ipaymu['qr_string']) ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($ipaymu['qr_string']) : $ipaymu['qr_image'];
-                        @endphp
-                        <img src="{{ $qrSrc }}" alt="QRIS Code" class="w-48 h-48 sm:w-56 sm:h-56">
-                        @if(!empty($ipaymu['expired']))
-                            <div class="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-lg uppercase">
-                                QRIS Dynamic
+                    <div class="relative p-4 bg-white rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.08)]">
+                        <img src="{{ $qrSrc }}" alt="QRIS Code" class="w-52 h-52">
+                        {{-- Corner Decorations --}}
+                        <div class="absolute -top-1.5 -left-1.5 w-6 h-6 border-t-[3px] border-l-[3px] border-cyan-500 rounded-tl-md"></div>
+                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 border-b-[3px] border-r-[3px] border-cyan-500 rounded-br-md"></div>
+                        {{-- Center Logo --}}
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div class="bg-white p-1.5 rounded-md shadow-md">
+                                <div class="w-6 h-6 bg-black rounded flex items-center justify-center">
+                                    <span class="text-[7px] font-black text-cyan-400 leading-none">NF</span>
+                                </div>
                             </div>
-                        @endif
+                        </div>
                     </div>
-                    <div class="text-center">
-                        <h3 class="text-white font-bold text-sm">Scan QRIS untuk membayar</h3>
-                        <p class="text-[10px] text-white/40 mt-1 max-w-[200px] mx-auto italic">Berlaku untuk semua aplikasi e-wallet & Mobile Banking</p>
-                    </div>
+                    <p class="text-xs text-slate-400 text-center max-w-[200px]">Scan menggunakan M-Banking atau E-Wallet</p>
                 </div>
+
             @elseif(!empty($ipaymu['payment_no']))
                 {{-- Virtual Account --}}
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-6 bg-primary rounded-full"></span>
-                            <span class="text-sm font-black text-white uppercase tracking-wider">{{ $ipaymu['via'] ?? 'Bank Transfer' }}</span>
-                        </div>
-                        <span class="material-icons-round text-white/50 text-xl">account_balance</span>
-                    </div>
-
-                    <div class="relative group">
-                        <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between group-active:bg-white/10 transition-colors">
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-white/30 uppercase leading-none">Nomor VA / Pembayaran</p>
-                                <span id="payment-no" class="text-xl font-mono font-bold text-white tracking-widest">{{ $ipaymu['payment_no'] }}</span>
-                            </div>
+                <div class="space-y-3">
+                    <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">Nomor VA / Pembayaran</p>
+                        <div class="flex items-center justify-between gap-3">
+                            <span id="payment-no" class="text-xl font-mono font-bold text-white tracking-widest truncate">{{ $ipaymu['payment_no'] }}</span>
                             <button onclick="copyToClipboard('{{ $ipaymu['payment_no'] }}')" 
-                                    class="p-2 bg-primary text-black rounded-lg shadow-neon-cyan active:scale-90 transition-all">
+                                    class="p-2.5 bg-cyan-500 text-black rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.3)] active:scale-90 transition-all">
                                 <span class="material-icons-round text-base">content_copy</span>
                             </button>
                         </div>
                     </div>
                 </div>
+
             @elseif(!empty($ipaymu['payment_url']))
-                {{-- REDIRECT (Mobile) --}}
-                <div class="text-center py-4 space-y-5">
-                    <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto shadow-inner shadow-primary/20">
-                        <span class="material-icons-round text-primary text-4xl">rocket_launch</span>
+                {{-- REDIRECT --}}
+                <div class="text-center py-4 space-y-4">
+                    <div class="w-14 h-14 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <span class="material-icons-round text-cyan-400 text-3xl">rocket_launch</span>
                     </div>
                     <div class="space-y-1">
-                        <h3 class="text-white font-black uppercase italic tracking-tighter">Langkah Terakhir</h3>
-                        <p class="text-[10px] text-white/40 leading-relaxed px-4">Klik tombol di bawah untuk diarahkan ke halaman pembayaran aman <b>iPaymu</b>.</p>
+                        <h3 class="text-white font-black uppercase italic tracking-tighter text-sm">Langkah Terakhir</h3>
+                        <p class="text-[10px] text-slate-400 px-4">Klik tombol di bawah untuk diarahkan ke halaman pembayaran aman <b class="text-white">iPaymu</b>.</p>
                     </div>
-                    <a href="{{ $ipaymu['payment_url'] }}" target="_blank" class="block w-full py-4 bg-primary text-black font-display font-black text-sm rounded-xl shadow-neon-cyan active:scale-95 transition-all uppercase tracking-wider">
+                    <a href="{{ $ipaymu['payment_url'] }}" target="_blank" class="block w-full py-4 bg-cyan-500 text-black font-black text-sm rounded-xl shadow-[0_10px_30px_rgba(6,182,212,0.3)] active:scale-95 transition-all uppercase tracking-wider">
                         LANJUTKAN KE PEMBAYARAN
                     </a>
                 </div>
             @endif
         </div>
 
-        {{-- Metadata / Instructions --}}
-        <div class="space-y-3">
-            <div class="flex justify-between items-center text-xs">
-                <span class="text-white/40 font-bold uppercase tracking-wider">Status Pesanan</span>
-                <span class="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white font-black uppercase text-[9px] tracking-wide animate-pulse">Menunggu Pembayaran</span>
-            </div>
-            @if(!empty($ipaymu['expired']))
-            <div class="flex justify-between items-center text-xs">
-                <span class="text-white/40 font-bold uppercase tracking-wider">Batas Waktu</span>
-                <span class="text-secondary font-black" id="expiry-timer">
-                    {{ \Carbon\Carbon::parse($ipaymu['expired'])->format('d M Y, H:i') }}
-                </span>
-            </div>
-            @endif
-        </div>
-
         {{-- Action Buttons --}}
-        <div class="pt-2 space-y-3">
+        <div class="pt-4 border-t border-white/5 space-y-3 mt-2">
             <button id="btn-check-status" 
-                    class="w-full h-14 bg-primary text-black font-display font-black text-sm rounded-2xl shadow-neon-cyan flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
-                <span class="material-icons-round animate-spin-slow">sync</span>
-                CEK STATUS PEMBAYARAN
+                    class="w-full py-3.5 bg-cyan-500 text-black font-black text-sm uppercase tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
+                <span class="material-icons-round animate-spin-slow text-lg">sync</span>
+                Konfirmasi Pembayaran
             </button>
-            <p class="text-center text-[10px] text-white/30 px-4">
-                Pembayaran akan diverifikasi secara otomatis dalam 1-5 menit setelah dana diterima.
-            </p>
         </div>
     </div>
 
     {{-- Order Summary --}}
-    <div class="glass-panel-mobile p-5 rounded-2xl border border-white/10 space-y-3 mt-4">
-        <h3 class="text-sm font-display font-black text-white uppercase tracking-wider flex items-center gap-2">
-            <span class="material-icons-round text-primary text-base">shopping_bag</span>
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md">
+        <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+            <div class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></div>
             Ringkasan Pesanan
         </h3>
-        <div class="space-y-2">
-            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
-                <span class="text-[10px] text-white/40 uppercase font-black">Produk</span>
-                <span class="text-xs text-white font-bold text-right max-w-[60%] truncate">{{ $order->product_name }}</span>
+
+        <div class="space-y-3">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-bold text-white mb-0.5">{{ $order->product_name }}</p>
+                    <p class="text-[10px] text-slate-500">{{ $order->game_name ?? $order->category_name ?? 'Top-Up Game' }}</p>
+                </div>
+                <div class="bg-white/5 p-1.5 rounded-lg">
+                    <span class="material-icons-round text-cyan-400 text-lg">videogame_asset</span>
+                </div>
             </div>
+
             @if($order->data)
-            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
-                <span class="text-[10px] text-white/40 uppercase font-black">Tujuan</span>
-                <span class="text-xs text-white font-mono font-bold">{{ $order->data }}</span>
+            <div class="bg-white/5 rounded-xl p-3 border border-white/5 space-y-1.5">
+                @if($order->nickname)
+                <div class="flex justify-between text-[10px]">
+                    <span class="text-slate-500 uppercase font-bold tracking-wider">Nickname</span>
+                    <span class="text-cyan-400 font-black uppercase italic">{{ $order->nickname }}</span>
+                </div>
+                @endif
+                <div class="flex justify-between text-[10px]">
+                    <span class="text-slate-500 uppercase font-bold tracking-wider">User ID</span>
+                    <span class="text-white font-bold">{{ $order->data }}</span>
+                </div>
             </div>
             @endif
-            <div class="flex justify-between items-center py-1.5 border-b border-white/5">
-                <span class="text-[10px] text-white/40 uppercase font-black">Metode</span>
-                <span class="text-xs text-white font-bold">{{ $order->payment_method }}</span>
-            </div>
-            <div class="flex justify-between items-center pt-1.5">
-                <span class="text-[10px] text-white/40 uppercase font-black">Total</span>
-                <span class="text-base text-primary font-display font-black">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+
+            <div class="h-px bg-white/5"></div>
+
+            <div class="space-y-1.5 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Harga Produk</span>
+                    <span class="text-slate-300 font-medium">Rp {{ number_format($order->price ?? $order->total_price, 0, ',', '.') }}</span>
+                </div>
+                @if(($order->total_price - ($order->price ?? $order->total_price)) > 0)
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Biaya Layanan</span>
+                    <span class="text-slate-300 font-medium">Rp {{ number_format($order->total_price - ($order->price ?? $order->total_price), 0, ',', '.') }}</span>
+                </div>
+                @endif
+                <div class="flex justify-between pt-1.5">
+                    <span class="text-white font-bold">Total Tagihan</span>
+                    <span class="font-black text-cyan-400 text-base">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                </div>
             </div>
         </div>
     </div>
 
-    {{-- Cancel Button --}}
-    <div class="mt-4">
+    {{-- Instructions --}}
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Instruksi Pembayaran</h3>
+        <div class="space-y-4">
+            <div class="flex gap-3">
+                <span class="text-[10px] font-black text-cyan-500/50">01</span>
+                <p class="text-[11px] leading-relaxed text-slate-400">Salin/Scan data pembayaran yang tertera di atas.</p>
+            </div>
+            <div class="flex gap-3">
+                <span class="text-[10px] font-black text-cyan-500/50">02</span>
+                <p class="text-[11px] leading-relaxed text-slate-400">Pastikan nominal transfer <b class="text-white">tepat sama</b> untuk verifikasi otomatis.</p>
+            </div>
+            <div class="flex gap-3">
+                <span class="text-[10px] font-black text-cyan-500/50">03</span>
+                <p class="text-[11px] leading-relaxed text-slate-400">Klik <b class="text-white">"Konfirmasi Pembayaran"</b> setelah transfer berhasil.</p>
+            </div>
+        </div>
+    </div>
+
+    {{-- Help Widget --}}
+    <a href="{{ get_setting('whatsapp_link', '#') }}" target="_blank" class="bg-gradient-to-r from-blue-600/20 to-cyan-500/20 border border-cyan-500/30 rounded-2xl p-4 flex items-center justify-between active:border-cyan-400 transition-all block">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-400 flex items-center justify-center">
+                <span class="material-icons-round text-black text-xl">chat</span>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-white">Butuh Bantuan?</p>
+                <p class="text-[10px] text-slate-400">Hubungi Admin di WhatsApp</p>
+            </div>
+        </div>
+        <span class="material-icons-round text-slate-500 text-lg">open_in_new</span>
+    </a>
+
+    {{-- Cancel Order --}}
+    <div class="text-center pb-8">
         <form action="{{ route('order.cancel', $order->order_id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')">
             @csrf
-            <button type="submit" class="w-full py-3.5 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest active:bg-red-500/10 transition-all flex items-center justify-center gap-2">
-                <span class="material-icons-round text-sm">close</span>
+            <button type="submit" class="inline-flex items-center gap-2 text-xs text-slate-500 active:text-red-400 transition-colors uppercase font-bold tracking-widest py-3">
+                <span class="material-icons-round text-sm">arrow_back</span>
                 Batalkan Pesanan
             </button>
         </form>
     </div>
 
-    {{-- Footer Info --}}
-    <div class="mt-8 mb-12 flex flex-col items-center gap-4">
-        <div class="flex items-center gap-2 opacity-30">
-            <span class="text-[10px] font-black text-white uppercase tracking-[0.2em]">Secured by</span>
-            <img src="https://ipaymu.com/wp-content/themes/ipaymu-v3/assets/img/logo-ipaymu.png" alt="iPaymu" class="h-4 brightness-0 invert">
-        </div>
-    </div>
 </div>
 
 @push('scripts')
@@ -184,12 +248,32 @@ function copyToClipboard(text) {
             title: 'Berhasil disalin!',
             showConfirmButton: false,
             timer: 1500,
-            background: '#1e293b',
+            background: '#0f172a',
             color: '#fff'
         });
     });
 }
 
+// Countdown Timer
+(function() {
+    const el = document.getElementById('countdown-timer');
+    if (!el) return;
+    const expired = new Date(el.dataset.expired).getTime();
+    
+    function updateTimer() {
+        const now = Date.now();
+        const diff = Math.max(0, Math.floor((expired - now) / 1000));
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        el.textContent = (h > 0 ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        if (diff <= 0) { el.textContent = 'Expired'; el.classList.add('text-red-500'); }
+    }
+    updateTimer();
+    setInterval(updateTimer, 1000);
+})();
+
+// Check Status Button
 document.getElementById('btn-check-status').addEventListener('click', function() {
     const btn = this;
     const icon = btn.querySelector('.material-icons-round');
@@ -198,7 +282,6 @@ document.getElementById('btn-check-status').addEventListener('click', function()
     btn.classList.add('opacity-70');
     icon.classList.add('animate-spin');
 
-    // Re-check order status via existing tracking logic
     fetch(`{{ route('order.poll', ['order_id' => $order->order_id]) }}`)
         .then(response => response.json())
         .then(res => {
@@ -208,25 +291,22 @@ document.getElementById('btn-check-status').addEventListener('click', function()
                     icon: 'success',
                     title: 'Pembayaran Diterima!',
                     text: 'Pesanan Anda sedang diproses.',
-                    background: '#1e293b',
+                    background: '#0f172a',
                     color: '#fff',
-                    confirmButtonColor: '#00f2ff',
+                    confirmButtonColor: '#06b6d4',
                 }).then(() => {
                     window.location.href = `{{ route('track.order', ['order_id' => $order->order_id]) }}`;
                 });
             } else {
                 Swal.fire({
                     icon: 'info',
-                    title: 'Belum Terbayar',
-                    text: 'Pastikan Anda sudah mentransfer sesuai nominal. Jika baru saja bayar, tunggu 1-2 menit.',
-                    background: '#1e293b',
+                    title: 'Belum Terdeteksi',
+                    text: 'Pastikan pembayaran sudah berhasil, lalu tunggu 1-2 menit.',
+                    background: '#0f172a',
                     color: '#fff',
-                    confirmButtonColor: '#00f2ff',
+                    confirmButtonColor: '#06b6d4',
                 });
             }
-        })
-        .catch(err => {
-            console.error(err);
         })
         .finally(() => {
             btn.disabled = false;
@@ -236,13 +316,13 @@ document.getElementById('btn-check-status').addEventListener('click', function()
 });
 
 // Auto-polling every 15 seconds
-const pollingInterval = setInterval(() => {
+const pollId = setInterval(() => {
     fetch(`{{ route('order.poll', ['order_id' => $order->order_id]) }}`)
         .then(r => r.json())
         .then(res => {
             const data = res.data;
             if (data.status === 'success' || data.status === 'processing' || data.status === 'paid') {
-                clearInterval(pollingInterval);
+                clearInterval(pollId);
                 window.location.href = `{{ route('track.order', ['order_id' => $order->order_id]) }}`;
             }
         });
@@ -257,9 +337,6 @@ const pollingInterval = setInterval(() => {
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
-}
-.shadow-neon-cyan {
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.3), 0 0 40px rgba(0, 242, 255, 0.1);
 }
 </style>
 @endsection
