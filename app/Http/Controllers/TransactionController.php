@@ -260,15 +260,15 @@ class TransactionController extends Controller
         $guestEmail = 'buyer'.$orderTag.'@'.$appHost;
 
         // Bersihkan nama pembeli dari karakter aneh
-        $buyerName = trim(preg_replace('/[^a-zA-Z0-9\s]/', '', $user->name ?? 'Guest Buyer'));
+        $buyerName = trim(preg_replace('/[^a-zA-Z0-9\s]/', '', $user?->name ?? 'Guest Buyer'));
         if (empty($buyerName)) $buyerName = 'Guest Buyer';
         
-        $buyerEmail = filter_var($user->email, FILTER_VALIDATE_EMAIL) ? $user->email : $guestEmail;
+        $buyerEmail = filter_var($user?->email, FILTER_VALIDATE_EMAIL) ? $user?->email : $guestEmail;
         
         // Buat nomor HP standar (min 10 digit, maks 13) jika tidak ada dari user
         $defaultPhone = '0812' . str_pad((string) (abs(crc32($order->order_id)) % 100000000), 8, '0', STR_PAD_LEFT);
-        $buyerPhone = !empty($user->phone) && strlen(preg_replace('/[^0-9]/', '', $user->phone)) >= 10 
-            ? preg_replace('/[^0-9]/', '', $user->phone) 
+        $buyerPhone = !empty($user?->phone) && strlen(preg_replace('/[^0-9]/', '', $user?->phone)) >= 10 
+            ? preg_replace('/[^0-9]/', '', $user?->phone) 
             : $defaultPhone;
 
         // iPaymu Redirect Mode: Langsung lempar ke halaman iPaymu
