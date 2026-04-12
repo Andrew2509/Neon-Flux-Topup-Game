@@ -36,11 +36,14 @@
                         <p class="text-[10px] text-white/40 px-2 leading-relaxed">Sistem gagal menghubungi gateway iPaymu. (IP Server mungkin belum di-whitelist).</p>
                     </div>
                 </div>
-            @elseif(!empty($ipaymu['qr_image']))
+            @elseif(!empty($ipaymu['qr_string']) || !empty($ipaymu['qr_image']))
                 {{-- QRIS --}}
                 <div class="flex flex-col items-center space-y-4">
                     <div class="relative p-3 bg-white rounded-2xl shadow-xl">
-                        <img src="{{ $ipaymu['qr_image'] }}" alt="QRIS Code" class="w-48 h-48 sm:w-56 sm:h-56">
+                        @php
+                            $qrSrc = !empty($ipaymu['qr_string']) ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($ipaymu['qr_string']) : $ipaymu['qr_image'];
+                        @endphp
+                        <img src="{{ $qrSrc }}" alt="QRIS Code" class="w-48 h-48 sm:w-56 sm:h-56">
                         @if(!empty($ipaymu['expired']))
                             <div class="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-lg uppercase">
                                 QRIS Dynamic

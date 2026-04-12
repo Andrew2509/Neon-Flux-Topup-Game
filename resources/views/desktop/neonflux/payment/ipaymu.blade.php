@@ -54,11 +54,14 @@
                                 Coba Lagi
                             </button>
                         </div>
-                    @elseif(!empty($ipaymu['qr_image']))
+                    @elseif(!empty($ipaymu['qr_string']) || !empty($ipaymu['qr_image']))
                         {{-- QRIS --}}
                         <div class="flex flex-col items-center gap-6">
                             <div class="p-4 bg-white rounded-3xl shadow-neon-white ring-8 ring-white/5">
-                                <img src="{{ $ipaymu['qr_image'] }}" alt="QRIS" class="w-64 h-64">
+                                @php
+                                    $qrSrc = !empty($ipaymu['qr_string']) ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($ipaymu['qr_string']) : $ipaymu['qr_image'];
+                                @endphp
+                                <img src="{{ $qrSrc }}" alt="QRIS" class="w-64 h-64">
                             </div>
                             <div class="text-center space-y-2">
                                 <h3 class="text-xl font-bold text-white tracking-tight">Scan Kode QR di Atas</h3>
