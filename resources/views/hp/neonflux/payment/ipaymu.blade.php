@@ -60,10 +60,7 @@
                             <span class="w-2 h-6 bg-primary rounded-full"></span>
                             <span class="text-sm font-black text-white uppercase tracking-wider">{{ $ipaymu['via'] ?? 'Bank Transfer' }}</span>
                         </div>
-                        <img src="https://img.business/api/v1/bank-logo/{{ strtolower($ipaymu['via'] ?? 'bank') }}" 
-                             alt="{{ $ipaymu['via'] }}" 
-                             class="h-6 object-contain opacity-80"
-                             onerror="this.style.display='none'">
+                        <span class="material-icons-round text-white/50 text-xl">account_balance</span>
                     </div>
 
                     <div class="relative group">

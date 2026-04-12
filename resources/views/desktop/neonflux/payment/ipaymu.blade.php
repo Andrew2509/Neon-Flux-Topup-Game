@@ -35,10 +35,7 @@
                         </div>
                     </div>
                     <div class="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
-                        <img src="https://img.business/api/v1/bank-logo/{{ strtolower($ipaymu['via'] ?? 'bank') }}" 
-                             alt="{{ $ipaymu['via'] }}" 
-                             class="h-8 object-contain"
-                             onerror="this.style.display='none'">
+                        <span class="material-icons-round text-white/50 text-xl">account_balance</span>
                         <span class="font-black text-white uppercase tracking-widest text-sm">{{ $ipaymu['via'] ?? 'iPaymu' }}</span>
                     </div>
                 </div>
