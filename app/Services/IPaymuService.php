@@ -420,8 +420,30 @@ class IPaymuService
             return $response->json();
         } catch (\Exception $e) {
             Log::error('IPaymu Channels API Error:', ['msg' => $e->getMessage()]);
-
             return ['status' => 500, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get iPaymu Account Balance
+     */
+    public function getBalance()
+    {
+        if ($this->va === '' || $this->apiKey === '') {
+            return ['Status' => 401, 'Message' => 'Kredensial iPaymu belum lengkap.'];
+        }
+
+        $url = $this->baseUrl . '/api/v2/balance';
+        $body = ['account' => $this->va];
+        $jsonBody = json_encode($body, JSON_UNESCAPED_SLASHES);
+        $headers = $this->generateHeaders($jsonBody, 'POST');
+
+        try {
+            $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
+            return $response->json();
+        } catch (\Exception $e) {
+            Log::error('IPaymu Balance API Error:', ['msg' => $e->getMessage()]);
+            return ['Status' => 500, 'Message' => $e->getMessage()];
         }
     }
 

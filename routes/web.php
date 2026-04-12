@@ -51,74 +51,12 @@ Route::group(['middleware' => []], function () {
         return redirect()->route('home');
     });
 
-    Route::get('/debug/duitku', function () {
-        $duitku = \App\Models\Provider::where('name', 'like', '%Duitku%')->first();
-        if (! $duitku) {
-            return response()->json(['error' => 'Provider Duitku not found in DB.']);
-        }
-
-        $hostMode = $duitku->usesProductionApi() ? 'passport' : 'sandbox';
-        $url = "https://{$hostMode}.duitku.com/webapi/api/merchant/v2/inquiry";
-
-        $data = [
-            'provider_mode' => $duitku->mode,
-            'duitku_host' => $hostMode,
-            'url' => $url,
-            'merchantCode' => $duitku->provider_id,
-            'has_api_key' => ! empty($duitku->api_key),
-            'app_env' => env('APP_ENV'),
-            'app_debug' => env('APP_DEBUG'),
-        ];
-
-        try {
-            // Test 1: Connectivity & Merchant Recognition (POST Inquiry)
-            $resp = \Illuminate\Support\Facades\Http::post($url, [
-                'merchantCode' => $duitku->provider_id,
-                'merchantOrderId' => 'DEBUG-'.time(),
-                'paymentAmount' => 10000,
-                'productDetails' => 'Debug Test',
-                'email' => 'debug@test.com',
-                'signature' => md5($duitku->provider_id.'DEBUG-'.time().'10000'.$duitku->api_key),
-            ]);
-            $data['inquiry_test'] = [
-                'method' => 'POST',
-                'status' => $resp->status(),
-                'body' => $resp->json() ?: $resp->body(),
-            ];
-
-            // Test 2: List Payment Methods
-            $tz = new \DateTimeZone('Asia/Jakarta');
-            $now = new \DateTime('now', $tz);
-            $dt = $now->format('Y-m-d H:i:s');
-
-            $pmUrl = "https://{$hostMode}.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod";
-            $pmSig = md5($duitku->provider_id.'10000'.$dt.$duitku->api_key);
-            $pmResp = \Illuminate\Support\Facades\Http::post($pmUrl, [
-                'merchantCode' => $duitku->provider_id,
-                'amount' => 10000,
-                'datetime' => $dt,
-                'signature' => $pmSig,
-            ]);
-            $data['payment_methods_api'] = [
-                'status' => $pmResp->status(),
-                'datetime_sent' => $dt,
-                'body' => $pmResp->json(),
-            ];
-        } catch (\Exception $e) {
-            $data['diagnostic_error'] = $e->getMessage();
-        }
-
-        return response()->json($data);
-    });
     Route::post('/api/check-id', [App\Http\Controllers\TransactionController::class, 'checkPlayerId'])
         ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
         ->name('topup.check-id');
-    Route::post('/api/duitku/callback', [App\Http\Controllers\TransactionController::class, 'duitkuCallback'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::post('/api/ipaymu/callback', [App\Http\Controllers\TransactionController::class, 'ipaymuCallback'])
         ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
         ->name('api.ipaymu.callback');
-    Route::post('/api/doku/callback', [App\Http\Controllers\TransactionController::class, 'dokuCallback'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-    Route::post('/api/midtrans/callback', [App\Http\Controllers\TransactionController::class, 'midtransCallback'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::match(['get', 'post'], '/api/tokovoucher/webhook', [App\Http\Controllers\Api\WebhookController::class, 'tokovoucher'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
     // Debug Routes
@@ -211,10 +149,7 @@ Route::group(['middleware' => []], function () {
     // Admin Payments
     Route::middleware(['auth', 'permission:kelola-pembayaran'])->group(function () {
         Route::get('/admin/payments', [App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('admin.payments');
-        Route::post('/admin/payments/sync', [App\Http\Controllers\Admin\PaymentController::class, 'syncDuitku'])->name('admin.payments.sync');
         Route::post('/admin/payments/sync-ipaymu', [App\Http\Controllers\Admin\PaymentController::class, 'syncIPaymu'])->name('admin.payments.sync_ipaymu');
-        Route::post('/admin/payments/sync-midtrans', [App\Http\Controllers\Admin\PaymentController::class, 'syncMidtrans'])->name('admin.payments.sync_midtrans');
-        Route::post('/admin/payments/sync-doku', [App\Http\Controllers\Admin\PaymentController::class, 'syncDoku'])->name('admin.payments.sync_doku');
         Route::get('/admin/payments/create', [App\Http\Controllers\Admin\PaymentController::class, 'create'])->name('admin.payments.create');
         Route::post('/admin/payments', [App\Http\Controllers\Admin\PaymentController::class, 'store'])->name('admin.payments.store');
         Route::get('/admin/payments/{payment}/edit', [App\Http\Controllers\Admin\PaymentController::class, 'edit'])->name('admin.payments.edit');

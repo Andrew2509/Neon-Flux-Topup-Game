@@ -11,33 +11,7 @@
         <span class="text-sm font-medium">Kembali ke Manajemen Provider</span>
     </a>
 
-    <div class="glass-panel p-4 rounded-2xl border border-primary/20 bg-primary/5 mb-6 flex items-start gap-4">
-        <span class="material-symbols-outlined text-primary">info</span>
-        <div class="space-y-1">
-            <h4 class="text-xs font-bold text-primary uppercase">Panduan Integrasi Midtrans</h4>
-            <p class="text-[10px] text-slate-400 leading-relaxed">
-                Jika Anda menambahkan <b>Midtrans</b>, gunakan format berikut:<br>
-                • <b>Merchant ID / Provider ID</b>: Masukkan <code class="text-slate-200">Client Key</code> dari Dashboard Midtrans.<br>
-                • <b>API Key / Secret</b>: Masukkan <code class="text-slate-200">Server Key</code> dari Dashboard Midtrans.<br>
-                • Pastikan Nama Provider mengandung kata <b>"Midtrans"</b> agar sistem mengenali delegasi pembayarannya.
-            </p>
-        </div>
-    </div>
 
-    <div class="glass-panel p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 mb-6 flex items-start gap-4">
-        <span class="material-symbols-outlined text-rose-400">info</span>
-        <div class="space-y-1">
-            <h4 class="text-xs font-bold text-rose-400 uppercase">Panduan Integrasi DOKU</h4>
-            <p class="text-[10px] text-slate-400 leading-relaxed">
-                Jika Anda menambahkan <b>DOKU</b>, gunakan format berikut:<br>
-                • <b>Merchant ID / Provider ID</b>: Masukkan <code class="text-slate-200">Client ID</code> dari Dashboard DOKU.<br>
-                • <b>API Key / Secret</b>: Masukkan <code class="text-slate-200">Secret Key</code> dari Dashboard DOKU.<br>
-                • <b>Mode</b>: Pilih <code class="text-slate-200">production</code> untuk live atau <code class="text-slate-200">sandbox</code> untuk testing.<br>
-                • Pastikan Nama Provider mengandung kata <b>"DOKU"</b> agar sistem mengenali delegasi pembayarannya.<br>
-                • <b>Notification URL</b>: Set di Dashboard DOKU → <code class="text-slate-200">https://neonflux.my.id/api/doku/callback</code>
-            </p>
-        </div>
-    </div>
 
     <form action="{{ route('admin.providers.store') }}" method="POST" class="space-y-6">
         @csrf
@@ -122,7 +96,7 @@
                                 <option value="sandbox" {{ old('mode') == 'sandbox' ? 'selected' : '' }}>Sandbox (Testing)</option>
                                 <option value="production" {{ old('mode') == 'production' ? 'selected' : '' }}>Production (Live)</option>
                             </select>
-                            <p class="text-[9px] text-slate-500 mt-1 ml-1">Untuk Payment Gateway seperti DOKU, Duitku, dan Midtrans.</p>
+                            <p class="text-[9px] text-slate-500 mt-1 ml-1">Untuk Payment Gateway seperti iPaymu.</p>
                             @error('mode') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
                         </div>
 

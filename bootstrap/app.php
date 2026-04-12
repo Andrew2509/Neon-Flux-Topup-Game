@@ -30,7 +30,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'forgot-password',
             'reset-password-phone',
             '.well-known/jwks.json',
-            'api/duitku/callback',
             'api/ipaymu/callback',
         ]);
     })

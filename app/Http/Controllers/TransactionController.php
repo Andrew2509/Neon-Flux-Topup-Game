@@ -127,7 +127,7 @@ class TransactionController extends Controller
             'total_price' => $paymentAmount,
             'voucher_code' => $appliedVoucher ? $appliedVoucher->code : null,
             'voucher_discount' => $discountAmount,
-            'payment_method' => $request->payment ?? 'Duitku',
+            'payment_method' => $request->payment ?? 'iPaymu',
             'status' => 'pending_payment',
             'payload' => [
                 'tujuan' => $tujuan,
@@ -146,26 +146,19 @@ class TransactionController extends Controller
             .($playerNickname !== '' ? ' — nama pemain (cek ID): '.$playerNickname : '')
         );
 
-        $providerName = $paymentMethod ? ($paymentMethod->provider ?? 'Duitku') : 'Duitku';
+        $providerName = $paymentMethod ? ($paymentMethod->provider ?? 'iPaymu') : 'iPaymu';
 
         if ($providerName === 'Internal' && $request->payment === 'SALDO') {
             return $this->processBalancePayment($order, $request);
         }
 
-        if (stripos($providerName, 'DOKU') !== false) {
-            return $this->processDoku($order, $paymentMethod, $request);
-        }
-
-        if (stripos($providerName, 'iPaymu') !== false) {
+        // iPaymu is the primary and only external payment gateway now
+        if (stripos($providerName, 'iPaymu') !== false || $providerName === 'iPaymu') {
             return $this->processIPaymu($order, $paymentMethod, $request);
         }
 
-        if (stripos($providerName, 'Midtrans') !== false) {
-            return $this->processMidtrans($order, $paymentMethod, $request);
-        }
-
-        // Default to Duitku
-        return $this->processDuitku($order, $paymentMethod, $request);
+        // Fallback to iPaymu if provider is unknown but order was created
+        return $this->processIPaymu($order, $paymentMethod, $request);
     }
 
     /**
@@ -253,208 +246,10 @@ class TransactionController extends Controller
         }
     }
 
-    private function processDuitku($order, $paymentMethod, Request $request)
-    {
-        $duitku = Provider::where('name', 'like', '%Duitku%')->first();
-        if (! $duitku || ! $duitku->provider_id || ! $duitku->api_key) {
-            $order->update(['status' => 'failed', 'payload' => ['error' => 'Provider Duitku belum disetting']]);
-
-            return back()->with('error', 'Sistem error: Kredensial Duitku tidak ditemukan.');
-        }
-
-        $merchantCode = $duitku->provider_id;
-        $merchantKey = $duitku->api_key;
-        $orderId = $order->order_id;
-        $paymentAmount = $order->total_price;
-        $productDetails = $order->product_name;
-
-        // Duitku Minimum Payment Constraint (Usually 10.000 IDR)
-        if ($paymentAmount < 10000) {
-            $order->update(['status' => 'failed', 'payload' => ['error' => 'Minimum payment for Duitku is 10.000 IDR']]);
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Pembayaran gagal: Minimal pembayaran Duitku adalah Rp 10.000'], 400);
-            }
-
-            return back()->with('error', 'Pesanan gagal diinisiasi: Minimal total pembayaran menggunakan Duitku adalah Rp 10.000.');
-        }
-
-        // 4. Proses Tembak API Duitku (POST)
-        $signature = md5($merchantCode.$orderId.(int) $paymentAmount.$merchantKey);
-
-        // Subdomain Duitku: sandbox | passport (live). Mengikuti ENVIRONMENT MODE admin (sandbox | production).
-        $duitkuHostMode = $duitku->usesProductionApi() ? 'passport' : 'sandbox';
-        $duitkuUrl = "https://{$duitkuHostMode}.duitku.com/webapi/api/merchant/v2/inquiry";
-
-        $params = [
-            'merchantCode' => $merchantCode,
-            'paymentAmount' => (int) $paymentAmount,
-            'merchantOrderId' => $orderId,
-            'productDetails' => $productDetails,
-            'email' => 'guest@princepay.com',
-            'phoneNumber' => '08111222333',
-            'customerVaName' => 'PrincePay '.$orderId,
-            'callbackUrl' => url('/api/duitku/callback'),
-            'returnUrl' => route('home'),
-            'signature' => $signature,
-            'expiryPeriod' => 60,
-        ];
-
-        if ($paymentMethod) {
-            $params['paymentMethod'] = $paymentMethod->code;
-        }
-
-        try {
-            Log::info('Duitku Request', ['url' => $duitkuUrl, 'params' => $params]);
-            $response = Http::post($duitkuUrl, $params);
-
-            if (! $response->successful()) {
-                $errorBody = $response->body();
-                Log::error('Duitku API Error', ['status' => $response->status(), 'body' => $errorBody]);
-                throw new \Exception('Duitku API error: '.$errorBody);
-            }
-
-            $result = $response->json();
-            Log::info('Duitku Response', ['status' => $response->status(), 'body' => $result]);
-
-            if (! $result || ! is_array($result)) {
-                Log::error('Duitku Invalid JSON', ['body' => $response->body()]);
-                throw new \Exception('Duitku returned invalid response format');
-            }
-
-            if ($response->successful() && isset($result['statusCode']) && $result['statusCode'] == '00') {
-                if (! empty($result['paymentUrl'])) {
-                    if ($request->expectsJson()) {
-                        return response()->json([
-                            'success' => true,
-                            'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
-                            'data' => [
-                                'order_id' => $orderId,
-                                'payment_url' => $result['paymentUrl'],
-                                'reference' => $result['reference'] ?? '',
-                            ],
-                        ]);
-                    }
-
-                    return redirect($result['paymentUrl']);
-                } else {
-                    $order->update(['status' => 'failed', 'payload' => $result]);
-                    if ($request->expectsJson()) {
-                        return response()->json(['success' => false, 'message' => 'Gagal generate URL Pembayaran', 'debug' => $result], 400);
-                    }
-
-                    return back()->with('error', 'Pesanan gagal diinisiasi: Gagal generate URL Pembayaran.');
-                }
-            } else {
-                $order->update(['status' => 'failed', 'payload' => $result]);
-                if ($request->expectsJson()) {
-                    return response()->json(['success' => false, 'message' => $result['statusMessage'] ?? 'Inquiry Failed', 'debug' => $result], 400);
-                }
-
-                return back()->with('error', 'Pesanan gagal diinisiasi: '.($result['statusMessage'] ?? 'Unknown Error Duitku.'));
-            }
-
-        } catch (\Exception $e) {
-            $order->update(['status' => 'failed', 'payload' => ['error_exception' => $e->getMessage()]]);
-
-            return back()->with('error', 'Gagal terhubung ke Duitku: '.$e->getMessage());
-        }
-    }
-
-    private function processDoku($order, $paymentMethod, Request $request)
-    {
-        $user = $order->user ?? Auth::user();
-        $dokuService = new \App\Services\DokuService;
-
-        // Map payment method code to DOKU payment_method_types
-        $paymentMethodTypes = [];
-        if ($paymentMethod) {
-            $code = strtoupper($paymentMethod->code);
-            if (str_contains($code, 'QRIS')) {
-                $paymentMethodTypes = ['QRIS'];
-            } elseif (str_contains($code, 'BCA')) {
-                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BCA'];
-            } elseif (str_contains($code, 'BNI')) {
-                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BNI'];
-            } elseif (str_contains($code, 'BRI')) {
-                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BRI'];
-            } elseif (str_contains($code, 'MANDIRI')) {
-                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_MANDIRI'];
-            } elseif (str_contains($code, 'PERMATA')) {
-                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_PERMATA'];
-            } elseif (str_contains($code, 'CIMB')) {
-                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_CIMB'];
-            } elseif (str_contains($code, 'DANAMON')) {
-                $paymentMethodTypes = ['VIRTUAL_ACCOUNT_BANK_DANAMON'];
-            } elseif (str_contains($code, 'SHOPEEPAY')) {
-                $paymentMethodTypes = ['EMONEY_SHOPEE_PAY'];
-            } elseif (str_contains($code, 'OVO')) {
-                $paymentMethodTypes = ['EMONEY_OVO'];
-            } elseif (str_contains($code, 'DANA')) {
-                $paymentMethodTypes = ['EMONEY_DANA'];
-            } elseif (str_contains($code, 'LINKAJA')) {
-                $paymentMethodTypes = ['EMONEY_LINKAJA'];
-            } elseif (str_contains($code, 'ALFAMART')) {
-                $paymentMethodTypes = ['ONLINE_TO_OFFLINE_ALFA'];
-            } elseif (str_contains($code, 'INDOMARET')) {
-                $paymentMethodTypes = ['ONLINE_TO_OFFLINE_INDOMARET'];
-            } elseif (str_contains($code, 'CC') || str_contains($code, 'CREDIT')) {
-                $paymentMethodTypes = ['CREDIT_CARD'];
-            }
-        }
-
-        $res = $dokuService->createCheckoutPayment([
-            'orderId' => $order->order_id,
-            'amount' => $order->total_price,
-            'name' => $user->name ?? 'Guest',
-            'email' => $user->email ?? 'guest@neonflux.my.id',
-            'phone' => $user->phone ?? '081122334455',
-            'returnUrl' => route('track.order', ['order_id' => $order->order_id]),
-            'notifyUrl' => url('/api/doku/callback'),
-            'paymentMethodTypes' => $paymentMethodTypes,
-        ]);
-
-        if (! empty($res['success']) && ! empty($res['paymentUrl'])) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
-                    'data' => [
-                        'order_id' => $order->order_id,
-                        'payment_url' => $res['paymentUrl'],
-                    ],
-                ]);
-            }
-
-            return redirect($res['paymentUrl']);
-        }
-
-        // Payment creation failed
-        $errorMsg = $res['message'] ?? 'Gagal membuat pembayaran DOKU.';
-        $errorCode = $res['error_code'] ?? null;
-
-        if (is_array($errorMsg)) {
-            $errorMsgStr = json_encode($errorMsg, JSON_UNESCAPED_UNICODE);
-        } else {
-            $errorMsgStr = (string) $errorMsg;
-        }
-
-        if ($errorCode === 'merchant_inactive') {
-            $errorMsgStr = 'Akun merchant DOKU tidak aktif (merchant_inactive). Cek status di dashboard DOKU Jokul, selesaikan aktivasi/kontrak, atau hubungi support DOKU.';
-        }
-
-        $order->update(['status' => 'failed', 'payload' => $res['raw'] ?? $res]);
-        Log::error('DOKU Checkout Failed', ['order_id' => $order->order_id, 'response' => $res]);
-
-        if ($request->expectsJson()) {
-            return response()->json(['success' => false, 'message' => $errorMsgStr], 400);
-        }
-
-        return back()->with('error', 'Pesanan gagal diinisiasi: '.$errorMsgStr);
-    }
 
     private function processIPaymu($order, $paymentMethod, Request $request)
     {
-        /** Samakan dengan Midtrans/DOKU: relasi order + sesi login */
+        /** Relasi order + sesi login */
         $user = $order->user ?? Auth::user();
 
         $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'localhost';
@@ -534,166 +329,6 @@ class TransactionController extends Controller
         return back()->with('error', 'Gagal memproses pembayaran: ' . $message);
     }
 
-    private function processMidtrans($order, $paymentMethod, Request $request)
-    {
-        $user = $order->user ?? Auth::user();
-        $midtransService = new \App\Services\MidtransService;
-
-        $params = [
-            'transaction_details' => [
-                'order_id' => $order->order_id,
-                'gross_amount' => (int) $order->total_price,
-            ],
-            'customer_details' => [
-                'first_name' => $user->name ?? 'Guest',
-                'email' => $user->email ?? 'guest@princepay.com',
-                'phone' => $user->phone ?? '081122334455',
-            ],
-            'item_details' => [
-                [
-                    'id' => $order->payload['product_code'] ?? 'P001',
-                    'price' => (int) $order->total_price,
-                    'quantity' => 1,
-                    'name' => $order->product_name,
-                ],
-            ],
-            'callbacks' => [
-                'finish' => route('home'),
-            ],
-            'expiry' => [
-                'unit' => 'minutes',
-                'duration' => 60,
-            ],
-            'metadata' => [
-                'order_id' => $order->order_id,
-            ],
-        ];
-
-        // Map Payment Method Code to Midtrans enabled_payments
-        if ($paymentMethod) {
-            $code = strtoupper($paymentMethod->code);
-            $enabledPayments = [];
-
-            if (str_contains($code, 'QRIS')) {
-                $enabledPayments = ['qris', 'gopay', 'shopeepay'];
-            } elseif (str_contains($code, 'GOPAY')) {
-                $enabledPayments = ['gopay', 'qris'];
-            } elseif (str_contains($code, 'SHOPEEPAY')) {
-                $enabledPayments = ['shopeepay', 'qris'];
-            } elseif (str_contains($code, 'DANA')) {
-                $enabledPayments = ['dana', 'qris'];
-            } elseif (str_contains($code, 'BCA')) {
-                $enabledPayments = ['bca_va'];
-            } elseif (str_contains($code, 'BNI')) {
-                $enabledPayments = ['bni_va'];
-            } elseif (str_contains($code, 'BRI')) {
-                $enabledPayments = ['bri_va'];
-            } elseif (str_contains($code, 'MANDIRI')) {
-                $enabledPayments = ['echannel', 'mandiri_clickpay'];
-            } elseif (str_contains($code, 'PERMATA')) {
-                $enabledPayments = ['permata_va'];
-            } elseif (str_contains($code, 'ALFAMART')) {
-                $enabledPayments = ['alfamart'];
-            } elseif (str_contains($code, 'INDOMARET')) {
-                $enabledPayments = ['indomaret'];
-            } elseif (str_contains($code, 'OVO') || str_contains($code, 'LINKAJA')) {
-                $enabledPayments = ['qris'];
-            }
-
-            if (! empty($enabledPayments)) {
-                $params['enabled_payments'] = $enabledPayments;
-            }
-        }
-
-        // Add dynamic notification URL for reliability (useful for Snap)
-        $params['notification_url'] = url('/api/midtrans/callback');
-
-        try {
-            $paymentUrl = $midtransService->createSnapUrl($params);
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Pesanan berhasil dibuat. Silakan lanjut ke pembayaran.',
-                    'data' => [
-                        'order_id' => $order->order_id,
-                        'payment_url' => $paymentUrl,
-                    ],
-                ]);
-            }
-
-            return redirect($paymentUrl);
-        } catch (\Exception $e) {
-            $order->update(['status' => 'failed', 'payload' => ['error_exception' => $e->getMessage()]]);
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Gagal terhubung ke Midtrans: '.$e->getMessage()], 500);
-            }
-
-            return back()->with('error', 'Gagal terhubung ke Midtrans: '.$e->getMessage());
-        }
-    }
-
-    public function midtransCallback(Request $request)
-    {
-        $midtransService = new \App\Services\MidtransService;
-        $payload = $request->all();
-
-        // 1. Signature Verification (Hardened Security)
-        if (! $midtransService->verifyNotification($payload)) {
-            Log::error('Midtrans Callback: Invalid Signature', ['payload' => $payload]);
-
-            return response()->json(['error' => 'Invalid signature'], 403);
-        }
-
-        try {
-            // 2. Double-Check status with Midtrans API (Secondary Layer of trust)
-            $notification = $midtransService->getStatus($request->order_id ?? $request->id);
-
-            if (is_array($notification)) {
-                $notification = (object) $notification;
-            }
-
-            $transaction = $notification->transaction_status;
-            $type = $notification->payment_type;
-            $orderId = $notification->order_id;
-            $fraud = $notification->fraud_status;
-
-            $order = Order::where('order_id', $orderId)->first();
-            if (! $order) {
-                return response()->json(['error' => 'Order not found'], 404);
-            }
-
-            if ($order->status !== 'pending_payment' && ($transaction == 'settlement' || $transaction == 'capture')) {
-                return response()->json(['success' => 'already_processed']);
-            }
-
-            if ($transaction == 'capture') {
-                if ($type == 'credit_card') {
-                    if ($fraud == 'challenge') {
-                        $order->logStatus('Pembayaran challenge by fraud detection (Midtrans).', 'pending_payment');
-                    } else {
-                        $this->finalizeOrder($order, 'Midtrans (CC)');
-                    }
-                }
-            } elseif ($transaction == 'settlement') {
-                $this->finalizeOrder($order, "Midtrans ($type)");
-            } elseif ($transaction == 'pending') {
-                $order->logStatus('Menunggu pembayaran (Midtrans).', 'pending_payment');
-            } elseif ($transaction == 'deny') {
-                $order->logStatus('Pembayaran ditolak (Midtrans).', 'failed');
-            } elseif ($transaction == 'expire') {
-                $order->logStatus('Pembayaran kedaluwarsa (Midtrans).', 'failed');
-            } elseif ($transaction == 'cancel') {
-                $order->logStatus('Pembayaran dibatalkan (Midtrans).', 'failed');
-            }
-
-            return response()->json(['success' => 'ok']);
-        } catch (\Exception $e) {
-            Log::error('Midtrans Callback Error:', ['msg' => $e->getMessage()]);
-
-            return response()->json(['error' => 'Internal Server Error'], 500);
-        }
-    }
 
     private function finalizeOrder($order, $providerInfo, $extraPayload = [])
     {
@@ -784,78 +419,6 @@ class TransactionController extends Controller
         }
     }
 
-    public function duitkuCallback(Request $request)
-    {
-        $merchantCode = $request->input('merchantCode');
-        $amount = $request->input('amount');
-        $merchantOrderId = $request->input('merchantOrderId');
-        $signature = $request->input('signature');
-        $resultCode = $request->input('resultCode');
-        $reference = $request->input('reference');
-
-        $duitku = Provider::where('name', 'like', '%Duitku%')->first();
-        if (! $duitku) {
-            return response()->json(['error' => 'Provider Duitku tidak ditemukan'], 400);
-        }
-
-        $merchantKey = $duitku->api_key;
-
-        // Normalize: hapus spasi & pastikan amount tanpa desimal (Duitku standard)
-        $cleanAmount = (int) $amount;
-        $merchantCode = trim($merchantCode);
-        $merchantOrderId = trim($merchantOrderId);
-
-        $rawString = $merchantCode.$cleanAmount.$merchantOrderId.$merchantKey;
-        $calcSignature = md5($rawString);
-
-        if ($signature !== $calcSignature) {
-            Log::warning('Duitku Callback Signature Mismatch', [
-                'received_from_postman' => $signature,
-                'calculated_by_server' => $calcSignature,
-                'string_to_hash' => $rawString, // Copy string ini ke MD5 generator untuk tes
-                'merchantOrderId' => $merchantOrderId,
-                'received_amount' => $amount,
-                'clean_amount_used' => $cleanAmount,
-            ]);
-
-            // Bypass khusus untuk testing jika Anda ingin memaksa sukses (Hapus jika sudah live!)
-            // if (env('APP_ENV') === 'local') { $signature = $calcSignature; }
-
-            return response()->json(['error' => 'Invalid signature'], 403);
-        }
-
-        $order = Order::where('order_id', $merchantOrderId)->first();
-        if (! $order) {
-            Log::error('Duitku Callback: Order Not Found', ['order_id' => $merchantOrderId]);
-
-            return response()->json(['error' => 'Order not found'], 404);
-        }
-
-        // Idempotency: Jika status bukan pending_payment, berarti sudah diproses
-        if ($order->status !== 'pending_payment' && $resultCode === '00') {
-            Log::info('Duitku Callback: Order already processed (Idempotency)', ['order_id' => $merchantOrderId]);
-
-            return response()->json(['success' => 'already_processed']);
-        }
-
-        if ($resultCode === '00' && $order->status === 'pending_payment') {
-            try {
-                $this->finalizeOrder($order, 'Duitku', ['duitku_reference' => $reference]);
-
-                return response()->json(['success' => 'ok']);
-            } catch (\Exception $e) {
-                Log::error('Duitku Callback Transaction Error', ['order_id' => $order->order_id, 'msg' => $e->getMessage()]);
-
-                return response()->json(['error' => 'Internal Server Error'], 500);
-            }
-        } elseif ($resultCode === '01') {
-            $order->logStatus('Pembayaran gagal atau dibatalkan oleh pengguna.', 'failed');
-
-            return response()->json(['success' => 'ok']);
-        }
-
-        return response()->json(['success' => 'ok']);
-    }
 
     public function ipaymuCallback(Request $request)
     {
@@ -955,80 +518,6 @@ class TransactionController extends Controller
         return response()->json(['success' => 'ok']);
     }
 
-    public function dokuCallback(Request $request)
-    {
-        Log::info('DOKU Callback Received:', [
-            'headers' => [
-                'Client-Id' => $request->header('Client-Id'),
-                'Request-Id' => $request->header('Request-Id'),
-                'Request-Timestamp' => $request->header('Request-Timestamp'),
-                'Signature' => $request->header('Signature') ? '***PRESENT***' : '***MISSING***',
-            ],
-            'body' => $request->all(),
-        ]);
-
-        $dokuService = new \App\Services\DokuService;
-
-        // 1. Validate Signature
-        if (! $dokuService->validateNotificationSignature($request)) {
-            Log::error('DOKU Callback: Signature validation FAILED');
-
-            return response()->json(['error' => 'Invalid signature'], 403);
-        }
-
-        Log::info('DOKU Callback: Signature VALID');
-
-        try {
-            $payload = $request->all();
-
-            // 2. Extract key fields from notification
-            $invoiceNumber = $payload['order']['invoice_number'] ?? null;
-            $transStatus = $payload['transaction']['status'] ?? null;
-            $serviceId = $payload['service']['id'] ?? 'UNKNOWN';
-            $channelId = $payload['channel']['id'] ?? 'UNKNOWN';
-
-            if (! $invoiceNumber) {
-                Log::error('DOKU Callback: Missing invoice_number', ['payload' => $payload]);
-
-                return response()->json(['error' => 'Missing invoice_number'], 400);
-            }
-
-            // 3. Find Order
-            $order = Order::where('order_id', $invoiceNumber)->first();
-            if (! $order) {
-                Log::error('DOKU Callback: Order not found', ['invoice' => $invoiceNumber]);
-
-                return response()->json(['error' => 'Order not found'], 404);
-            }
-
-            // 4. Idempotency check
-            if ($order->status !== 'pending_payment' && $transStatus === 'SUCCESS') {
-                Log::info('DOKU Callback: Already processed', ['order_id' => $invoiceNumber]);
-
-                return response()->json(['success' => 'already_processed']);
-            }
-
-            // 5. Process based on transaction status
-            if ($transStatus === 'SUCCESS' && $order->status === 'pending_payment') {
-                $this->finalizeOrder($order, "DOKU ({$serviceId}/{$channelId})");
-                Log::info('DOKU Callback: Order finalized', ['order_id' => $invoiceNumber]);
-            } elseif ($transStatus === 'FAILED') {
-                $order->logStatus('Pembayaran gagal (DOKU - '.$channelId.').', 'failed');
-                Log::info('DOKU Callback: Payment failed', ['order_id' => $invoiceNumber]);
-            } else {
-                Log::info('DOKU Callback: Unhandled status', [
-                    'order_id' => $invoiceNumber,
-                    'status' => $transStatus,
-                ]);
-            }
-
-            return response()->json(['success' => 'ok']);
-        } catch (\Exception $e) {
-            Log::error('DOKU Callback Exception:', ['msg' => $e->getMessage()]);
-
-            return response()->json(['error' => 'Internal Server Error'], 500);
-        }
-    }
 
     /**
      * Game code mapping for Codashop nickname validation.

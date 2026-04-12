@@ -96,22 +96,6 @@ class ProviderController extends Controller
             }
         }
 
-        // Cek Duitku
-        elseif (str_contains($name, 'duitku')) {
-            return back()->with('info', 'Saldo Duitku (Payment Gateway) merupakan funds mutasi harian, silakan cek langsung di Dashboard Duitku.');
-        }
-
-        // Cek DOKU
-        elseif (str_contains($name, 'doku')) {
-            $provider->update(['status' => 'Aktif']);
-            return back()->with('info', 'DOKU adalah Payment Gateway. Dana Anda akan masuk ke rekening bank sesuai jadwal settlement DOKU. Silakan cek di <a href="https://dashboard.doku.com" target="_blank" class="text-primary underline">Dashboard DOKU</a>.');
-        }
-
-        // Cek Midtrans
-        elseif (str_contains($name, 'midtrans')) {
-            return back()->with('info', 'Midtrans adalah Payment Gateway. Saldo Anda akan tercatat sebagai settlement yang masuk ke rekening bank Anda sesuai jadwal disbursement Midtrans. Silakan cek detail di Dashboard Midtrans.');
-        }
-
         // Cek Orbit WhatsApp (https://orbitwaapi.site/docs — GET /v1/devices)
         elseif (str_contains($name, 'whatsapp') || str_contains($name, 'orbit')) {
             try {
@@ -148,6 +132,25 @@ class ProviderController extends Controller
             } catch (\Exception $e) {
                 return back()->with('error', 'Koneksi ke server Orbit gagal.');
             }
+        }
+
+        // Cek iPaymu
+        elseif (str_contains($name, 'ipaymu')) {
+            $ipaymuService = app(\App\Services\IPaymuService::class);
+            $result = $ipaymuService->getBalance();
+
+            $data = $result['Data'] ?? $result['data'] ?? null;
+
+            if (is_array($data)) {
+                $saldo = $data['Saldo'] ?? $data['saldo'] ?? $data['balance'] ?? $data['MerchantSaldo'] ?? null;
+                if ($saldo !== null) {
+                    $provider->update(['balance' => $saldo, 'status' => 'Aktif']);
+                    return back()->with('success', 'Saldo iPaymu berhasil disinkronisasi: Rp ' . number_format($saldo, 0, ',', '.'));
+                }
+            }
+
+            $message = $result['Message'] ?? $result['message'] ?? 'Periksa kredensial iPaymu.';
+            return back()->with('error', 'Gagal memuat saldo iPaymu: ' . $message);
         }
 
         // Provider Lainnya

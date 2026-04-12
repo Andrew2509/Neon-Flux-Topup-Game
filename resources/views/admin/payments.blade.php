@@ -29,32 +29,11 @@
         </div>
         <div class="flex items-center gap-3 w-full md:w-auto justify-end">
             <button type="submit" class="hidden"></button>
-            <form action="{{ route('admin.payments.sync') }}" method="POST">
-                @csrf
-                <button type="submit" class="bg-accent-blue/20 hover:bg-accent-blue/30 text-accent-blue border border-accent-blue/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-accent-blue/5">
-                    <span class="material-symbols-outlined text-lg">sync</span>
-                    Sync Duitku
-                </button>
-            </form>
             <form action="{{ route('admin.payments.sync_ipaymu') }}" method="POST">
                 @csrf
                 <button type="submit" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-500 border border-emerald-500/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/5">
                     <span class="material-symbols-outlined text-lg">sync</span>
                     Sync iPaymu
-                </button>
-            </form>
-            <form action="{{ route('admin.payments.sync_midtrans') }}" method="POST">
-                @csrf
-                <button type="submit" class="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 border border-indigo-500/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/5">
-                    <span class="material-symbols-outlined text-lg">sync</span>
-                    Sync Midtrans
-                </button>
-            </form>
-            <form action="{{ route('admin.payments.sync_doku') }}" method="POST">
-                @csrf
-                <button type="submit" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-rose-500/5">
-                    <span class="material-symbols-outlined text-lg">sync</span>
-                    Sync DOKU
                 </button>
             </form>
              <a href="{{ route('admin.payments.create') }}" class="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/5">
@@ -101,11 +80,9 @@
                                 $pLower = strtolower($pay->provider);
                                 $badgeClass = 'bg-accent-blue/10 text-accent-blue border border-accent-blue/20';
                                 if (str_contains($pLower, 'ipaymu')) $badgeClass = 'bg-primary/10 text-primary border border-primary/20';
-                                if (str_contains($pLower, 'midtrans')) $badgeClass = 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
-                                if (str_contains($pLower, 'doku')) $badgeClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
                             @endphp
                             <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase {{ $badgeClass }}">
-                                {{ $pay->provider ?: 'Duitku' }}
+                                {{ $pay->provider ?: 'iPaymu' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-xs text-slate-400 font-medium">{{ $pay->type }}</td>

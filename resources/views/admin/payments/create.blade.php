@@ -60,7 +60,6 @@
                         <div class="space-y-1">
                             <label class="text-xs font-bold text-slate-500 ml-1">NAMA MITRA (PROVIDER)</label>
                             <select name="provider" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all appearance-none cursor-pointer">
-                                <option value="Duitku" {{ old('provider') == 'Duitku' ? 'selected' : '' }}>Duitku</option>
                                 <option value="iPaymu" {{ old('provider') == 'iPaymu' ? 'selected' : '' }}>iPaymu</option>
                             </select>
                             @error('provider') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror

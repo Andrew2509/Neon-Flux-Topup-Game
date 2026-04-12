@@ -11,18 +11,7 @@
         <span class="text-sm font-medium">Kembali ke Manajemen Provider</span>
     </a>
 
-    <div class="glass-panel p-4 rounded-2xl border border-primary/20 bg-primary/5 mb-6 flex items-start gap-4">
-        <span class="material-symbols-outlined text-primary">info</span>
-        <div class="space-y-1">
-            <h4 class="text-xs font-bold text-primary uppercase">Informasi Kredensial Midtrans</h4>
-            <p class="text-[10px] text-slate-400 leading-relaxed">
-                Untuk <b>Midtrans</b>:<br>
-                • <b>Provider ID</b> = <code class="text-slate-200">Client Key</code>.<br>
-                • <b>API Key</b> = <code class="text-slate-200">Server Key</code>.<br>
-                Sistem akan menggunakan kredensial ini untuk memproses pembayaran Snap.
-            </p>
-        </div>
-    </div>
+
 
     <form action="{{ route('admin.providers.update', $provider->id) }}" method="POST" class="space-y-6">
         @csrf
@@ -107,7 +96,7 @@
                                 <option value="sandbox" {{ old('mode', $provider->mode) == 'sandbox' ? 'selected' : '' }}>Sandbox / Development</option>
                                 <option value="production" {{ old('mode', $provider->mode) == 'production' ? 'selected' : '' }}>Production / Live</option>
                             </select>
-                            <p class="text-[9px] text-slate-500 mt-1 ml-1 leading-relaxed">Mengatur URL API untuk iPaymu, DOKU, Duitku, dan Midtrans pada provider ini (sandbox vs production).</p>
+                            <p class="text-[9px] text-slate-500 mt-1 ml-1 leading-relaxed">Mengatur URL API untuk iPaymu pada provider ini (sandbox vs production).</p>
                             @error('mode') <p class="text-[10px] text-red-400 mt-1 ml-1">{{ $message }}</p> @enderror
                         </div>
 
