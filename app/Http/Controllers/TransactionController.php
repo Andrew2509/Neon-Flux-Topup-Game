@@ -587,14 +587,24 @@ class TransactionController extends Controller
             $isEwallet = str_contains($via, 'ewallet') || str_contains($via, 'shopeepay') || str_contains($via, 'ovo') || str_contains($via, 'linkaja') || str_contains($via, 'dana');
             $isQris = ($via === 'qris' || ($paymentMethod && $paymentMethod->type === 'qris'));
 
-            // [REVERT] Lakukan redirect otomatis ke portal iPaymu jika tersedia.
-            // Sesuai permintaan: gunakan tampilan iPaymu saja untuk memilih/instruksi metode pembayaran.
+            // Force identification if iPaymu returns empty Via but we know it's QRIS
+            if ($isQris && empty($via)) {
+                $via = 'qris';
+                $data['Via'] = 'QRIS';
+                $data['Channel'] = $data['Channel'] ?? $paymentMethod->code ?? 'MPM';
+                Log::notice('iPaymu: Force identify as QRIS because Via was empty', ['order_id' => $order->order_id]);
+            }
+
+            // Redirect only if it's a redirect-mandatory method
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                Log::info('iPaymu: Redirecting user to hosted payment page', [
-                    'order_id' => $order->order_id,
-                    'url' => $hostedUrl
-                ]);
-                return redirect()->away($hostedUrl);
+                // E-wallet (OVO, DANA, dll) tetap redirect karena biasanya butuh header/flow khusus dari iPaymu
+                if ($isEwallet) {
+                    return redirect()->away($hostedUrl);
+                }
+                
+                // Untuk metode lain (VA/QRIS), kita TIDAK LAGI melakukan redirect otomatis.
+                // Kita akan menampilkan halaman Neon Flux lokal dan memberikan tombol cadangan jika kodenya kosong.
+                Log::info('iPaymu memberikan hosted URL tapi tetap di tampilan lokal', ['order_id' => $order->order_id]);
             }
 
             // Detect device for proper view folder
