@@ -121,7 +121,8 @@ class IPaymuService
         $lastFailure = null;
 
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
-            $headers = $this->generateHeaders($body, 'POST');
+            $jsonBody = empty($body) ? '{}' : json_encode($body, JSON_UNESCAPED_SLASHES);
+            $headers = $this->generateHeaders($jsonBody, 'POST');
 
             try {
                 Log::info('iPaymu Request:', [
@@ -240,11 +241,10 @@ class IPaymuService
     /**
      * Generate iPaymu Auth Headers
      */
-    private function generateHeaders(array $body, string $method): array
+    private function generateHeaders(string $jsonBody, string $method): array
     {
         $timestamp = date('YmdHis');
         // iPaymu expects empty body to be {} in signature calculation
-        $jsonBody = empty($body) ? '{}' : json_encode($body, JSON_UNESCAPED_SLASHES);
         $bodyHash = strtolower(hash('sha256', $jsonBody));
 
         // Final signature structure based on official sample
@@ -412,9 +412,8 @@ class IPaymuService
     public function getPaymentChannels()
     {
         $url = $this->baseUrl.'/api/v2/payment-channels';
-        $body = []; // Empty body for GET-like POST in iPaymu channels API
-
-        $headers = $this->generateHeaders($body, 'GET');
+        $jsonBody = '{}';
+        $headers = $this->generateHeaders($jsonBody, 'GET');
 
         try {
             // iPaymu recommends GET for channels
@@ -441,8 +440,8 @@ class IPaymuService
         }
 
         $url = $this->baseUrl.'/api/v2/transaction';
-        $body = ['transactionId' => $transactionId];
-        $headers = $this->generateHeaders($body, 'POST');
+        $jsonBody = json_encode($body, JSON_UNESCAPED_SLASHES);
+        $headers = $this->generateHeaders($jsonBody, 'POST');
 
         try {
             $response = $this->ipaymuHttp()->withHeaders($headers)->post($url, $body);
