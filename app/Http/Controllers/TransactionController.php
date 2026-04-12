@@ -587,16 +587,14 @@ class TransactionController extends Controller
             $isEwallet = str_contains($via, 'ewallet') || str_contains($via, 'shopeepay') || str_contains($via, 'ovo') || str_contains($via, 'linkaja') || str_contains($via, 'dana');
             $isQris = ($via === 'qris' || ($paymentMethod && $paymentMethod->type === 'qris'));
 
-            // Redirect only if it's a redirect-mandatory method
+            // [REVERT] Lakukan redirect otomatis ke portal iPaymu jika tersedia.
+            // Sesuai permintaan: gunakan tampilan iPaymu saja untuk memilih/instruksi metode pembayaran.
             if (is_string($hostedUrl) && str_starts_with($hostedUrl, 'http')) {
-                // E-wallet (OVO, DANA, dll) tetap redirect karena biasanya butuh header/flow khusus dari iPaymu
-                if ($isEwallet) {
-                    return redirect()->away($hostedUrl);
-                }
-                
-                // Untuk metode lain (VA/QRIS), kita TIDAK LAGI melakukan redirect otomatis.
-                // Kita akan menampilkan halaman Neon Flux lokal dan memberikan tombol cadangan jika kodenya kosong.
-                Log::info('iPaymu memberikan hosted URL tapi tetap di tampilan lokal', ['order_id' => $order->order_id]);
+                Log::info('iPaymu: Redirecting user to hosted payment page', [
+                    'order_id' => $order->order_id,
+                    'url' => $hostedUrl
+                ]);
+                return redirect()->away($hostedUrl);
             }
 
             // Detect device for proper view folder
