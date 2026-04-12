@@ -53,7 +53,7 @@
             </div>
 
             <!-- Result Section -->
-            <div id="resultBox" class="hidden mt-12 pt-10 border-t border-white/5 space-y-6 animate-in fade-in slide-in-from-bottom-5">
+            <div id="resultBox" class="hidden mt-12 pt-10 border-t border-white/5 space-y-6">
                 <div class="bg-primary/5 border border-primary/20 rounded-3xl p-8 text-center space-y-4">
                     <p class="text-slate-400 font-medium">Anda memerlukan sekitar</p>
                     <h2 class="text-5xl font-black text-primary tracking-tighter" id="resultValue">0</h2>

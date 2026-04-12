@@ -37,7 +37,7 @@
             </div>
 
             <!-- Result Section -->
-            <div id="resultBox" class="hidden mt-12 pt-10 border-t border-white/5 animate-in fade-in slide-in-from-bottom-5">
+            <div id="resultBox" class="hidden mt-12 pt-10 border-t border-white/5">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white/5 border border-white/10 rounded-3xl p-6 text-center space-y-2">
                         <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sisa Point</p>

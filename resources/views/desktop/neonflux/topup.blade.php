@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (group === 'all' || card.dataset.group === group) {
                     card.style.display = 'flex';
                     // Animation trigger if needed
-                    card.classList.add('animate-in', 'fade-in', 'zoom-in-95');
+                    // card.classList.add('animate-in', 'fade-in', 'zoom-in-95');
                 } else {
                     card.style.display = 'none';
                 }

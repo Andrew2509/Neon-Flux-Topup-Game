@@ -299,7 +299,7 @@
              </div>
              
              {{-- New Detailed Selection Row --}}
-            <div id="footer-selection-details" class="flex items-center gap-1.5 mt-1 hidden animate-in fade-in slide-in-from-left-2 duration-300">
+            <div id="footer-selection-details" class="flex items-center gap-1.5 mt-1 hidden">
                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
                     <img id="footer-nominal-img" src="{{ $category->icon }}" class="w-2.5 h-2.5 rounded-full object-cover">
                     <span id="footer-nominal-txt" class="text-[8px] font-black text-slate-600 dark:text-white/70 truncate max-w-[80px]"></span>

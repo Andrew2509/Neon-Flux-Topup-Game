@@ -52,7 +52,7 @@
     </div>
 
     <!-- Result Banner -->
-    <div id="resultBox" class="hidden animate-in fade-in zoom-in-95 duration-500">
+    <div id="resultBox" class="hidden">
         <div class="bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-3xl p-8 text-center space-y-3 relative overflow-hidden">
             <div class="absolute -bottom-10 -right-10 size-40 bg-primary/10 blur-3xl rounded-full"></div>
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Minimal Harus Menang</p>

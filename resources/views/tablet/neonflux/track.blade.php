@@ -30,7 +30,7 @@
             </form>
 
             @if(isset($order))
-                <div class="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6 pt-6 border-t border-white/5">
+                <div class="space-y-6 pt-6 border-t border-white/5">
                     <div class="flex justify-between items-end">
                         <div>
                             <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Status Sekarang</p>
@@ -133,7 +133,7 @@
     </div>
 
     <!-- Latest Transactions (Tablet) -->
-    <div class="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-6 duration-700">
+    <div class="w-full max-w-4xl">
         <div class="glass-panel rounded-4xl border border-white/5 overflow-hidden shadow-xl">
             <div class="px-8 py-5 border-b border-white/5 bg-white/5 flex items-center justify-between">
                 <div class="flex items-center gap-3">

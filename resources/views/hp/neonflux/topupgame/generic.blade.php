@@ -58,7 +58,7 @@
                     @endif
                 </div>
 
-                <div id="nickname-area" class="hidden items-center gap-3 px-4 py-3 bg-primary/10 rounded-2xl border border-primary/20 animate-in fade-in zoom-in duration-300">
+                <div id="nickname-area" class="hidden items-center gap-3 px-4 py-3 bg-primary/10 rounded-2xl border border-primary/20">
                     <span class="material-symbols-outlined text-primary text-xl">verified_user</span>
                     <div class="flex flex-col">
                         <span class="text-[10px] text-slate-500 dark:text-white/60 font-bold uppercase tracking-widest">Player Terdeteksi</span>
@@ -242,7 +242,7 @@
             <span id="summary-player-name" data-sticky-summary="1" class="js-summary-player-name hidden text-[9px] text-primary font-bold truncate max-w-[40vw] mt-0.5"></span>
             
             {{-- New Detailed Selection Row --}}
-            <div id="footer-selection-details" class="flex items-center gap-1.5 mt-1 hidden animate-in fade-in slide-in-from-left-2 duration-300">
+            <div id="footer-selection-details" class="flex items-center gap-1.5 mt-1 hidden">
                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-white/10">
                     <img id="footer-nominal-img" src="{{ $category->icon }}" class="w-2.5 h-2.5 rounded-full object-cover">
                     <span id="footer-nominal-txt" class="text-[8px] font-black text-slate-600 dark:text-white/70 truncate max-w-[50px]"></span>

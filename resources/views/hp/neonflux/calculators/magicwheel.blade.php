@@ -32,7 +32,7 @@
     </div>
 
     <!-- Results Overview -->
-    <div id="resultBox" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-4">
+    <div id="resultBox" class="hidden space-y-4">
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-slate-900 p-5 rounded-3xl text-center space-y-1 flex flex-col items-center justify-center">
                 <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Sisa Point</p>

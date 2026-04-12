@@ -32,7 +32,7 @@
     </div>
 
     <!-- Results Overview -->
-    <div id="resultBox" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-4">
+    <div id="resultBox" class="hidden space-y-4">
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-amber-50 p-5 rounded-3xl text-center flex flex-col items-center justify-center text-amber-600 border border-amber-100">
                 <p class="text-[9px] font-black uppercase tracking-widest leading-none mb-1">Star Power Sisa</p>

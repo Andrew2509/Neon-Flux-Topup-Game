@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cards.forEach(card => {
                 if (group === 'all' || card.dataset.group === group) {
                     card.style.display = 'flex';
-                    card.classList.add('animate-in', 'fade-in', 'zoom-in-95');
+                    // card.classList.add('animate-in', 'fade-in', 'zoom-in-95');
                 } else {
                     card.style.display = 'none';
                 }
