@@ -27,7 +27,16 @@
 
         {{-- Payment Content --}}
         <div class="bg-black/40 rounded-2xl p-4 border border-white/5">
-            @if(!empty($ipaymu['qr_image']))
+            @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_image']) && empty($ipaymu['payment_no'])))
+                {{-- ERROR / FALLBACK --}}
+                <div class="text-center py-6 space-y-4">
+                    <span class="material-icons-round text-red-500 text-4xl">report_problem</span>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-black text-white uppercase italic tracking-tighter">Gagal Inisiasi</h3>
+                        <p class="text-[10px] text-white/40 px-2 leading-relaxed">Sistem gagal menghubungi gateway iPaymu. (IP Server mungkin belum di-whitelist).</p>
+                    </div>
+                </div>
+            @elseif(!empty($ipaymu['qr_image']))
                 {{-- QRIS --}}
                 <div class="flex flex-col items-center space-y-4">
                     <div class="relative p-3 bg-white rounded-2xl shadow-xl">

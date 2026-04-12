@@ -43,9 +43,21 @@
                     </div>
                 </div>
 
-                {{-- QRIS / VA Display --}}
+                {{-- QRIS / VA / ERROR Display --}}
                 <div class="py-4">
-                    @if(!empty($ipaymu['qr_image']))
+                    @if(($ipaymu['status'] ?? 'pending') === 'error' || (empty($ipaymu['qr_image']) && empty($ipaymu['payment_no'])))
+                        {{-- ERROR / FALLBACK --}}
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-3xl p-8 text-center space-y-4">
+                            <span class="material-icons-round text-red-500 text-5xl">warning</span>
+                            <div class="space-y-1">
+                                <h3 class="text-xl font-bold text-white uppercase italic">Gagal Menginisiasi Pembayaran</h3>
+                                <p class="text-sm text-white/40">Sistem gagal menghubungi iPaymu. Hal ini biasanya dikarenakan IP Server belum terdaftar di whitelist iPaymu atau kendala API.</p>
+                            </div>
+                            <button onclick="window.location.reload()" class="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all uppercase tracking-widest">
+                                Coba Lagi
+                            </button>
+                        </div>
+                    @elseif(!empty($ipaymu['qr_image']))
                         {{-- QRIS --}}
                         <div class="flex flex-col items-center gap-6">
                             <div class="p-4 bg-white rounded-3xl shadow-neon-white ring-8 ring-white/5">
