@@ -65,10 +65,14 @@
                             <div class="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-cyan-500 rounded-br-lg"></div>
                             {{-- Center Logo --}}
                             <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div class="bg-white p-2 rounded-lg shadow-lg">
-                                    <div class="w-8 h-8 bg-black rounded flex items-center justify-center">
-                                        <span class="text-[8px] font-black text-cyan-400 leading-none">NF</span>
-                                    </div>
+                                <div class="bg-white p-1.5 rounded-lg shadow-lg">
+                                    @if($logo = get_image_url('site_logo'))
+                                        <img src="{{ $logo }}" alt="Logo" class="w-8 h-8 object-contain">
+                                    @else
+                                        <div class="w-8 h-8 bg-black rounded flex items-center justify-center">
+                                            <span class="text-[8px] font-black text-cyan-400 leading-none">NF</span>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -170,8 +174,22 @@
                             <p class="text-sm font-bold text-white mb-1">{{ $order->product_name }}</p>
                             <p class="text-[10px] text-slate-500">{{ $order->game_name ?? $order->category_name ?? 'Top-Up Game' }}</p>
                         </div>
-                        <div class="bg-white/5 p-2 rounded-lg">
-                            <span class="material-icons-round text-cyan-400">videogame_asset</span>
+                        @php
+                            $gameIcon = null;
+                            $productCode = $order->payload['product_code'] ?? null;
+                            if ($productCode) {
+                                $svc = \App\Models\Service::where('code', $productCode)->first();
+                                if ($svc && $svc->category) {
+                                    $gameIcon = $svc->category->icon;
+                                }
+                            }
+                        @endphp
+                        <div class="bg-white/5 p-2 rounded-lg overflow-hidden">
+                            @if($gameIcon)
+                                <img src="{{ $gameIcon }}" alt="Game" class="w-10 h-10 rounded-md object-cover">
+                            @else
+                                <span class="material-icons-round text-cyan-400">videogame_asset</span>
+                            @endif
                         </div>
                     </div>
 
