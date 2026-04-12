@@ -117,7 +117,7 @@ class TransactionController extends Controller
             ? $service->name.' ('.$gameUserId.' / '.$zoneId.')'
             : $service->name.' ('.$gameUserId.')';
 
-        $userId = \Illuminate\Support\Facades\Auth::id();
+        $userId = Auth::id();
 
         // Combined Create into one call
         $order = Order::create([
@@ -215,7 +215,7 @@ class TransactionController extends Controller
     private function processBalancePayment($order, Request $request)
     {
         /** @var \App\Models\User $user */
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
 
         if (! $user) {
             return back()->with('error', 'Silakan login terlebih dahulu untuk menggunakan saldo.');
@@ -247,7 +247,7 @@ class TransactionController extends Controller
             return redirect()->route('track.order', ['order_id' => $order->order_id])->with('success', 'Pembayaran saldo berhasil!');
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Balance Payment Error', ['msg' => $e->getMessage()]);
+            Log::error('Balance Payment Error', ['msg' => $e->getMessage()]);
 
             return back()->with('error', 'Terjadi kesalahan sistem saat memproses saldo.');
         }
@@ -362,7 +362,7 @@ class TransactionController extends Controller
 
     private function processDoku($order, $paymentMethod, Request $request)
     {
-        $user = $order->user ?? \Illuminate\Support\Facades\Auth::user();
+        $user = $order->user ?? Auth::user();
         $dokuService = new \App\Services\DokuService;
 
         // Map payment method code to DOKU payment_method_types
@@ -455,7 +455,7 @@ class TransactionController extends Controller
     private function processIPaymu($order, $paymentMethod, Request $request)
     {
         /** Samakan dengan Midtrans/DOKU: relasi order + sesi login */
-        $user = $order->user ?? \Illuminate\Support\Facades\Auth::user();
+        $user = $order->user ?? Auth::user();
 
         $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'localhost';
         $orderTag = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $order->order_id));
@@ -584,7 +584,7 @@ class TransactionController extends Controller
             ];
 
             // Deteksi device/template neonflux
-            $tpl = (is_mobile_neonflux() ? 'hp' : 'desktop') . '.neonflux.payment.ipaymu';
+            $tpl = (\is_mobile_neonflux() ? 'hp' : 'desktop') . '.neonflux.payment.ipaymu';
             
             if (view()->exists($tpl)) {
                 return view($tpl, $viewData);
@@ -617,7 +617,7 @@ class TransactionController extends Controller
 
     private function processMidtrans($order, $paymentMethod, Request $request)
     {
-        $user = $order->user ?? \Illuminate\Support\Facades\Auth::user();
+        $user = $order->user ?? Auth::user();
         $midtransService = new \App\Services\MidtransService;
 
         $params = [
@@ -1133,7 +1133,7 @@ class TransactionController extends Controller
         if ($slug === '' && $operatorId) {
             $category = \App\Models\Category::where('ext_id', $operatorId)->first();
             if ($category) {
-                $slug = (string) ($category->slug ?: \Illuminate\Support\Str::slug($category->name));
+                $slug = (string) ($category->slug ?: Str::slug($category->name));
             }
         }
 
