@@ -130,146 +130,151 @@
 
 <!-- Modal: Add Flash Sale -->
 <div id="addFlashSaleModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="glass-panel w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+    <div class="glass-panel w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in duration-300">
+        <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
             <div class="flex items-center gap-3">
                 <div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                     <span class="material-symbols-outlined">bolt</span>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-white">Tambah Flash Sale</h3>
-                    <p class="text-xs text-slate-400">Buat promo harga coret baru</p>
+                    <h3 class="text-xl font-bold text-white uppercase tracking-wider">Tambah Flash Sale</h3>
+                    <p class="text-[10px] text-slate-400 font-medium">Konfigurasi promo harga coret baru</p>
                 </div>
             </div>
-            <button onclick="closeModal('addFlashSaleModal')" class="text-slate-500 hover:text-white transition-colors">
-                <span class="material-symbols-outlined">close</span>
+            <button onclick="closeModal('addFlashSaleModal')" class="size-8 rounded-full flex items-center justify-center hover:bg-white/10 text-slate-500 hover:text-white transition-all">
+                <span class="material-symbols-outlined text-base">close</span>
             </button>
         </div>
-        <form action="{{ route('admin.flash-sales.store') }}" method="POST" class="p-6 space-y-4">
+        <form action="{{ route('admin.flash-sales.store') }}" method="POST" class="p-8">
             @csrf
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Kategori</label>
-                <div class="relative mb-2">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
-                    <input type="text" placeholder="Cari kategori..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_category_id')">
-                </div>
-                <select id="add_category_id" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900">
-                    <option value="">-- Pilih Kategori --</option>
-                    @foreach($categories as $c)
-                        <option value="{{ $c->id }}">{{ $c->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Operator</label>
-                <div class="relative mb-2">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
-                    <input type="text" placeholder="Cari operator..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_operator_id')">
-                </div>
-                <select id="add_operator_id" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900" disabled>
-                    <option value="">-- Pilih Operator --</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Layanan</label>
-                <div class="relative mb-2">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
-                    <input type="text" placeholder="Cari layanan..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_service_id')">
-                </div>
-                <select name="service_id" id="add_service_id" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900" disabled>
-                    <option value="">-- Pilih Layanan --</option>
-                </select>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Harga Promo (Rp)</label>
-                        <button type="button" onclick="toggleCalculator()" class="text-[10px] text-primary hover:text-white flex items-center gap-1 font-bold transition-colors">
-                            <span class="material-symbols-outlined text-sm">calculate</span>
-                            Kalkulator Profit
-                        </button>
-                    </div>
-                    <input type="number" name="discount_price" id="add_discount_price" required placeholder="Contoh: 15000" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stok (-1 = unlimit)</label>
-                    <input type="number" name="stock" value="-1" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
-                </div>
-            </div>
-
-            <!-- Calculator Panel (Hidden initially) -->
-            <div id="profitCalculator" class="hidden glass-panel rounded-2xl border border-primary/20 bg-primary/5 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                <div class="p-4 border-b border-primary/10 flex justify-between items-center">
-                    <h4 class="text-xs font-bold text-primary uppercase tracking-widest">Kalkulator Untung/Rugi</h4>
-                    <button type="button" onclick="toggleCalculator()" class="text-slate-500 hover:text-white"><span class="material-symbols-outlined text-sm">close</span></button>
-                </div>
-                <div class="p-4 space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Harga Modal (Rp)</label>
-                            <input type="number" id="calc_cost" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" readonly>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Gateway (%)</label>
-                            <input type="number" id="calc_fee_percent" value="2.5" step="0.1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation()">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Target Margin (%)</label>
-                            <input type="number" id="calc_margin_target" value="5" step="1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation()">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Admin (Rp)</label>
-                            <input type="number" id="calc_fee_flat" value="0" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation()">
-                        </div>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Left Column: Product Selection -->
+                <div class="space-y-6">
+                    <h4 class="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                        <span class="size-1.5 rounded-full bg-primary animate-pulse"></span>
+                        1. Pilih Produk
+                    </h4>
                     
-                    <div id="calc_result" class="p-3 rounded-xl bg-black/20 space-y-2">
-                        <div class="flex justify-between text-[10px] font-bold">
-                            <span class="text-slate-400">STATUS:</span>
-                            <span id="status_label" class="text-slate-500">BELUM ADA DATA</span>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Kategori</label>
+                        <div class="relative mb-2">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                            <input type="text" placeholder="Cari kategori..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_category_id')">
                         </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-[9px] text-slate-500 font-bold uppercase">Estimasi Bersih</p>
-                                <p id="profit_value" class="text-lg font-bold text-white">Rp 0</p>
+                        <select id="add_category_id" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900">
+                            <option value="">-- Pilih Kategori --</option>
+                            @foreach($categories as $c)
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Operator</label>
+                        <div class="relative mb-2">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                            <input type="text" placeholder="Cari operator..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_operator_id')">
+                        </div>
+                        <select id="add_operator_id" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900" disabled>
+                            <option value="">-- Pilih Operator --</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Layanan</label>
+                        <div class="relative mb-2">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                            <input type="text" placeholder="Cari layanan..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_service_id')">
+                        </div>
+                        <select name="service_id" id="add_service_id" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900" disabled>
+                            <option value="">-- Pilih Layanan --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Right Column: Promo Config -->
+                <div class="space-y-6">
+                    <h4 class="text-xs font-bold text-secondary uppercase tracking-widest flex items-center gap-2">
+                        <span class="size-1.5 rounded-full bg-secondary animate-pulse"></span>
+                        2. Detail Promo
+                    </h4>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Harga Promo</label>
+                                <button type="button" onclick="toggleCalculator()" class="text-[9px] text-primary hover:text-white flex items-center gap-1 font-bold">
+                                    <span class="material-symbols-outlined text-xs">calculate</span>
+                                    Profit
+                                </button>
                             </div>
-                            <button type="button" onclick="toggleCalculator()" class="px-3 py-1.5 bg-primary text-[10px] font-bold rounded-lg text-white hover:brightness-110">Tutup Kalkulator</button>
+                            <input type="number" name="discount_price" id="add_discount_price" required placeholder="15000" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all text-sm">
                         </div>
-                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                            <div id="profit_bar" class="h-full bg-slate-500 w-0 transition-all duration-500"></div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stok (-1 unlimit)</label>
+                            <input type="number" name="stock" value="-1" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all text-sm">
                         </div>
-                        <p id="rec_label" class="text-[9px] text-slate-400"></p>
+                    </div>
+
+                    <!-- Calculator Panel (Now part of the layout) -->
+                    <div id="profitCalculator" class="hidden glass-panel rounded-2xl border border-primary/20 bg-primary/5 overflow-hidden">
+                        <div class="p-3 border-b border-primary/10 flex justify-between items-center">
+                            <h4 class="text-[9px] font-bold text-primary uppercase tracking-widest">Kalkulator Untung</h4>
+                            <button type="button" onclick="toggleCalculator()" class="text-slate-500 hover:text-white"><span class="material-symbols-outlined text-xs">close</span></button>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            <!-- Hidden inputs to keep JS working without cluttering compact UI -->
+                            <input type="hidden" id="calc_margin_target" value="5">
+                            <input type="hidden" id="calc_fee_flat" value="0">
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[9px] text-slate-400 font-bold mb-1 uppercase">Modal</label>
+                                    <input type="number" id="calc_cost" class="w-full bg-black/20 border border-white/5 rounded-lg px-2 py-1.5 text-[10px] text-white" readonly>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] text-slate-400 font-bold mb-1 uppercase">Fee iPaymu (%)</label>
+                                    <input type="number" id="calc_fee_percent" value="2.5" step="0.1" class="w-full bg-black/20 border border-white/5 rounded-lg px-2 py-1.5 text-[10px] text-white" oninput="runCalculation()">
+                                </div>
+                            </div>
+                            <div id="calc_result" class="p-2 rounded-lg bg-black/40">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span id="status_label" class="text-[9px] font-bold">BELUM ADA DATA</span>
+                                    <span id="profit_value" class="text-xs font-bold text-white">Rp 0</span>
+                                </div>
+                                <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <div id="profit_bar" class="h-full bg-slate-500 w-0 transition-all duration-500"></div>
+                                </div>
+                                <p id="rec_label" class="text-[8px] text-slate-500 mt-1"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mulai</label>
+                                <input type="datetime-local" name="start_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Berakhir</label>
+                                <input type="datetime-local" name="end_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status Promo</label>
+                            <select name="status" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900 text-sm">
+                                <option value="Aktif">Aktif (Langsung tayang)</option>
+                                <option value="Nonaktif">Nonaktif (Draft)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Waktu Mulai</label>
-                    <input type="datetime-local" name="start_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Waktu Berakhir</label>
-                    <input type="datetime-local" name="end_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
-                <select name="status" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900">
-                    <option value="Aktif">Aktif</option>
-                    <option value="Nonaktif">Nonaktif</option>
-                </select>
-            </div>
-
-            <div class="pt-4 flex gap-3">
+            <div class="mt-8 pt-6 border-t border-white/5 flex gap-3">
                 <button type="button" onclick="closeModal('addFlashSaleModal')" class="flex-1 px-6 py-3 border border-white/10 rounded-xl text-slate-400 font-bold hover:bg-white/5 transition-all text-sm">Batal</button>
-                <button type="submit" class="flex-2 px-8 py-3 bg-primary text-white rounded-xl font-bold hover:brightness-110 shadow-lg shadow-primary/20 transition-all text-sm">Simpan Promo</button>
+                <button type="submit" class="flex-[2] px-8 py-3 bg-primary text-white rounded-xl font-bold hover:brightness-110 shadow-lg shadow-primary/20 transition-all text-sm uppercase tracking-widest">Simpan Promo Flash Sale</button>
             </div>
         </form>
     </div>
@@ -277,116 +282,134 @@
 
 <!-- Modal: Edit Flash Sale -->
 <div id="editFlashSaleModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="glass-panel w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+    <div class="glass-panel w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in duration-300">
+        <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
             <div class="flex items-center gap-3">
                 <div class="size-10 rounded-xl bg-secondary/20 flex items-center justify-center text-secondary">
                     <span class="material-symbols-outlined">edit</span>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-white">Edit Flash Sale</h3>
-                    <p class="text-xs text-slate-400">Sesuaikan periode atau harga promo</p>
+                    <h3 class="text-xl font-bold text-white uppercase tracking-wider">Edit Flash Sale</h3>
+                    <p class="text-[10px] text-slate-400 font-medium">Perbarui pengaturan promo terpilih</p>
                 </div>
             </div>
-            <button onclick="closeModal('editFlashSaleModal')" class="text-slate-500 hover:text-white transition-colors">
-                <span class="material-symbols-outlined">close</span>
+            <button onclick="closeModal('editFlashSaleModal')" class="size-8 rounded-full flex items-center justify-center hover:bg-white/10 text-slate-500 hover:text-white transition-all">
+                <span class="material-symbols-outlined text-base">close</span>
             </button>
         </div>
-        <form id="editFlashSaleForm" method="POST" class="p-6 space-y-4">
+        <form id="editFlashSaleForm" method="POST" class="p-8">
             @csrf @method('PUT')
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">ID Produk</label>
-                <input type="text" id="edit_service_name" readonly class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-slate-500 outline-none transition-all opacity-70">
-                <input type="hidden" name="service_id" id="edit_service_id">
-            </div>
             
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Harga Promo (Rp)</label>
-                        <button type="button" onclick="toggleCalculator('edit')" class="text-[10px] text-secondary hover:text-white flex items-center gap-1 font-bold transition-colors">
-                            <span class="material-symbols-outlined text-sm">calculate</span>
-                            Kalkulator Profit
-                        </button>
-                    </div>
-                    <input type="number" name="discount_price" id="edit_discount_price" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stok</label>
-                    <input type="number" name="stock" id="edit_stock" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all">
-                </div>
-            </div>
-
-            <!-- Calculator Panel Edit (Hidden initially) -->
-            <div id="profitCalculatorEdit" class="hidden glass-panel rounded-2xl border border-secondary/20 bg-secondary/5 overflow-hidden">
-                <div class="p-4 border-b border-secondary/10 flex justify-between items-center">
-                    <h4 class="text-xs font-bold text-secondary uppercase tracking-widest">Kalkulator Untung/Rugi</h4>
-                    <button type="button" onclick="toggleCalculator('edit')" class="text-slate-500 hover:text-white"><span class="material-symbols-outlined text-sm">close</span></button>
-                </div>
-                <div class="p-4 space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Harga Modal (Rp)</label>
-                            <input type="number" id="edit_calc_cost" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" readonly>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Gateway (%)</label>
-                            <input type="number" id="edit_calc_fee_percent" value="2.5" step="0.1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation('edit')">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Target Margin (%)</label>
-                            <input type="number" id="edit_calc_margin_target" value="5" step="1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation('edit')">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Admin (Rp)</label>
-                            <input type="number" id="edit_calc_fee_flat" value="0" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation('edit')">
-                        </div>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Left Column: Product Info -->
+                <div class="space-y-6">
+                    <h4 class="text-xs font-bold text-secondary uppercase tracking-widest flex items-center gap-2">
+                        <span class="size-1.5 rounded-full bg-secondary animate-pulse"></span>
+                        1. Data Produk
+                    </h4>
                     
-                    <div id="edit_calc_result" class="p-3 rounded-xl bg-black/20 space-y-2">
-                        <div class="flex justify-between text-[10px] font-bold">
-                            <span class="text-slate-400">STATUS:</span>
-                            <span id="edit_status_label" class="text-slate-500">SIAP</span>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama Produk / Layanan</label>
+                        <input type="text" id="edit_service_name" readonly class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-slate-400 outline-none transition-all cursor-not-allowed">
+                        <input type="hidden" name="service_id" id="edit_service_id">
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Informasi Tambahan</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-400">Tipe Produk</span>
+                            <span class="px-2 py-0.5 rounded-md bg-white/10 text-[10px] text-white font-bold">DIGITAL</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-[9px] text-slate-500 font-bold uppercase">Estimasi Bersih</p>
-                                <p id="edit_profit_value" class="text-lg font-bold text-white">Rp 0</p>
+                            <span class="text-xs text-slate-400">Keamanan Transaksi</span>
+                            <span class="flex items-center gap-1 text-[10px] text-green-500 font-bold">
+                                <span class="material-symbols-outlined text-[12px]">verified</span> TERVERIFIKASI
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Promo Config -->
+                <div class="space-y-6">
+                    <h4 class="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                        <span class="size-1.5 rounded-full bg-primary animate-pulse"></span>
+                        2. Penyesuaian Promo
+                    </h4>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Harga Promo</label>
+                                <button type="button" onclick="toggleCalculator('edit')" class="text-[9px] text-secondary hover:text-white flex items-center gap-1 font-bold">
+                                    <span class="material-symbols-outlined text-xs">calculate</span>
+                                    Profit
+                                </button>
                             </div>
-                            <button type="button" onclick="toggleCalculator('edit')" class="px-3 py-1.5 bg-secondary text-[10px] font-bold rounded-lg text-white hover:brightness-110">Tutup Kalkulator</button>
+                            <input type="number" name="discount_price" id="edit_discount_price" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all text-sm">
                         </div>
-                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                            <div id="edit_profit_bar" class="h-full bg-slate-500 w-0 transition-all duration-500"></div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stok</label>
+                            <input type="number" name="stock" id="edit_stock" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all text-sm">
                         </div>
-                        <p id="edit_rec_label" class="text-[9px] text-slate-400"></p>
+                    </div>
+
+                    <!-- Calculator Panel Edit -->
+                    <div id="profitCalculatorEdit" class="hidden glass-panel rounded-2xl border border-secondary/20 bg-secondary/5 overflow-hidden">
+                        <div class="p-3 border-b border-secondary/10 flex justify-between items-center">
+                            <h4 class="text-[9px] font-bold text-secondary uppercase tracking-widest">Kalkulator Untung</h4>
+                            <button type="button" onclick="toggleCalculator('edit')" class="text-slate-500 hover:text-white"><span class="material-symbols-outlined text-xs">close</span></button>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            <input type="hidden" id="edit_calc_margin_target" value="5">
+                            <input type="hidden" id="edit_calc_fee_flat" value="0">
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[9px] text-slate-400 font-bold mb-1 uppercase">Modal</label>
+                                    <input type="number" id="edit_calc_cost" class="w-full bg-black/20 border border-white/5 rounded-lg px-2 py-1.5 text-[10px] text-white" readonly>
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] text-slate-400 font-bold mb-1 uppercase">Fee (%)</label>
+                                    <input type="number" id="edit_calc_fee_percent" value="2.5" step="0.1" class="w-full bg-black/20 border border-white/5 rounded-lg px-2 py-1.5 text-[10px] text-white" oninput="runCalculation('edit')">
+                                </div>
+                            </div>
+                            <div id="edit_calc_result" class="p-2 rounded-lg bg-black/40">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span id="edit_status_label" class="text-[9px] font-bold">READY</span>
+                                    <span id="edit_profit_value" class="text-xs font-bold text-white">Rp 0</span>
+                                </div>
+                                <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <div id="edit_profit_bar" class="h-full bg-slate-500 w-0 transition-all duration-500"></div>
+                                </div>
+                                <p id="edit_rec_label" class="text-[8px] text-slate-500 mt-1"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mulai</label>
+                            <input type="datetime-local" name="start_time" id="edit_start_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Berakhir</label>
+                            <input type="datetime-local" name="end_time" id="edit_end_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status Promo</label>
+                        <select name="status" id="edit_status" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all [&>option]:bg-slate-900 text-sm">
+                            <option value="Aktif">Aktif</option>
+                            <option value="Nonaktif">Nonaktif</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Waktu Mulai</label>
-                    <input type="datetime-local" name="start_time" id="edit_start_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Waktu Berakhir</label>
-                    <input type="datetime-local" name="end_time" id="edit_end_time" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
-                <select name="status" id="edit_status" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900">
-                    <option value="Aktif">Aktif</option>
-                    <option value="Nonaktif">Nonaktif</option>
-                </select>
-            </div>
-
-            <div class="pt-4 flex gap-3">
+            <div class="mt-8 pt-6 border-t border-white/5 flex gap-3">
                 <button type="button" onclick="closeModal('editFlashSaleModal')" class="flex-1 px-6 py-3 border border-white/10 rounded-xl text-slate-400 font-bold hover:bg-white/5 transition-all text-sm">Batal</button>
-                <button type="submit" class="flex-2 px-8 py-3 bg-secondary text-white rounded-xl font-bold hover:brightness-110 shadow-lg shadow-secondary/20 transition-all text-sm">Simpan Perubahan</button>
+                <button type="submit" class="flex-[2] px-8 py-3 bg-secondary text-white rounded-xl font-bold hover:brightness-110 shadow-lg shadow-secondary/20 transition-all text-sm uppercase tracking-widest">Simpan Perubahan</button>
             </div>
         </form>
     </div>
@@ -515,7 +538,7 @@ function toggleCalculator(context = 'add') {
 
 function runCalculation(context = 'add') {
     const isEdit = context === 'edit';
-    const prefix = isEdit ? 'edit_' : '';
+    const prefix = isEdit ? 'edit_' : 'add_';
     const calcPrefix = isEdit ? 'edit_calc_' : 'calc_';
     
     const promoPrice = parseFloat(document.getElementById(prefix + 'discount_price').value) || 0;
@@ -552,19 +575,19 @@ function runCalculation(context = 'add') {
     if (profit <= 0) {
         statusLabel.textContent = '❌ RUGI';
         statusLabel.className = 'text-red-500 font-bold text-[10px]';
-        profitBar.className = isEdit ? 'h-full bg-red-500' : 'h-full bg-red-500 transition-all duration-500';
+        profitBar.className = 'h-full bg-red-500 transition-all duration-500';
         profitBar.style.width = '100%';
         recLabel.textContent = `Harga minimum agar tidak rugi: Rp ${new Intl.NumberFormat('id-ID').format(minSafePrice)}`;
     } else if (marginPct < marginTargetPct) {
         statusLabel.textContent = '⚠️ MARGIN RENDAH';
         statusLabel.className = 'text-yellow-500 font-bold text-[10px]';
-        profitBar.className = isEdit ? 'h-full bg-yellow-500' : 'h-full bg-yellow-500 transition-all duration-500';
+        profitBar.className = 'h-full bg-yellow-500 transition-all duration-500';
         profitBar.style.width = `${Math.min(100, (marginPct / marginTargetPct) * 100)}%`;
         recLabel.textContent = `Saran harga untuk margin ${marginTargetPct}%: Rp ${targetSafePrice === 'N/A' ? 'N/A' : new Intl.NumberFormat('id-ID').format(targetSafePrice)}`;
     } else {
         statusLabel.textContent = '✅ UNTUNG';
         statusLabel.className = 'text-green-500 font-bold text-[10px]';
-        profitBar.className = isEdit ? 'h-full bg-green-500' : 'h-full bg-green-500 transition-all duration-500';
+        profitBar.className = 'h-full bg-green-500 transition-all duration-500';
         profitBar.style.width = '100%';
         recLabel.textContent = 'Harga promo sudah sesuai target margin.';
     }
