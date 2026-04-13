@@ -155,7 +155,7 @@
         {{-- Bottom Bar --}}
         <div class="mt-16 pt-8 border-t border-black/5 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
             <p class="text-slate-500 dark:text-gray-500 text-xs text-center md:text-left">
-                &copy; {{ date('Y') }} {{ get_setting('site_name', 'Neon Flux Indonesia') }}. All Rights Reserved.
+                &copy; {{ date('Y') }} {{ get_setting('site_name', 'PrincePay Gaming') }}. All Rights Reserved.
             </p>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                 <a href="{{ route('syarat-ketentuan') }}" class="text-slate-500 dark:text-gray-500 hover:text-primary dark:hover:text-white transition-colors text-xs">Syarat & Ketentuan</a>

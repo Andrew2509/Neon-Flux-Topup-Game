@@ -53,9 +53,7 @@
         </div>
 
         <div class="pt-6 border-t border-slate-100 text-center">
-            <p class="text-[10px] text-slate-400 font-medium">
-                &copy; {{ date('Y') }} {{ get_setting('site_name', 'Neon Flux Indonesia') }}
-            </p>
+                &copy; {{ date('Y') }} {{ get_setting('site_name', 'PrincePay Gaming') }}
         </div>
     </div>
 </footer>

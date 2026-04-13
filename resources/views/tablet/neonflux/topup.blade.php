@@ -1,6 +1,6 @@
 @extends('tablet.layouts.neonflux')
 
-@section('title', 'Neon Flux Indonesia — Game Top-up')
+@section('title', get_setting('site_name') . ' — Game Top-up')
 
 @section('content')
 <div class="space-y-6">

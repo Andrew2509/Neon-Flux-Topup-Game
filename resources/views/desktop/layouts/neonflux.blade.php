@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', get_setting('site_name', 'Neon Flux Indonesia') . ' — ' . get_setting('site_tagline', 'Premium Gaming Experience'))</title>
+    <title>@yield('title', get_setting('site_name', 'PrincePay Gaming') . ' — ' . get_setting('site_tagline', 'Premium Gaming Experience'))</title>
     <meta name="description" content="{{ get_setting('meta_description', 'Platform top up game termurah, tercepat, dan teraman di Indonesia.') }}">
     @if($favicon = get_image_url('site_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ $favicon }}">
