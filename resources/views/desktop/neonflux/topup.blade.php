@@ -3,7 +3,7 @@
     ============================================================ --}}
 @extends('desktop.layouts.neonflux')
 
-@section('title', get_setting('site_name', 'NeonFlux Indonesia') . ' — ' . get_setting('site_tagline', 'Premium Gaming Experience'))
+@section('title', get_setting('site_name') . ' — ' . get_setting('site_tagline'))
 
 @section('content')
 <main class="pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
