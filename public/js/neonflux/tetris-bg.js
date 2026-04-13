@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     bgContainer.style.height = '100vh';
     bgContainer.style.zIndex = '-1';
     bgContainer.style.overflow = 'hidden';
-    bgContainer.style.background = '#141414';
+    bgContainer.style.background = 'transparent';
     
     // Insert it before the first child of body, or just prepend
     document.body.prepend(bgContainer);

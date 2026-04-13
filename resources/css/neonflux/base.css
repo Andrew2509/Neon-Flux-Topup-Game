@@ -5,9 +5,16 @@
 
 /* --- Body Background: Cyber Grid --- */
 body.neonflux {
-    background-color: transparent !important;
-    color: #e2e8f0;
-    font-family: 'Rajdhani', sans-serif;
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(255, 0, 153, 0.15), transparent 25%),
+        linear-gradient(var(--grid-color) 2px, transparent 2px),
+        linear-gradient(90deg, var(--grid-color) 2px, transparent 2px),
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
 }
 
 /* --- Glass Panel --- */
