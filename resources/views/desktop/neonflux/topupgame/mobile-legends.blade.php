@@ -40,6 +40,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Form Area -->
         <div class="lg:col-span-2 space-y-8">
+            @include('partials.neonflux.flash-sale')
             @include('partials.neonflux.topup-customer-whatsapp')
             <!-- Step 1: ID -->
             <section class="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden group section-1">
