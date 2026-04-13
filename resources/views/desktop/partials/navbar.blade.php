@@ -5,11 +5,8 @@
     {{-- Logo --}}
     <div class="flex items-center gap-2 min-w-0 flex-shrink">
         @if($logo = get_image_url('site_logo'))
-            <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'Neon Flux') }}" class="h-9 w-auto sm:h-11 md:h-14 flex-shrink-0">
+            <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-14 w-auto sm:h-16 md:h-20 flex-shrink-0">
         @endif
-        <span class="font-display font-bold text-base sm:text-xl md:text-2xl tracking-wider text-slate-900 dark:text-white transition-colors truncate min-w-0 inline">
-            <span class="text-cyan-600 dark:text-primary">{{ explode(' ', get_setting('site_name', 'NEON FLUX'))[0] }}</span>{{ substr(get_setting('site_name', 'NEON FLUX'), strlen(explode(' ', get_setting('site_name', 'NEON FLUX'))[0])) }}
-        </span>
     </div>
 
     {{-- Nav Links (tablet & desktop) --}}
