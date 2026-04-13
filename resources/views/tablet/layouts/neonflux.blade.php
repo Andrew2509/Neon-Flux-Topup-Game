@@ -111,5 +111,6 @@
             @endif
         });
     </script>
+    <script src="{{ asset('js/neonflux/tetris-bg.js') }}?v={{ time() }}"></script>
 </body>
 </html>
