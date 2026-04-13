@@ -11,7 +11,7 @@
             <div class="lg:col-span-4 space-y-6">
                 <div class="flex items-center space-x-3">
                     @if($logo = get_image_url('site_logo'))
-                        <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-32 w-auto">
+                        <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-48 w-auto">
                     @endif
                 </div>
                 <p class="text-slate-600 dark:text-gray-400 text-sm leading-relaxed max-w-xs">

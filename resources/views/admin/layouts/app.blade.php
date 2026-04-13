@@ -100,14 +100,14 @@
 <div class="flex h-screen overflow-hidden">
     <!-- Side Navigation -->
     <aside class="w-72 glass-panel border-r border-slate-200 dark:border-white/5 flex flex-col z-20 overflow-y-auto">
-        <div class="p-6 flex items-center gap-3 centered-on-collapse">
-            <div class="size-10 rounded-xl bg-gradient-to-br from-primary to-accent-red flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-                <span class="material-symbols-outlined text-white text-2xl">bolt</span>
-            </div>
-            <div class="hidden-on-collapse">
-                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">Neon Flux</h1>
-                <p class="text-[10px] uppercase tracking-widest text-primary font-bold mt-1">Admin Panel</p>
-            </div>
+        <div class="p-6 flex items-center justify-center centered-on-collapse">
+            @if($logo = get_image_url('site_logo'))
+                <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-28 w-auto flex-shrink-0">
+            @else
+                <div class="size-12 rounded-xl bg-gradient-to-br from-primary to-accent-red flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+                    <span class="material-symbols-outlined text-white text-3xl">bolt</span>
+                </div>
+            @endif
         </div>
         <nav class="flex-1 px-4 space-y-1">
             @can('akses-dashboard')

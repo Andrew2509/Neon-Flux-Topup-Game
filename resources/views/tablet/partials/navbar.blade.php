@@ -1,12 +1,8 @@
 <nav class="fixed top-0 inset-x-0 z-[200] px-3 py-2.5 glass-panel-mobile border-b shadow-sm dark:shadow-none flex justify-between items-center bg-white/80 dark:bg-background-dark/80">
     <div class="flex items-center gap-2">
         @if($logo = get_image_url('site_logo'))
-            <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'Neon Flux') }}" class="h-12 w-auto">
+            <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'Neon Flux') }}" class="h-28 w-auto">
         @endif
-        <span class="font-display font-bold text-lg tracking-tight">
-            <span class="text-cyan-600 dark:text-primary">NEON</span><span class="text-slate-950 dark:text-white transition-colors">FLUX</span>
-            {{-- <span class="text-[8px] opacity-30 ml-1 font-sans font-normal uppercase tracking-widest text-white">Tablet</span> --}}
-        </span>
     </div>
     <div class="flex items-center gap-3">
 

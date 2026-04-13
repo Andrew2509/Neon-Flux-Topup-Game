@@ -1,28 +1,15 @@
 <aside class="w-20 lg:w-64 bg-corp-sidebar flex flex-col transition-all duration-300 shadow-xl z-20" data-purpose="sidebar-navigation">
     <!-- Sidebar Logo -->
-    <div class="h-16 flex items-center px-6 border-b border-white/10 centered-on-collapse">
+    <div class="h-32 flex items-center justify-center px-6 border-b border-white/10 centered-on-collapse">
         @if($logo = get_image_url('site_logo'))
-            <div class="w-10 h-10 flex items-center justify-center overflow-hidden shrink-0">
-                <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'PrincePay Gaming') }}" class="max-h-full max-w-full object-contain">
-            </div>
+            <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'PrincePay Gaming') }}" class="h-24 w-auto object-contain shrink-0">
         @else
-            <div class="w-8 h-8 bg-corp-accent rounded-lg flex items-center justify-center shadow-lg shrink-0">
-                <svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <div class="w-12 h-12 bg-corp-accent rounded-lg flex items-center justify-center shadow-lg shrink-0">
+                <svg class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
             </div>
         @endif
-        
-        @php
-            $siteName = get_setting('site_name', 'NEON CORE');
-            $parts = explode(' ', $siteName, 2);
-            $firstPart = $parts[0] ?? '';
-            $secondPart = $parts[1] ?? '';
-        @endphp
-        
-        <span class="ml-3 font-bold text-lg tracking-tight text-white uppercase sidebar-logo-full hidden-on-collapse">
-            {{ $firstPart }} <span class="text-corp-accent">{{ $secondPart }}</span>
-        </span>
     </div>
     
     <!-- Navigation Links -->
