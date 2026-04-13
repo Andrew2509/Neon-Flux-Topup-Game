@@ -245,6 +245,5 @@
             setInterval(fetchNotifications, 15000);
         });
     </script>
-    <script src="{{ asset('js/neonflux/tetris-bg.js') }}?v={{ time() }}"></script>
 </body>
 </html>
