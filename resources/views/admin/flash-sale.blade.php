@@ -729,8 +729,18 @@ async function saveBatch() {
 // --- End Batch Generator Logic ---
 
 function openModal(id) {
-    document.getElementById(id).classList.remove('hidden');
+    const modal = document.getElementById(id);
+    modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    // Initialize defaults for Generator if opening
+    if (id === 'generateFlashSaleModal') {
+        const now = new Date();
+        const tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
+        
+        document.getElementById('gen_start').value = formatDateForInput(now);
+        document.getElementById('gen_end').value = formatDateForInput(tomorrow);
+    }
 }
 
 function closeModal(id) {

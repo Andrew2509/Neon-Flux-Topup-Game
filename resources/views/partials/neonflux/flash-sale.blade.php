@@ -1,3 +1,4 @@
+@if(count($flashSaleItems) > 0)
 <!-- Flash Sale Section -->
 <div class="mb-10 w-full">
     <!-- Flash Sale Header Box -->
@@ -123,3 +124,4 @@
     })();
     @endif
 </script>
+@endif
