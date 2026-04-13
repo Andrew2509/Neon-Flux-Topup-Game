@@ -8,8 +8,8 @@ body {
     background-color: var(--bg-color, #ffffff) !important;
     background-image: url('/images/bg-vertical-minimal-pastel-cyber-glow-digital-background-3-1776100569132.png') !important;
     background-size: cover !important;
-    background-position: center !important;
-    background-attachment: fixed !important;
+    background-position: top center !important;
+    background-attachment: scroll !important;
     background-repeat: no-repeat !important;
 }
 
