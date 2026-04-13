@@ -31,8 +31,8 @@ class FlashSale extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'Aktif')
-            ->where('start_time', '<=', now())
-            ->where('end_time', '>=', now());
+        return $query->where('flash_sales.status', 'Aktif')
+            ->where('flash_sales.start_time', '<=', now())
+            ->where('flash_sales.end_time', '>=', now());
     }
 }

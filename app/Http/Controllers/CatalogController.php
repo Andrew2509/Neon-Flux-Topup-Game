@@ -83,6 +83,7 @@ class CatalogController extends Controller
             })
             ->withExists(['flashSales as has_active_flash_sale' => function ($q) {
                 $q->active();
+                $q->where('services.status', 'Aktif');
             }]);
 
         $popular = (clone $categoriesQuery)
