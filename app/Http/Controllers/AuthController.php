@@ -29,149 +29,78 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            /** @var User $user */
-            $user = Auth::user();
-            if ($user->hasPermission('akses-dashboard')) {
-                return redirect()->route('admin.dashboard');
-            }
-            return redirect('/');
+            return $this->redirectUser(Auth::user());
         }
         return view('desktop.neonflux.auth.login');
     }
 
-    public function login(Request $request)
+    /**
+     * Redirect to Google for authentication.
+     */
+    public function redirectToGoogle()
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        return \Laravel\Socialite\Facades\Socialite::driver('google')->redirect();
+    }
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            /** @var User $user */
-            $user = Auth::user();
+    /**
+     * Handle the callback from Google.
+     */
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = \Laravel\Socialite\Facades\Socialite::driver('google')->user();
+            
+            $user = User::where('google_id', $googleUser->id)
+                        ->orWhere('email', $googleUser->email)
+                        ->first();
 
-            // Check if phone is verified
-            if (!$user->phone_verified_at && !$user->hasRole('super-admin')) {
-                // Generate and send new OTP
-                $otpCode = rand(100000, 999999);
-                Otp::updateOrCreate(
-                    ['phone' => $user->phone, 'type' => 'register'],
-                    [
-                        'code' => $otpCode,
-                        'expires_at' => Carbon::now()->addMinutes(10),
-                    ]
-                );
-
-                $message = "Halo {$user->name}, silakan verifikasi nomor Anda. Kode OTP Anda adalah: *{$otpCode}*.";
-                $this->whatsapp->sendMessage($user->phone, $message);
-
-                return redirect()->route('verify.otp', ['type' => 'register']);
-            }
-
-            if ($request->expectsJson()) {
-                $token = $this->jwt->generateToken([
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'role' => $user->role ? $user->role->slug : 'member'
+            if ($user) {
+                // Update existing user with Google ID and Token
+                $user->update([
+                    'google_id' => $googleUser->id,
+                    'google_token' => $googleUser->token,
+                    'avatar' => $googleUser->avatar,
                 ]);
-
-                return response()->json([
-                    'message' => 'Login successful',
-                    'token' => $token,
-                    'user' => $user
+            } else {
+                // Create new user
+                $user = User::create([
+                    'name' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'google_id' => $googleUser->id,
+                    'google_token' => $googleUser->token,
+                    'avatar' => $googleUser->avatar,
+                    'role_id' => Role::where('slug', 'member')->first()->id ?? 2,
+                    'status' => 'active',
+                    'balance' => 0,
                 ]);
             }
 
+            Auth::login($user, true);
             $request->session()->regenerate();
 
-            if ($user->hasPermission('akses-dashboard')) {
-                return redirect()->route('admin.dashboard');
-            }
+            return $this->redirectUser($user);
 
-            return redirect()->intended('/');
+        } catch (\Exception $e) {
+            \Log::error('Google Auth Error: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Gagal login menggunakan Google. Silakan coba lagi.');
         }
-
-        if ($request->expectsJson()) {
-            return response()->json(['message' => __('auth.failed')], 401);
-        }
-
-        throw ValidationException::withMessages([
-            'email' => __('auth.failed'),
-        ]);
     }
 
-    public function showRegister()
+    /**
+     * Helper to redirect user based on profile completion.
+     */
+    protected function redirectUser($user)
     {
-        return view('desktop.neonflux.auth.register');
-    }
-
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'phone' => ['required', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
-
-        // Check if user exists by email or phone
-        $existingUser = User::where('email', $request->email)
-            ->orWhere('phone', $request->phone)
-            ->first();
-
-        if ($existingUser) {
-            // If already verified, throw validation error
-            if ($existingUser->phone_verified_at) {
-                $field = $existingUser->email === $request->email ? 'email' : 'phone';
-                throw ValidationException::withMessages([
-                    $field => ["Data ini sudah terdaftar dan terverifikasi."],
-                ]);
-            }
-
-            // If not verified, update their info and proceed to re-verify
-            $existingUser->update([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
-            ]);
-            $user = $existingUser;
-        } else {
-            // Create new user
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
-                'role_id' => Role::where('slug', 'member')->first()->id ?? 2,
-                'status' => 'active',
-                'balance' => 0,
-            ]);
+        // If phone is missing, redirect to profile completion
+        if (empty($user->phone)) {
+            return redirect()->route('profile.complete');
         }
 
-        // Generate and send OTP
-        $otpCode = rand(100000, 999999);
-        Otp::updateOrCreate(
-            ['phone' => $user->phone, 'type' => 'register'],
-            [
-                'code' => $otpCode,
-                'expires_at' => Carbon::now()->addMinutes(10),
-            ]
-        );
-
-        $message = "Halo {$user->name}, kode verifikasi pendaftaran Anda adalah: *{$otpCode}*. Kode ini berlaku selama 10 menit. Jangan berikan kode ini kepada siapa pun.";
-        $this->whatsapp->sendMessage($user->phone, $message);
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Registration successful. Please verify OTP.',
-                'phone' => $user->phone
-            ]);
+        if ($user->hasPermission('akses-dashboard')) {
+            return redirect()->route('admin.dashboard');
         }
 
-        Auth::login($user);
-
-        return redirect()->route('verify.otp', ['type' => 'register']);
+        return redirect()->intended('/');
     }
 
     public function logout(Request $request)

@@ -91,4 +91,10 @@ return [
         'retry_sleep_ms' => max(0, min(5000, (int) env('IPAYMU_RETRY_SLEEP_MS', 800))),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URL'),
+    ],
+
 ];

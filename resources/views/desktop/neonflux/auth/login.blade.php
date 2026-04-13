@@ -44,30 +44,22 @@
             </div>
 
             <!-- Form -->
-            <form action="{{ url('login') }}" method="POST" class="space-y-5">
-                @csrf
-                <div>
-                    <label class="block text-zinc-300 text-sm font-bold mb-2.5" for="email">Email</label>
-                    <input class="w-full h-14 px-4 rounded-xl border @error('email') border-primary @else @enderror bg-zinc-900/50 text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none font-medium" id="email" name="email" placeholder="Enter your email" type="email" value="{{ old('email') }}" required />
-                    @error('email')
-                        <p class="text-primary text-xs mt-1">{{ $message }}</p>
-                    @enderror
+            <div class="space-y-6">
+                <a href="{{ route('auth.google') }}" class="flex items-center justify-center gap-4 w-full h-14 bg-white hover:bg-zinc-100 text-black font-extrabold text-lg rounded-xl shadow-xl shadow-white/10 transition-all active:scale-[0.98]">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="size-6" alt="Google Logo">
+                    Sign in with Google
+                </a>
+                
+                <div class="pt-4 border-t border-white/5 mt-4">
+                    <p class="text-zinc-500 text-xs text-center leading-relaxed">
+                        By signing in, you agree to our <a href="{{ route('syarat-ketentuan') }}" class="text-zinc-400 hover:underline">Terms of Service</a> and <a href="{{ route('kebijakan-privasi') }}" class="text-zinc-400 hover:underline">Privacy Policy</a>.
+                    </p>
                 </div>
-                <div>
-                    <div class="flex justify-between items-center mb-2.5">
-                        <label class="block text-zinc-300 text-sm font-bold" for="password">Password</label>
-                        <a class="text-primary text-sm font-bold hover:underline decoration-2 underline-offset-4" href="{{ route('password.request') }}">Forgot password?</a>
-                    </div>
-                    <input class="w-full h-14 px-4 rounded-xl border border-zinc-800 bg-zinc-900/50 text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none font-medium" id="password" name="password" placeholder="Enter your password" type="password" required />
-                </div>
-                <button class="w-full h-14 bg-primary hover:bg-primary/90 text-white font-extrabold text-lg rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" type="submit">
-                    Login
-                </button>
-            </form>
+            </div>
 
-            <p class="text-zinc-500 text-sm font-medium text-center mt-6">
-                Don't have an account? <a class="text-primary font-bold hover:underline decoration-2 underline-offset-4 ml-1" href="{{ url('register-ui') }}">Sign up</a>
-            </p>
+            <div class="mt-auto">
+                {{-- Spacer to maintain layout --}}
+            </div>
         </div>
 
         <!-- Right Side: Cinematic Artwork -->

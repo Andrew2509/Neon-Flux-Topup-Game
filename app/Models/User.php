@@ -27,6 +27,8 @@ class User extends Authenticatable
         'status',
         'avatar',
         'phone_verified_at',
+        'google_id',
+        'google_token',
     ];
 
     /**

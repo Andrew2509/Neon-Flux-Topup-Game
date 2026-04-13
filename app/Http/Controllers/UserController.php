@@ -202,4 +202,37 @@ class UserController extends Controller
 
         return view($view, compact('deposits'));
     }
+
+    public function showCompleteProfile()
+    {
+        $user = Auth::user();
+        
+        // If already has phone, redirect home
+        if (!empty($user->phone)) {
+            return redirect('/');
+        }
+
+        $view = $this->deviceType() . '.user.complete-profile';
+        if (!view()->exists($view)) {
+            $view = 'desktop.user.complete-profile';
+        }
+
+        return view($view, compact('user'));
+    }
+
+    public function storeCompleteProfile(Request $request)
+    {
+        $request->validate([
+            'phone' => ['required', 'string', 'min:10', 'max:15'],
+        ]);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->update([
+            'phone' => $request->phone,
+            'phone_verified_at' => now(), // Assume Google users are verified or verify later
+        ]);
+
+        return redirect('/')->with('success', 'Nomor WhatsApp berhasil disimpan.');
+    }
 }

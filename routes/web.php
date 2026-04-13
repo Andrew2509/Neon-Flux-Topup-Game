@@ -204,19 +204,17 @@ Route::group(['middleware' => []], function () {
         Route::delete('/role/{role}', [App\Http\Controllers\Admin\RoleController::class, 'destroy'])->name('role.destroy');
     });
 
-    // Authentication Routes
+    // Authentication Routes (Google Only)
     Route::get('/login', [App\Http\Controllers\AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [App\Http\Controllers\AuthController::class, 'login'])->middleware('throttle:auth');
-    Route::get('/register', [App\Http\Controllers\AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [App\Http\Controllers\AuthController::class, 'register'])->middleware('throttle:auth');
-    Route::get('/forgot-password', [App\Http\Controllers\AuthController::class, 'showForgotPassword'])->name('password.request');
-    Route::post('/forgot-password', [App\Http\Controllers\AuthController::class, 'sendResetLink'])->name('password.email')->middleware('throttle:otp');
-    Route::get('/verify-otp', [App\Http\Controllers\AuthController::class, 'showVerifyOtp'])->name('verify.otp');
-    Route::post('/verify-otp', [App\Http\Controllers\AuthController::class, 'verifyOtp'])->middleware('throttle:otp');
-    Route::post('/resend-otp', [App\Http\Controllers\AuthController::class, 'resendOtp'])->name('resend.otp')->middleware('throttle:otp');
-    Route::get('/reset-password-phone', [App\Http\Controllers\AuthController::class, 'showResetPasswordForm'])->name('password.reset.phone');
-    Route::post('/reset-password-phone', [App\Http\Controllers\AuthController::class, 'resetPassword']);
+    Route::get('/auth/google', [App\Http\Controllers\AuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
     Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
+
+    // Profile Completion (WhatsApp)
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/profile/complete', [App\Http\Controllers\UserController::class, 'showCompleteProfile'])->name('profile.complete');
+        Route::post('/profile/complete', [App\Http\Controllers\UserController::class, 'storeCompleteProfile'])->name('profile.complete.store');
+    });
 
     // User Routes
     Route::middleware(['auth'])->group(function () {
@@ -232,7 +230,7 @@ Route::group(['middleware' => []], function () {
 
     // UI Dev Routes (Aliases for backward compatibility if needed)
     Route::get('/login-ui', fn () => redirect()->route('login'));
-    Route::get('/register-ui', fn () => redirect()->route('register'));
+    Route::get('/register-ui', fn () => redirect()->route('login'));
 
     // Smart Search API
     Route::get('/api/v1/search', [\App\Http\Controllers\Api\SearchController::class, 'search'])->name('api.search');
