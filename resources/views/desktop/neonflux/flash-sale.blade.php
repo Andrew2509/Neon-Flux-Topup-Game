@@ -52,7 +52,7 @@
 
                         <!-- Content Area -->
                         <div class="flex-1">
-                            <h3 class="text-xs md:text-sm font-black text-white leading-tight line-clamp-2 min-h-[2.5rem] mb-2 group-hover:text-primary transition-colors italic tracking-tight">{{ $item->name }}</h3>
+                            <h3 class="text-xs md:text-sm font-black text-white leading-tight line-clamp-1 mb-1 group-hover:text-primary transition-colors italic tracking-tight">{{ $item->name }}</h3>
                             
                             <div class="flex flex-col gap-0.5">
                                 <span class="text-[9px] md:text-[10px] text-white/40 line-through decoration-secondary/60">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
@@ -63,7 +63,7 @@
                             </div>
                             
                             <!-- Stock Bar -->
-                            <div class="mt-4 pt-4 border-t border-white/5">
+                            <div class="mt-2 pt-2 border-t border-white/5">
                                 <div class="flex justify-between items-end mb-1.5">
                                     <span class="text-[8px] md:text-[9px] text-white/50 uppercase font-black tracking-widest">Stock Level</span>
                                     <span class="text-[8px] md:text-[9px] {{ $sale->stock <= 10 ? 'text-secondary' : 'text-primary' }} font-bold">
@@ -78,7 +78,7 @@
                         </div>
 
                         <!-- Buy Button -->
-                        <div class="mt-3 pt-3">
+                        <div class="mt-2 pt-2">
                             <div class="w-full bg-white/5 border border-white/10 py-2 rounded-lg text-center text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white group-hover:bg-primary group-hover:text-black transition-all shadow-[inset_0_0_10px_rgba(255,255,255,0.05)]">
                                 Ambil Promo
                             </div>
