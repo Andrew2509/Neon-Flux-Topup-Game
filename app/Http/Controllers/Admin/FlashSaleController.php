@@ -33,6 +33,7 @@ class FlashSaleController extends Controller
     {
         $services = Service::where('product_jenis_id', $jenis_id)
             ->where('status', 'Aktif')
+            ->select('id', 'name', 'price', 'cost')
             ->orderBy('price')
             ->get();
             

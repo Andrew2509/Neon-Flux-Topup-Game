@@ -185,12 +185,66 @@
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Harga Promo (Rp)</label>
-                    <input type="number" name="discount_price" required placeholder="Contoh: 15000" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Harga Promo (Rp)</label>
+                        <button type="button" onclick="toggleCalculator()" class="text-[10px] text-primary hover:text-white flex items-center gap-1 font-bold transition-colors">
+                            <span class="material-symbols-outlined text-sm">calculate</span>
+                            Kalkulator Profit
+                        </button>
+                    </div>
+                    <input type="number" name="discount_price" id="add_discount_price" required placeholder="Contoh: 15000" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stok (-1 = unlimit)</label>
                     <input type="number" name="stock" value="-1" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- Calculator Panel (Hidden initially) -->
+            <div id="profitCalculator" class="hidden glass-panel rounded-2xl border border-primary/20 bg-primary/5 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                <div class="p-4 border-b border-primary/10 flex justify-between items-center">
+                    <h4 class="text-xs font-bold text-primary uppercase tracking-widest">Kalkulator Untung/Rugi</h4>
+                    <button type="button" onclick="toggleCalculator()" class="text-slate-500 hover:text-white"><span class="material-symbols-outlined text-sm">close</span></button>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Harga Modal (Rp)</label>
+                            <input type="number" id="calc_cost" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Gateway (%)</label>
+                            <input type="number" id="calc_fee_percent" value="2.5" step="0.1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation()">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Target Margin (%)</label>
+                            <input type="number" id="calc_margin_target" value="5" step="1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation()">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Admin (Rp)</label>
+                            <input type="number" id="calc_fee_flat" value="0" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation()">
+                        </div>
+                    </div>
+                    
+                    <div id="calc_result" class="p-3 rounded-xl bg-black/20 space-y-2">
+                        <div class="flex justify-between text-[10px] font-bold">
+                            <span class="text-slate-400">STATUS:</span>
+                            <span id="status_label" class="text-slate-500">BELUM ADA DATA</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-[9px] text-slate-500 font-bold uppercase">Estimasi Bersih</p>
+                                <p id="profit_value" class="text-lg font-bold text-white">Rp 0</p>
+                            </div>
+                            <button type="button" onclick="toggleCalculator()" class="px-3 py-1.5 bg-primary text-[10px] font-bold rounded-lg text-white hover:brightness-110">Tutup Kalkulator</button>
+                        </div>
+                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div id="profit_bar" class="h-full bg-slate-500 w-0 transition-all duration-500"></div>
+                        </div>
+                        <p id="rec_label" class="text-[9px] text-slate-400"></p>
+                    </div>
                 </div>
             </div>
 
@@ -248,12 +302,66 @@
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Harga Promo (Rp)</label>
-                    <input type="number" name="discount_price" id="edit_discount_price" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Harga Promo (Rp)</label>
+                        <button type="button" onclick="toggleCalculator('edit')" class="text-[10px] text-secondary hover:text-white flex items-center gap-1 font-bold transition-colors">
+                            <span class="material-symbols-outlined text-sm">calculate</span>
+                            Kalkulator Profit
+                        </button>
+                    </div>
+                    <input type="number" name="discount_price" id="edit_discount_price" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stok</label>
-                    <input type="number" name="stock" id="edit_stock" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <input type="number" name="stock" id="edit_stock" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-secondary outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- Calculator Panel Edit (Hidden initially) -->
+            <div id="profitCalculatorEdit" class="hidden glass-panel rounded-2xl border border-secondary/20 bg-secondary/5 overflow-hidden">
+                <div class="p-4 border-b border-secondary/10 flex justify-between items-center">
+                    <h4 class="text-xs font-bold text-secondary uppercase tracking-widest">Kalkulator Untung/Rugi</h4>
+                    <button type="button" onclick="toggleCalculator('edit')" class="text-slate-500 hover:text-white"><span class="material-symbols-outlined text-sm">close</span></button>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Harga Modal (Rp)</label>
+                            <input type="number" id="edit_calc_cost" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Gateway (%)</label>
+                            <input type="number" id="edit_calc_fee_percent" value="2.5" step="0.1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation('edit')">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Target Margin (%)</label>
+                            <input type="number" id="edit_calc_margin_target" value="5" step="1" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation('edit')">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-1">Fee Admin (Rp)</label>
+                            <input type="number" id="edit_calc_fee_flat" value="0" class="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white" oninput="runCalculation('edit')">
+                        </div>
+                    </div>
+                    
+                    <div id="edit_calc_result" class="p-3 rounded-xl bg-black/20 space-y-2">
+                        <div class="flex justify-between text-[10px] font-bold">
+                            <span class="text-slate-400">STATUS:</span>
+                            <span id="edit_status_label" class="text-slate-500">SIAP</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-[9px] text-slate-500 font-bold uppercase">Estimasi Bersih</p>
+                                <p id="edit_profit_value" class="text-lg font-bold text-white">Rp 0</p>
+                            </div>
+                            <button type="button" onclick="toggleCalculator('edit')" class="px-3 py-1.5 bg-secondary text-[10px] font-bold rounded-lg text-white hover:brightness-110">Tutup Kalkulator</button>
+                        </div>
+                        <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div id="edit_profit_bar" class="h-full bg-slate-500 w-0 transition-all duration-500"></div>
+                        </div>
+                        <p id="edit_rec_label" class="text-[9px] text-slate-400"></p>
+                    </div>
                 </div>
             </div>
 
@@ -286,6 +394,9 @@
 
 @push('scripts')
 <script>
+let serviceData = [];
+let currentSelectedService = null;
+
 function openModal(id) {
     document.getElementById(id).classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -306,12 +417,18 @@ function editFlashSale(sale) {
     document.getElementById('edit_stock').value = sale.stock;
     document.getElementById('edit_status').value = sale.status;
     
+    // Set cost for edit calculator
+    document.getElementById('edit_calc_cost').value = sale.service.cost;
+    
     // Format dates for datetime-local (YYYY-MM-DDTHH:MM)
     const startDate = new Date(sale.start_time);
     const endDate = new Date(sale.end_time);
     
     document.getElementById('edit_start_time').value = formatDateForInput(startDate);
     document.getElementById('edit_end_time').value = formatDateForInput(endDate);
+    
+    // Reset Edit Calculator View
+    document.getElementById('profitCalculatorEdit').classList.add('hidden');
     
     openModal('editFlashSaleModal');
 }
@@ -352,16 +469,19 @@ document.getElementById('add_category_id').addEventListener('change', function()
 });
 
 document.getElementById('add_operator_id').addEventListener('change', function() {
-    const operatorId = this.value;
+    const categoryId = this.value;
+    const operatorSelect = document.getElementById('add_operator_id');
     const serviceSelect = document.getElementById('add_service_id');
     
     serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
     serviceSelect.disabled = true;
+    serviceData = []; // Reset cache
     
-    if (operatorId) {
-        fetch(`/admin/flash-sales/services/${operatorId}`)
+    if (categoryId) {
+        fetch(`/admin/flash-sales/services/${this.value}`)
             .then(response => response.json())
             .then(data => {
+                serviceData = data;
                 data.forEach(s => {
                     const option = document.createElement('option');
                     option.value = s.id;
@@ -372,6 +492,84 @@ document.getElementById('add_operator_id').addEventListener('change', function()
             });
     }
 });
+
+document.getElementById('add_service_id').addEventListener('change', function() {
+    const serviceId = this.value;
+    currentSelectedService = serviceData.find(s => s.id == serviceId);
+    
+    if (currentSelectedService) {
+        document.getElementById('calc_cost').value = currentSelectedService.cost;
+        runCalculation('add');
+    }
+});
+
+document.getElementById('add_discount_price').addEventListener('input', () => runCalculation('add'));
+document.getElementById('edit_discount_price').addEventListener('input', () => runCalculation('edit'));
+
+function toggleCalculator(context = 'add') {
+    const id = context === 'add' ? 'profitCalculator' : 'profitCalculatorEdit';
+    const panel = document.getElementById(id);
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) runCalculation(context);
+}
+
+function runCalculation(context = 'add') {
+    const isEdit = context === 'edit';
+    const prefix = isEdit ? 'edit_' : '';
+    const calcPrefix = isEdit ? 'edit_calc_' : 'calc_';
+    
+    const promoPrice = parseFloat(document.getElementById(prefix + 'discount_price').value) || 0;
+    const cost = parseFloat(document.getElementById(calcPrefix + 'cost').value) || 0;
+    const feePercent = parseFloat(document.getElementById(calcPrefix + 'fee_percent').value) || 0;
+    const feeFlat = parseFloat(document.getElementById(calcPrefix + 'fee_flat').value) || 0;
+    const marginTargetPct = parseFloat(document.getElementById(calcPrefix + 'margin_target').value) || 0;
+    
+    const profitLabel = document.getElementById(isEdit ? 'edit_profit_value' : 'profit_value');
+    const statusLabel = document.getElementById(isEdit ? 'edit_status_label' : 'status_label');
+    const profitBar = document.getElementById(isEdit ? 'edit_profit_bar' : 'profit_bar');
+    const recLabel = document.getElementById(isEdit ? 'edit_rec_label' : 'rec_label');
+
+    if (!cost || !promoPrice) {
+        profitLabel.textContent = "Rp 0";
+        statusLabel.textContent = "BELUM ADA DATA";
+        statusLabel.className = "text-slate-500 font-bold";
+        profitBar.style.width = "0%";
+        return;
+    }
+    
+    const gatewayFee = promoPrice * (feePercent / 100);
+    const totalCost = cost + gatewayFee + feeFlat;
+    const profit = promoPrice - totalCost;
+    const marginPct = (profit / promoPrice) * 100;
+    
+    profitLabel.textContent = `Rp ${new Intl.NumberFormat('id-ID').format(Math.round(profit))}`;
+    
+    // Recommendations
+    const minSafePrice = Math.ceil((cost + feeFlat) / (1 - (feePercent / 100)));
+    const targetSafePctValue = (feePercent + marginTargetPct) / 100;
+    const targetSafePrice = targetSafePctValue < 1 ? Math.ceil((cost + feeFlat) / (1 - targetSafePctValue)) : 'N/A';
+    
+    if (profit <= 0) {
+        statusLabel.textContent = '❌ RUGI';
+        statusLabel.className = 'text-red-500 font-bold text-[10px]';
+        profitBar.className = isEdit ? 'h-full bg-red-500' : 'h-full bg-red-500 transition-all duration-500';
+        profitBar.style.width = '100%';
+        recLabel.textContent = `Harga minimum agar tidak rugi: Rp ${new Intl.NumberFormat('id-ID').format(minSafePrice)}`;
+    } else if (marginPct < marginTargetPct) {
+        statusLabel.textContent = '⚠️ MARGIN RENDAH';
+        statusLabel.className = 'text-yellow-500 font-bold text-[10px]';
+        profitBar.className = isEdit ? 'h-full bg-yellow-500' : 'h-full bg-yellow-500 transition-all duration-500';
+        profitBar.style.width = `${Math.min(100, (marginPct / marginTargetPct) * 100)}%`;
+        recLabel.textContent = `Saran harga untuk margin ${marginTargetPct}%: Rp ${targetSafePrice === 'N/A' ? 'N/A' : new Intl.NumberFormat('id-ID').format(targetSafePrice)}`;
+    } else {
+        statusLabel.textContent = '✅ UNTUNG';
+        statusLabel.className = 'text-green-500 font-bold text-[10px]';
+        profitBar.className = isEdit ? 'h-full bg-green-500' : 'h-full bg-green-500 transition-all duration-500';
+        profitBar.style.width = '100%';
+        recLabel.textContent = 'Harga promo sudah sesuai target margin.';
+    }
+}
+
 function filterSelect(input, selectId) {
     const filter = input.value.toLowerCase();
     const select = document.getElementById(selectId);
