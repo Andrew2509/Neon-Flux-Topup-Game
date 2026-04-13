@@ -87,12 +87,15 @@
 /* So we need to override pointer-events for those if we want them clickable */
 .is-locked .category-tab, 
 .is-locked .tab-btn, 
-.is-locked [role="tab"] {
+.is-locked .jenis-btn,
+.is-locked #jenis-scroll-container,
+.is-locked [role="tab"],
+.is-locked .group\/nav button {
     pointer-events: auto !important;
 }
 
 .glass-panel.is-locked, .glass-panel-mobile.is-locked {
-    filter: grayscale(0.2) brightness(0.9);
+    /* filter: grayscale(0.2) brightness(0.9); */ /* Dihapus agar tetap terang sesuai permintaan */
 }
 
 

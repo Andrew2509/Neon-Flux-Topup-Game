@@ -428,7 +428,8 @@ document.addEventListener('DOMContentLoaded', () => {
             nominalSection.classList.remove('opacity-50', 'is-locked');
             nominalSection.classList.add('transition-opacity', 'duration-500');
         } else {
-            nominalSection.classList.add('opacity-50', 'is-locked');
+            nominalSection.classList.remove('opacity-50');
+            nominalSection.classList.add('is-locked');
         }
     }
 
@@ -441,22 +442,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (whatsappDigitsOk() && userId.length >= 3 && hasNominal) {
             paymentSection.classList.remove('opacity-50', 'is-locked');
             paymentSection.classList.add('transition-opacity', 'duration-500');
-            // Remove pointer-events-none if we were using it,
-            // but we're handling clicks in JS for better feedback
         } else {
-            paymentSection.classList.add('opacity-50', 'is-locked');
+            paymentSection.classList.remove('opacity-50');
+            paymentSection.classList.add('is-locked');
         }
     }
 
     if (nominalSection) {
         nominalSection.addEventListener('click', (e) => {
             if (nominalSection.classList.contains('is-locked')) {
-                // Check if the click target or its parent is a category tab button
-                const isTabBtn = e.target.closest('.tab-btn') ||
-                                 e.target.closest('[role="tab"]') ||
-                                 e.target.closest('.category-tab'); // Common classes in the UI
+                // Check if the click target or its parent is a navigation element
+                const isNav = e.target.closest('.jenis-btn') || 
+                              e.target.closest('.group\/nav button') ||
+                              e.target.closest('#jenis-scroll-container') ||
+                              e.target.closest('.tab-btn') ||
+                              e.target.closest('[role="tab"]');
 
-                if (isTabBtn) return; // Allow interaction with tabs
+                if (isNav) return; // Allow scrolling and category switching
+
+                // Only show toast and block if clicking a product card or related selection trigger
+                const isProductClick = e.target.closest('.service-item') || 
+                                     e.target.closest('input[name="product_code"]') ||
+                                     e.target.closest('.radio-card');
+                
+                if (!isProductClick) return; // Allow other background clicks/scrolling
 
                 // Prevent all other child interactions if locked
                 e.preventDefault();
