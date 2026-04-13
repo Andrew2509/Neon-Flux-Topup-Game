@@ -14,12 +14,9 @@
 
     <script>
         (function() {
-            var theme = localStorage.getItem('theme');
-            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+            // Force Dark Mode for Tablet
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
         })();
     </script>
 
@@ -83,8 +80,6 @@
     @include('tablet.partials.bottom-nav')
 
     {{-- Scripts --}}
-    <link rel="stylesheet" href="{{ asset('css/neonflux/base.css') }}?v={{ time() }}" />
-    <script src="{{ asset('js/neonflux/theme-toggle.js') }}"></script>
     @stack('scripts')
 
     {{-- Session Alerts --}}

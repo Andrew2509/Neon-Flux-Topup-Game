@@ -14,12 +14,9 @@
 
     <script>
         (function() {
-            var theme = localStorage.getItem('theme');
-            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+            // Force Light Mode for Mobile
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
         })();
     </script>
 
@@ -76,8 +73,6 @@
     @include('hp.partials.bottom-nav')
 
     {{-- Scripts --}}
-    <link rel="stylesheet" href="{{ asset('css/neonflux/base.css') }}?v={{ time() }}" />
-    <script src="{{ asset('js/neonflux/theme-toggle.js') }}"></script>
     @stack('scripts')
 
     {{-- Session Alerts --}}

@@ -3,19 +3,18 @@
    Body background, glass panels, text glow, scrollbar, gradient borders
    ========================================================================== */
 
-/* --- Body Background Images --- */
-body {
-    background-color: var(--bg-color, #ffffff) !important;
-    background-image: url('/images/bg-vertical-minimal-pastel-cyber-glow-digital-background-3-1776100569132.png') !important;
-    background-size: 100% auto !important;
-    background-position: top center !important;
-    background-attachment: scroll !important;
-    background-repeat: repeat !important;
-}
-
-.dark body {
-    background-color: var(--bg-color, #050510) !important;
-    background-image: url('/images/bg-vertical-neon-cyber-galaxy-minimalist-vertical-background-8-1776100473834.png') !important;
+/* --- Body Background: Cyber Grid --- */
+body.neonflux {
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(255, 0, 153, 0.15), transparent 25%),
+        linear-gradient(var(--grid-color) 2px, transparent 2px),
+        linear-gradient(90deg, var(--grid-color) 2px, transparent 2px),
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
 }
 
 /* --- Glass Panel --- */

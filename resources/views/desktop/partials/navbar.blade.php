@@ -82,11 +82,6 @@
             <span class="material-icons-round text-2xl">search</span>
         </button>
 
-        {{-- Theme Toggle --}}
-        <button type="button" class="nf-theme-toggle flex items-center justify-center size-10 rounded-xl glass-panel border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white hover:text-primary transition-colors" aria-label="Toggle Theme">
-            <span class="material-icons-round text-xl">dark_mode</span>
-        </button>
-
         @auth
             <div class="relative group/user hidden sm:block">
                 <div class="flex items-center gap-2 glass-panel px-2 sm:px-3 py-1.5 rounded-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all">

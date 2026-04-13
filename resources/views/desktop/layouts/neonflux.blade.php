@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport" />
@@ -9,17 +9,6 @@
     @if($favicon = get_image_url('site_favicon'))
         <link rel="icon" type="image/x-icon" href="{{ $favicon }}">
     @endif
-
-    <script>
-        (function() {
-            var theme = localStorage.getItem('theme');
-            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        })();
-    </script>
 
     {{-- Google Fonts --}}
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -71,7 +60,7 @@
     </style>
 
     {{-- Custom CSS --}}
-    <link rel="stylesheet" href="{{ asset('css/neonflux/base.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" href="{{ asset('css/neonflux/base.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/neonflux/topup.css') }}" />
 
     @stack('styles')
@@ -97,7 +86,6 @@
 
 
     {{-- Custom JS --}}
-    <script src="{{ asset('js/neonflux/theme-toggle.js') }}"></script>
     <script src="{{ asset('js/neonflux/topup.js') }}"></script>
 
     @stack('scripts')
