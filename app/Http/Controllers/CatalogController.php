@@ -161,6 +161,24 @@ class CatalogController extends Controller
     }
 
 
+    public function flashSale()
+    {
+        $flashSaleItems = \App\Models\FlashSale::active()
+            ->with(['service', 'service.category'])
+            ->latest()
+            ->paginate(24);
+
+        $viewFolder = $this->deviceType();
+        $viewPath = "{$viewFolder}.neonflux.flash-sale";
+
+        // Fallback to desktop if specific folder view doesn't exist
+        if (! view()->exists($viewPath)) {
+            $viewPath = 'desktop.neonflux.flash-sale';
+        }
+
+        return view($viewPath, compact('flashSaleItems'));
+    }
+
     public function showTopup($slug)
     {
         $category = Category::where('slug', $slug)

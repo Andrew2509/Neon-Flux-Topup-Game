@@ -27,13 +27,22 @@
             </div>
         </div>
         
-        <!-- Live Status Badge -->
-        <div class="flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full border border-green-500/30 text-xs font-black uppercase tracking-widest relative z-10">
-            <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            Live Now
+        <!-- Status & View All Wrapper -->
+        <div class="flex flex-wrap items-center justify-center md:justify-end gap-3 relative z-10">
+            <!-- Live Status Badge -->
+            <div class="flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full border border-green-500/30 text-xs font-black uppercase tracking-widest">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                Live Now
+            </div>
+
+            <!-- View All Button -->
+            <a href="{{ route('flash-sale') }}" class="group flex items-center gap-2 bg-white/10 hover:bg-primary transition-all duration-300 px-4 py-1.5 rounded-full border border-white/20 text-[10px] md:text-xs font-black uppercase tracking-widest text-white hover:text-slate-900 shadow-lg">
+                Lihat Semua 
+                <span class="material-icons-round text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </a>
         </div>
     </div>
 
