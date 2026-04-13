@@ -132,12 +132,26 @@
         <form action="{{ route('admin.flash-sales.store') }}" method="POST" class="p-6 space-y-4">
             @csrf
             <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pilih Produk (Layanan)</label>
-                <select name="service_id" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
-                    <option value="">-- Cari Layanan --</option>
-                    @foreach($services as $s)
-                        <option value="{{ $s->id }}">{{ $s->category->name ?? 'Game' }} - {{ $s->name }} (Rp {{ number_format($s->price) }})</option>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Kategori</label>
+                <select id="add_category_id" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                    <option value="">-- Pilih Kategori --</option>
+                    @foreach($categories as $c)
+                        <option value="{{ $c->id }}">{{ $c->name }}</option>
                     @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Operator</label>
+                <select id="add_operator_id" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all" disabled>
+                    <option value="">-- Pilih Operator --</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Layanan</label>
+                <select name="service_id" id="add_service_id" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all" disabled>
+                    <option value="">-- Pilih Layanan --</option>
                 </select>
             </div>
             
@@ -282,6 +296,54 @@ function formatDateForInput(date) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
+
+// Dependent Dropdowns for Add Modal
+document.getElementById('add_category_id').addEventListener('change', function() {
+    const categoryId = this.value;
+    const operatorSelect = document.getElementById('add_operator_id');
+    const serviceSelect = document.getElementById('add_service_id');
+    
+    operatorSelect.innerHTML = '<option value="">-- Pilih Operator --</option>';
+    operatorSelect.disabled = true;
+    serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+    serviceSelect.disabled = true;
+    
+    if (categoryId) {
+        fetch(`/admin/flash-sales/operators/${categoryId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(op => {
+                    const option = document.createElement('option');
+                    option.value = op.id;
+                    option.textContent = op.name;
+                    operatorSelect.appendChild(option);
+                });
+                operatorSelect.disabled = false;
+            });
+    }
+});
+
+document.getElementById('add_operator_id').addEventListener('change', function() {
+    const operatorId = this.value;
+    const serviceSelect = document.getElementById('add_service_id');
+    
+    serviceSelect.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+    serviceSelect.disabled = true;
+    
+    if (operatorId) {
+        fetch(`/admin/flash-sales/services/${operatorId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.id;
+                    option.textContent = `${s.name} (Rp ${new Intl.NumberFormat('id-ID').format(s.price)})`;
+                    serviceSelect.appendChild(option);
+                });
+                serviceSelect.disabled = false;
+            });
+    }
+});
 </script>
 @endpush
 @endsection

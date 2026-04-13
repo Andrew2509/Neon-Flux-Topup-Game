@@ -138,6 +138,10 @@ Route::group(['middleware' => []], function () {
         Route::put('/admin/flash-sales/{flashSale}', [App\Http\Controllers\Admin\FlashSaleController::class, 'update'])->name('admin.flash-sales.update');
         Route::delete('/admin/flash-sales/{flashSale}', [App\Http\Controllers\Admin\FlashSaleController::class, 'destroy'])->name('admin.flash-sales.destroy');
         Route::post('/admin/flash-sales/{id}/toggle', [App\Http\Controllers\Admin\FlashSaleController::class, 'toggleStatus'])->name('admin.flash-sales.toggle');
+
+        // Ajax for dependent dropdowns
+        Route::get('/admin/flash-sales/operators/{category_id}', [App\Http\Controllers\Admin\FlashSaleController::class, 'getOperators'])->name('admin.flash-sales.operators');
+        Route::get('/admin/flash-sales/services/{jenis_id}', [App\Http\Controllers\Admin\FlashSaleController::class, 'getServices'])->name('admin.flash-sales.services');
     });
     // Admin Withdrawals
     Route::middleware(['auth', 'permission:kelola-penarikan'])->group(function () {

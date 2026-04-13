@@ -14,8 +14,29 @@ class FlashSaleController extends Controller
         $flashSales = FlashSale::with('service.category')->latest()->get();
         // For product selection in modal/create
         $services = Service::where('status', 'Aktif')->with('category')->get();
+        $categories = \App\Models\Category::where('status', 'Aktif')->orderBy('name')->get();
         
-        return view('admin.flash-sale', compact('flashSales', 'services'));
+        return view('admin.flash-sale', compact('flashSales', 'services', 'categories'));
+    }
+
+    public function getOperators($category_id)
+    {
+        $operators = \App\Models\ProductJenis::where('category_id', $category_id)
+            ->where('status', 'Aktif')
+            ->orderBy('name')
+            ->get();
+            
+        return response()->json($operators);
+    }
+
+    public function getServices($jenis_id)
+    {
+        $services = Service::where('product_jenis_id', $jenis_id)
+            ->where('status', 'Aktif')
+            ->orderBy('price')
+            ->get();
+            
+        return response()->json($services);
     }
 
     public function store(Request $request)
