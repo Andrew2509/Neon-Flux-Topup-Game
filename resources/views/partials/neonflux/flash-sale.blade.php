@@ -1,9 +1,9 @@
 <!-- Flash Sale Section -->
 <div class="mb-10 w-full">
     <!-- Flash Sale Header Box -->
-    <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-r from-[#990000] via-[#cc0000] to-[#990000] p-4 flex items-center justify-between shadow-lg">
+    <div class="relative overflow-hidden rounded-t-2xl bg-red-600/20 backdrop-blur-xl p-4 flex items-center justify-between border-x border-t border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
         <!-- Shine Effect Background -->
-        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);"></div>
+        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);"></div>
         
         <div class="flex items-center gap-3 relative z-10">
             <!-- Lightning Bolt Icon (Using SVG/Icon) -->
