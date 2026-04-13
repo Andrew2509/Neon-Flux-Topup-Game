@@ -5,7 +5,7 @@
     {{-- Logo --}}
     <div class="flex items-center gap-2 min-w-0 flex-shrink">
         @if($logo = get_image_url('site_logo'))
-            <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-10 lg:h-16 w-auto flex-shrink-0">
+            <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-10 lg:h-16 w-auto flex-shrink-0 scale-[1.35] origin-left">
         @endif
     </div>
 

@@ -2,7 +2,7 @@
     class="fixed top-0 inset-x-0 z-[200] px-3 py-2.5 glass-panel-mobile border-b shadow-sm dark:shadow-none flex justify-between items-center bg-white/80 dark:bg-background-dark/80">
     <div class="flex items-center gap-2">
         @if($logo = get_image_url('site_logo'))
-            <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-12 w-auto">
+            <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-12 w-auto scale-[1.35] origin-left">
         @endif
     </div>
     <div class="flex items-center gap-1 flex-shrink-0">
