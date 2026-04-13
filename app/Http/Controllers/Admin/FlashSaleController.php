@@ -86,4 +86,55 @@ class FlashSaleController extends Controller
 
         return back()->with('success', 'Status Flash Sale berhasil diubah.');
     }
+
+    public function generateRandomProducts(Request $request)
+    {
+        $count = $request->get('count', 5);
+        $categoryId = $request->get('category_id');
+        
+        // Products already in active flash sales
+        $excludedServiceIds = FlashSale::active()->pluck('service_id');
+        
+        $query = Service::where('status', 'Aktif')
+            ->whereNotIn('id', $excludedServiceIds);
+            
+        if ($categoryId && $categoryId !== 'all') {
+            $query->where('category_id', $categoryId);
+        }
+        
+        $services = $query->inRandomOrder()
+            ->limit($count)
+            ->select('id', 'name', 'price', 'cost', 'category_id')
+            ->with(['category' => function($q) {
+                $q->select('id', 'name');
+            }])
+            ->get();
+            
+        return response()->json($services);
+    }
+
+    public function storeBulk(Request $request)
+    {
+        try {
+            $request->validate([
+                'items' => 'required|array',
+                'items.*.service_id' => 'required|exists:services,id',
+                'items.*.discount_price' => 'required|numeric|min:0',
+                'items.*.start_time' => 'required|date',
+                'items.*.end_time' => 'required|date',
+                'items.*.status' => 'required|in:Aktif,Nonaktif',
+                'items.*.stock' => 'required|integer'
+            ]);
+
+            \Illuminate\Support\Facades\DB::transaction(function() use ($request) {
+                foreach ($request->items as $item) {
+                    FlashSale::create($item);
+                }
+            });
+
+            return response()->json(['success' => true, 'message' => 'Batch Flash Sale berhasil disimpan.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal menyimpan: ' . $e->getMessage()], 422);
+        }
+    }
 }

@@ -31,10 +31,16 @@
             </div>
         </div>
         
-        <button onclick="openModal('addFlashSaleModal')" class="bg-primary hover:bg-primary-light text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
-            <span class="material-symbols-outlined">add</span>
-            Tambah Flash Sale
-        </button>
+        <div class="flex gap-2">
+            <button onclick="openModal('generateFlashSaleModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20">
+                <span class="material-symbols-outlined">rocket_launch</span>
+                Generate Otomatis
+            </button>
+            <button onclick="openModal('addFlashSaleModal')" class="bg-primary hover:bg-primary-light text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined">add</span>
+                Tambah Flash Sale
+            </button>
+        </div>
     </div>
 
     <!-- Table -->
@@ -415,10 +421,312 @@
     </div>
 </div>
 
+<!-- Modal: Generate Flash Sale Otomatis -->
+<div id="generateFlashSaleModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="glass-panel w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+        <!-- Header -->
+        <div class="p-6 border-b border-white/5 flex justify-between items-center bg-indigo-600/20">
+            <div class="flex items-center gap-3">
+                <div class="size-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <span class="material-symbols-outlined">rocket_launch</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white uppercase tracking-wider">Generate Flash Sale Otomatis</h3>
+                    <p class="text-[10px] text-indigo-300 font-medium font-mono">Auto-pilot mode for bulk promotions</p>
+                </div>
+            </div>
+            <button onclick="closeModal('generateFlashSaleModal')" class="size-8 rounded-full flex items-center justify-center hover:bg-white/10 text-slate-500 hover:text-white transition-all">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <!-- Config Form -->
+            <div class="p-8 space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 p-6 rounded-2xl bg-white/5 border border-white/5">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Jumlah Produk</label>
+                        <input type="number" id="gen_count" value="10" min="1" max="50" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Filter Kategori</label>
+                        <select id="gen_category" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm">
+                            <option value="all">Semua Kategori</option>
+                            @foreach($categories as $c)
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Target Margin (%)</label>
+                        <input type="number" id="gen_margin" value="5" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="generateBatch()" id="btnGenerate" class="w-full h-[41px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
+                            <span class="material-symbols-outlined text-sm">cached</span>
+                            Generate Sekarang
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Global Config (Timing & Fees) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Waktu Mulai</label>
+                        <input type="datetime-local" id="gen_start" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Waktu Berakhir</label>
+                        <input type="datetime-local" id="gen_end" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Fee API/Admin (Rp)</label>
+                        <input type="number" id="gen_fee_flat" value="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm" oninput="recalcBatch()">
+                    </div>
+                </div>
+
+                <!-- Preview Table Area -->
+                <div id="gen_preview_container" class="hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                            <span class="size-2 rounded-full bg-indigo-500 animate-ping"></span>
+                            Pratinjau Batch Flash Sale
+                        </h4>
+                        <div class="flex items-center gap-2">
+                            <label class="text-[10px] text-slate-500 font-bold uppercase cursor-pointer flex items-center gap-1.5">
+                                <input type="checkbox" id="gen_prevent_loss" checked class="rounded bg-white/5 border-white/10 text-indigo-600 focus:ring-0">
+                                Blokir Jika Rugi
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel overflow-hidden border border-white/5 rounded-2xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-white/5 text-[9px] uppercase tracking-wider text-slate-500 font-bold">
+                                    <tr>
+                                        <th class="px-4 py-3">Produk</th>
+                                        <th class="px-4 py-3 text-right">Modal</th>
+                                        <th class="px-4 py-3 text-right">Harga Normal</th>
+                                        <th class="px-4 py-3 text-right w-40">Harga Promo</th>
+                                        <th class="px-4 py-3 text-center">Status</th>
+                                        <th class="px-4 py-3 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batch_preview_body" class="divide-y divide-white/5">
+                                    <!-- Dynamic Content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-6 border-t border-white/5 bg-white/5 flex gap-3">
+            <button type="button" onclick="closeModal('generateFlashSaleModal')" class="flex-1 px-6 py-3 border border-white/10 rounded-xl text-slate-400 font-bold hover:bg-white/5 transition-all text-sm">Batal</button>
+            <button type="button" onclick="saveBatch()" id="btnSaveBatch" disabled class="flex-[2] px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:brightness-110 shadow-lg shadow-indigo-600/20 transition-all text-sm uppercase tracking-widest flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">save</span>
+                Simpan Batch Promo
+            </button>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 let serviceData = [];
 let currentSelectedService = null;
+let generatedBatchData = [];
+
+// --- Batch Generator Logic ---
+async function generateBatch() {
+    const btn = document.getElementById('btnGenerate');
+    const count = document.getElementById('gen_count').value;
+    const category = document.getElementById('gen_category').value;
+    const btnSave = document.getElementById('btnSaveBatch');
+    
+    if (!count || count < 1) return alert('Jumlah produk minimal 1');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">cached</span> Generating...';
+    
+    try {
+        const response = await fetch(`/admin/flash-sales/random-products?count=${count}&category_id=${category}`);
+        const data = await response.json();
+        
+        if (data.length === 0) {
+            alert('Tidak ada produk tersedia untuk kriteria ini.');
+            return;
+        }
+        
+        generatedBatchData = data;
+        renderBatchTable();
+        document.getElementById('gen_preview_container').classList.remove('hidden');
+        btnSave.disabled = false;
+        
+    } catch (error) {
+        alert('Gagal mengambil data produk: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm">cached</span> Generate Sekarang';
+    }
+}
+
+function renderBatchTable() {
+    const body = document.getElementById('batch_preview_body');
+    const margin = parseFloat(document.getElementById('gen_margin').value) || 0;
+    const feeFlat = parseFloat(document.getElementById('gen_fee_flat').value) || 0;
+    const feePct = 2.5; // Default iPaymu
+    
+    body.innerHTML = '';
+    
+    generatedBatchData.forEach((item, index) => {
+        // Calculate recommended price: Promo = (Cost + FlatFee) / (1 - (FeePct + Margin)/100)
+        const targetPctValue = (feePct + margin) / 100;
+        let promoPrice = Math.ceil((item.cost + feeFlat) / (1 - targetPctValue));
+        
+        // Ensure it doesn't exceed normal price (keep min 5% discount if possible)
+        if (promoPrice >= item.price) {
+            promoPrice = Math.floor(item.price * 0.95);
+        }
+        
+        item.calculated_promo = promoPrice;
+
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-white/5 transition-colors group border-b border-white/5';
+        row.innerHTML = `
+            <td class="px-4 py-4">
+                <div class="text-sm font-bold text-slate-200">${item.name}</div>
+                <div class="text-[9px] text-slate-500 font-mono uppercase">${item.category.name}</div>
+            </td>
+            <td class="px-4 py-4 text-right text-xs text-slate-400 font-mono">
+                Rp ${new Intl.NumberFormat('id-ID').format(item.cost)}
+            </td>
+            <td class="px-4 py-4 text-right text-xs text-slate-400 font-mono">
+                Rp ${new Intl.NumberFormat('id-ID').format(item.price)}
+            </td>
+            <td class="px-4 py-4 text-right">
+                <input type="number" value="${promoPrice}" 
+                    class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-indigo-400 font-bold focus:ring-1 focus:ring-indigo-500 outline-none"
+                    oninput="updateBatchRow(${index}, this.value)">
+            </td>
+            <td class="px-4 py-4 text-center" id="batch_status_${index}">
+                ${getBatchStatusHtml(item, promoPrice)}
+            </td>
+            <td class="px-4 py-4 text-center">
+                <button onclick="removeBatchRow(${index})" class="text-red-500/50 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+            </td>
+        `;
+        body.appendChild(row);
+    });
+    
+    validateBatchSave();
+}
+
+function getBatchStatusHtml(item, promoPrice) {
+    const feePct = 2.5;
+    const feeFlat = parseFloat(document.getElementById('gen_fee_flat').value) || 0;
+    const totalCost = item.cost + (promoPrice * (feePct / 100)) + feeFlat;
+    const profit = promoPrice - totalCost;
+    
+    if (profit <= 0) {
+        return '<span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-500 text-[9px] font-bold border border-red-500/20">❌ RUGI</span>';
+    }
+    return '<span class="px-2 py-0.5 rounded-md bg-green-500/10 text-green-500 text-[9px] font-bold border border-green-500/20">✅ UNTUNG</span>';
+}
+
+function updateBatchRow(index, value) {
+    const price = parseFloat(value) || 0;
+    generatedBatchData[index].calculated_promo = price;
+    document.getElementById(`batch_status_${index}`).innerHTML = getBatchStatusHtml(generatedBatchData[index], price);
+    validateBatchSave();
+}
+
+function removeBatchRow(index) {
+    generatedBatchData.splice(index, 1);
+    renderBatchTable();
+}
+
+function recalcBatch() {
+    renderBatchTable();
+}
+
+function validateBatchSave() {
+    const btn = document.getElementById('btnSaveBatch');
+    const preventLoss = document.getElementById('gen_prevent_loss').checked;
+    
+    if (generatedBatchData.length === 0) {
+        btn.disabled = true;
+        return;
+    }
+    
+    if (preventLoss) {
+        const hasLoss = generatedBatchData.some(item => {
+            const feePct = 2.5;
+            const feeFlat = parseFloat(document.getElementById('gen_fee_flat').value) || 0;
+            const totalCost = item.cost + (item.calculated_promo * (feePct / 100)) + feeFlat;
+            return (item.calculated_promo - totalCost) <= 0;
+        });
+        btn.disabled = hasLoss;
+    } else {
+        btn.disabled = false;
+    }
+}
+
+async function saveBatch() {
+    const btn = document.getElementById('btnSaveBatch');
+    const startTime = document.getElementById('gen_start').value;
+    const endTime = document.getElementById('gen_end').value;
+    
+    if (!startTime || !endTime) {
+        alert('Harap isi waktu mulai dan berakhir untuk batch ini!');
+        return;
+    }
+    
+    if (!confirm(`Simpan ${generatedBatchData.length} promo Flash Sale sekaligus?`)) return;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">cached</span> Menyimpan...';
+    
+    const items = generatedBatchData.map(item => ({
+        service_id: item.id,
+        discount_price: item.calculated_promo,
+        start_time: startTime,
+        end_time: endTime,
+        status: 'Aktif',
+        stock: 100 // Default stock for bulk
+    }));
+    
+    try {
+        const response = await fetch('/admin/flash-sales/bulk-store', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ items })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert('Gagal menyimpan batch: ' + result.message);
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan saat menyimpan: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined">save</span> Simpan Batch Promo';
+    }
+}
+
+// --- End Batch Generator Logic ---
 
 function openModal(id) {
     document.getElementById(id).classList.remove('hidden');
