@@ -20,7 +20,7 @@
     <!-- Header: MLBB Logo & Title -->
     <div class="flex flex-col md:flex-row items-center md:items-end gap-6 mb-10 pl-2">
         <div class="relative w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-neon-cyan border-2 border-primary/50 group bg-black/20">
-            <img src="{{ get_image_url('site_logo') ?: $category->icon }}" alt="Logo" class="w-full h-full object-contain p-4 transform group-hover:scale-110 transition-transform duration-500">
+            <img src="{{ $category->icon ?: get_image_url('site_logo') }}" alt="{{ $category->name }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">
         </div>
         <div class="flex-1 text-center md:text-left transition-colors">
             <h1 class="text-4xl md:text-5xl font-display font-bold text-slate-950 dark:text-white mb-2 dark:text-glow">{{ $category->name }}</h1>
