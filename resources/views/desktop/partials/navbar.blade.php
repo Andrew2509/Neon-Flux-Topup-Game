@@ -1,11 +1,11 @@
 {{-- ============================================================
     NAVBAR — Fixed top; menu penuh di md+; drawer + bottom bar di HP
     ============================================================ --}}
-<nav class="fixed top-0 w-full z-[2000] px-3 sm:px-6 py-3 md:py-4 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-[rgba(20,20,35,0.55)] backdrop-blur-xl supports-[backdrop-filter]:dark:bg-[rgba(20,20,35,0.45)]">
+<nav class="fixed top-0 w-full z-[2000] px-3 sm:px-6 py-2 md:py-3 glass-panel border-b border-black/5 dark:border-white/10 flex justify-between items-center gap-2 rounded-b-2xl max-w-7xl mx-auto left-0 right-0 mt-1 md:mt-2 shadow-sm dark:shadow-none bg-white/80 dark:bg-[rgba(20,20,35,0.55)] backdrop-blur-xl supports-[backdrop-filter]:dark:bg-[rgba(20,20,35,0.45)]">
     {{-- Logo --}}
     <div class="flex items-center gap-2 min-w-0 flex-shrink">
         @if($logo = get_image_url('site_logo'))
-            <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-28 w-auto sm:h-36 md:h-48 lg:h-56 flex-shrink-0">
+            <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-10 lg:h-16 w-auto flex-shrink-0">
         @endif
     </div>
 

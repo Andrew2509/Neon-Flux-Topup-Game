@@ -3,7 +3,7 @@
         {{-- Brand Section --}}
         <div class="flex flex-col items-center text-center space-y-4">
             @if($logo = get_image_url('site_logo'))
-                <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'Neon Flux') }}" class="h-24 w-auto">
+                <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'Neon Flux') }}" class="h-14 w-auto">
             @endif
             <p class="text-[11px] text-slate-500 leading-relaxed px-6">
                 {{ get_setting('meta_description', 'Platform top-up game tercepat dan terpercaya di Indonesia.') }}
