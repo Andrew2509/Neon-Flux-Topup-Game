@@ -25,7 +25,7 @@
     </div>
 
     <!-- Flash Sale Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+    <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 mb-12">
         @forelse($flashSaleItems as $sale)
             @php
                 $item = $sale->service;
@@ -33,44 +33,44 @@
                 $percent = $item->price > 0 ? floor(($diff / $item->price) * 100) : 0;
             @endphp
             <div class="group cursor-pointer" onclick="goToTopup('{{ $item->category->slug }}', '{{ $item->product_code }}')">
-                <div class="glass-card-premium rounded-2xl p-5 h-full relative overflow-hidden animate-shine border-white/10 hover:scale-[1.02] transition-all duration-300">
+                <div class="glass-card-premium rounded-xl p-2.5 md:p-3 h-full relative overflow-hidden animate-shine border-white/10 hover:scale-[1.02] transition-all duration-300">
                     
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-2.5">
                         <!-- Thumbnail Area -->
-                        <div class="relative w-full aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-lg mb-2">
+                        <div class="relative w-full aspect-square rounded-xl overflow-hidden border border-white/10 shadow-lg mb-1">
                             <img src="{{ $item->category->icon }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                             <!-- Discount Badge -->
-                            <div class="absolute top-0 right-0 bg-primary text-xs md:text-sm font-black text-slate-900 px-3 py-1.5 rounded-bl-2xl shadow-xl z-20">
+                            <div class="absolute top-0 right-0 bg-primary text-[10px] md:text-xs font-black text-slate-900 px-2 py-1 rounded-bl-xl shadow-xl z-20">
                                 -{{ $percent }}%
                             </div>
                             
                             <!-- Category Badge Float -->
-                            <div class="absolute bottom-2 left-2 bg-black/40 backdrop-blur-md text-[10px] font-bold text-white px-2 py-1 rounded-lg border border-white/10 z-20 uppercase tracking-tighter">
+                            <div class="absolute bottom-1.5 left-1.5 bg-black/40 backdrop-blur-md text-[8px] font-bold text-white px-1.5 py-0.5 rounded-md border border-white/10 z-20 uppercase tracking-tighter">
                                 {{ $item->category->name }}
                             </div>
                         </div>
 
                         <!-- Content Area -->
                         <div class="flex-1">
-                            <h3 class="text-base md:text-lg font-black text-white leading-tight line-clamp-2 min-h-[3rem] mb-3 group-hover:text-primary transition-colors italic tracking-tight">{{ $item->name }}</h3>
+                            <h3 class="text-xs md:text-sm font-black text-white leading-tight line-clamp-2 min-h-[2.5rem] mb-2 group-hover:text-primary transition-colors italic tracking-tight">{{ $item->name }}</h3>
                             
-                            <div class="flex flex-col gap-1">
-                                <span class="text-xs text-white/40 line-through decoration-secondary/60">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
-                                <div class="text-xl md:text-2xl font-black text-white flex items-center gap-2">
-                                    <span class="text-primary text-sm font-bold">Rp</span>
+                            <div class="flex flex-col gap-0.5">
+                                <span class="text-[9px] md:text-[10px] text-white/40 line-through decoration-secondary/60">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
+                                <div class="text-base md:text-lg font-black text-white flex items-center gap-1.5">
+                                    <span class="text-primary text-[10px] font-bold">Rp</span>
                                     <span class="text-glow">{{ number_format($sale->discount_price, 0, ',', '.') }}</span>
                                 </div>
                             </div>
                             
                             <!-- Stock Bar -->
-                            <div class="mt-5 pt-5 border-t border-white/5">
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="text-[10px] text-white/50 uppercase font-black tracking-widest">Stock Level</span>
-                                    <span class="text-[10px] {{ $sale->stock <= 10 ? 'text-secondary' : 'text-primary' }} font-black">
-                                        {{ $sale->stock == -1 ? 'Unlimited' : $sale->stock }} Remaining
+                            <div class="mt-4 pt-4 border-t border-white/5">
+                                <div class="flex justify-between items-end mb-1.5">
+                                    <span class="text-[8px] md:text-[9px] text-white/50 uppercase font-black tracking-widest">Stock Level</span>
+                                    <span class="text-[8px] md:text-[9px] {{ $sale->stock <= 10 ? 'text-secondary' : 'text-primary' }} font-bold">
+                                        {{ $sale->stock == -1 ? '∞' : $sale->stock }}
                                     </span>
                                 </div>
-                                <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                                <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                                     <div class="h-full bg-gradient-to-r {{ $sale->stock <= 10 ? 'from-secondary to-pink-500' : 'from-primary to-cyan-400' }} rounded-full" 
                                          style="width: {{ $sale->stock == -1 ? '100' : min(100, max(5, ($sale->stock / 100) * 100)) }}%"></div>
                                 </div>
@@ -78,9 +78,9 @@
                         </div>
 
                         <!-- Buy Button -->
-                        <div class="mt-4 pt-4">
-                            <div class="w-full bg-white/5 border border-white/10 py-3 rounded-xl text-center text-xs font-black uppercase tracking-widest text-white group-hover:bg-primary group-hover:text-black transition-all shadow-[inset_0_0_10px_rgba(255,255,255,0.05)]">
-                                Ambil Promo Sekarang
+                        <div class="mt-3 pt-3">
+                            <div class="w-full bg-white/5 border border-white/10 py-2 rounded-lg text-center text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white group-hover:bg-primary group-hover:text-black transition-all shadow-[inset_0_0_10px_rgba(255,255,255,0.05)]">
+                                Ambil Promo
                             </div>
                         </div>
                     </div>
