@@ -83,6 +83,7 @@
     @include('tablet.partials.bottom-nav')
 
     {{-- Scripts --}}
+    <link rel="stylesheet" href="{{ asset('css/neonflux/base.css') }}?v={{ time() }}" />
     <script src="{{ asset('js/neonflux/theme-toggle.js') }}"></script>
     @stack('scripts')
 

@@ -71,7 +71,7 @@
     </style>
 
     {{-- Custom CSS --}}
-    <link rel="stylesheet" href="{{ asset('css/neonflux/base.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/neonflux/base.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('css/neonflux/topup.css') }}" />
 
     @stack('styles')

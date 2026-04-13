@@ -5,17 +5,17 @@
 
 /* --- Body Background Images --- */
 body {
-    background-color: var(--bg-color, #ffffff);
-    background-image: url('/images/bg-vertical-minimal-pastel-cyber-glow-digital-background-3-1776100569132.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    background-color: var(--bg-color, #ffffff) !important;
+    background-image: url('/images/bg-vertical-minimal-pastel-cyber-glow-digital-background-3-1776100569132.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
 }
 
 .dark body {
-    background-color: var(--bg-color, #050510);
-    background-image: url('/images/bg-vertical-neon-cyber-galaxy-minimalist-vertical-background-8-1776100473834.png');
+    background-color: var(--bg-color, #050510) !important;
+    background-image: url('/images/bg-vertical-neon-cyber-galaxy-minimalist-vertical-background-8-1776100473834.png') !important;
 }
 
 /* --- Glass Panel --- */
