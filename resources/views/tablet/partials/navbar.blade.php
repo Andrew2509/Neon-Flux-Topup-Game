@@ -7,6 +7,11 @@
     <div class="flex items-center gap-3">
 
 
+        {{-- Theme Toggle --}}
+        <button type="button" class="nf-theme-toggle flex items-center justify-center size-10 rounded-full bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Toggle Theme">
+            <span class="material-icons-round text-xl">dark_mode</span>
+        </button>
+
         <a href="{{ route('kalkulator.index') }}" class="text-slate-600 dark:text-gray-400 ml-2">
             <span class="material-icons-round text-2xl">calculate</span>
         </a>

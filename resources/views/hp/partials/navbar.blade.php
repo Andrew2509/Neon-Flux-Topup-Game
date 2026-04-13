@@ -11,6 +11,11 @@
             <span class="material-icons-round text-2xl">search</span>
         </button>
 
+        {{-- Theme Toggle --}}
+        <button type="button" class="nf-theme-toggle relative z-[2100] flex items-center justify-center size-10 rounded-xl glass-panel-mobile border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white touch-manipulation shadow-sm" aria-label="Toggle Theme">
+            <span class="material-icons-round text-2xl">dark_mode</span>
+        </button>
+
         <button type="button" id="nf-drawer-open" class="relative z-[2100] flex items-center justify-center size-10 rounded-xl glass-panel-mobile border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white touch-manipulation shadow-sm" aria-label="Buka menu">
             <span class="material-icons-round text-2xl">menu</span>
         </button>
