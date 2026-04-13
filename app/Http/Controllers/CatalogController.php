@@ -153,9 +153,23 @@ class CatalogController extends Controller
             ->limit(40)
             ->get();
 
+        // [Flash Sale Section Data]
+        $flashSaleItems = \App\Models\Service::where('status', 'Aktif')
+            ->where('price', '>', 50000)
+            ->with('category')
+            ->inRandomOrder()
+            ->take(6)
+            ->get();
+
+        $flashSaleItems->each(function($item) {
+            $item->original_price = $item->price * 1.15;
+            $item->discount_percent = 15;
+            $item->sisa_stok = rand(100, 1000);
+        });
+
         $view = $this->deviceType().'.neonflux.topup';
 
-        return view($view, compact('popular', 'categories', 'totalCategories', 'activeGroups', 'sliders', 'testimonials'));
+        return view($view, compact('popular', 'categories', 'totalCategories', 'activeGroups', 'sliders', 'testimonials', 'flashSaleItems'));
     }
 
 
@@ -217,6 +231,7 @@ class CatalogController extends Controller
         // Fetch 6 random active services that are popular/flagged
         $flashSaleItems = \App\Models\Service::where('status', 'Aktif')
             ->where('price', '>', 50000) // Filter for mid-range items for better visual impact
+            ->with('category')
             ->inRandomOrder()
             ->take(6)
             ->get();

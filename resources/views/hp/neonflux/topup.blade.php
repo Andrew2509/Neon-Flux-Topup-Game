@@ -149,6 +149,8 @@
         </div>
     @endif
 
+    @include('partials.neonflux.flash-sale')
+
     <div id="category-tabs-container-mobile" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 -ms-3 px-3">
         @foreach($activeGroups as $key => $group)
         <button data-group="{{ $key }}" class="category-tab-mobile px-4 py-2.5 rounded-xl {{ $loop->first ? 'bg-primary text-black font-extrabold shadow-neon-cyan' : 'bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-slate-600 dark:text-white/70 font-bold' }} whitespace-nowrap text-[11px] flex items-center gap-1.5 transition-all">

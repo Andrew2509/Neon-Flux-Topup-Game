@@ -14,6 +14,8 @@
         {{-- Hero Banner --}}
         @include('desktop.neonflux.sections.hero')
 
+        @include('partials.neonflux.flash-sale')
+
         {{-- Popular Games --}}
         @include('desktop.neonflux.sections.popular-games')
 

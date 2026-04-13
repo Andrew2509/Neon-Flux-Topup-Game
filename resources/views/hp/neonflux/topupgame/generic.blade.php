@@ -31,7 +31,6 @@
 
     <form action="{{ route('checkout') }}" method="POST" id="topup-form" class="space-y-6">
         @csrf
-        @include('partials.neonflux.flash-sale')
         @include('partials.neonflux.topup-customer-whatsapp', ['compact' => true])
 
         {{-- Step 1: Account Info --}}

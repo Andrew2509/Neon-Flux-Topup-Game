@@ -32,7 +32,7 @@
     <div class="bg-black/10 dark:bg-black/40 border-x border-b border-white/5 rounded-b-2xl p-4 overflow-hidden">
         <div class="flex flex-nowrap gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent scroll-smooth">
             @foreach($flashSaleItems as $item)
-            <div class="flex-none w-[200px] md:w-[280px] group cursor-pointer" onclick="selectFromFlashSale('{{ $item->product_code }}')">
+            <div class="flex-none w-[200px] md:w-[280px] group cursor-pointer" onclick="selectFromFlashSale('{{ $item->product_code }}', '{{ $item->category->slug }}')">
                 <div class="glass-panel-light dark:bg-slate-900/80 rounded-2xl border border-white/10 p-3 h-full transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(0,240,255,0.15)] relative overflow-hidden">
                     
                     <div class="flex gap-3">
@@ -73,26 +73,18 @@
 </div>
 
 <script>
-    function selectFromFlashSale(productCode) {
-        // Find input with this code in the main nominall section
+    function selectFromFlashSale(productCode, categorySlug) {
+        // Find input with this code in the main nominal section
         const input = document.querySelector(`input[name="product_code"][value="${productCode}"]`);
+        
         if (input) {
             // Fill ID first check handled by the main Nominal listener
             // We just trigger click on the real input
             input.click();
             input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
-            // If not found in current category, maybe we need to search or switch?
-            // For now, most simple: redirect to that game or search
-            // But usually flash sale items on this page should be available here
-            Swal.fire({
-                icon: 'info',
-                title: 'Produk Dialihkan',
-                text: 'Membuka produk pilihan...',
-                showConfirmButton: false,
-                timer: 1500
-            });
-            // Example: location.href = '/topup/' + slug + '?product=' + productCode;
+            // Redirect to the game detail page with product code as auto-select hint
+            location.href = `/topup/${categorySlug}?select=${productCode}`;
         }
     }
 </script>
