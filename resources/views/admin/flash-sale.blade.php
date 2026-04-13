@@ -5,6 +5,17 @@
 @section('page_description', 'Atur promo waktu terbatas untuk menarik lebih banyak pembeli.')
 
 @section('content')
+<style>
+    /* Darken dropdown options for better visibility in dark theme */
+    select option {
+        background-color: #0f172a !important; /* bg-slate-900 */
+        color: white !important;
+    }
+    select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
 <div class="space-y-6">
     <!-- Action Bar -->
     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -12,6 +23,11 @@
             <div class="glass-panel px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">bolt</span>
                 <span class="text-sm font-bold text-slate-300">{{ $flashSales->count() }} Promo Terdaftar</span>
+            </div>
+            
+            <div class="relative flex-1 md:w-64">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                <input type="text" id="tableSearch" placeholder="Cari promo..." class="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all">
             </div>
         </div>
         
@@ -133,7 +149,11 @@
             @csrf
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Kategori</label>
-                <select id="add_category_id" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                <div class="relative mb-2">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                    <input type="text" placeholder="Cari kategori..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_category_id')">
+                </div>
+                <select id="add_category_id" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900">
                     <option value="">-- Pilih Kategori --</option>
                     @foreach($categories as $c)
                         <option value="{{ $c->id }}">{{ $c->name }}</option>
@@ -143,14 +163,22 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Operator</label>
-                <select id="add_operator_id" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all" disabled>
+                <div class="relative mb-2">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                    <input type="text" placeholder="Cari operator..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_operator_id')">
+                </div>
+                <select id="add_operator_id" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900" disabled>
                     <option value="">-- Pilih Operator --</option>
                 </select>
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Layanan</label>
-                <select name="service_id" id="add_service_id" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all" disabled>
+                <div class="relative mb-2">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                    <input type="text" placeholder="Cari layanan..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:ring-1 focus:ring-primary outline-none transition-all mb-1" onkeyup="filterSelect(this, 'add_service_id')">
+                </div>
+                <select name="service_id" id="add_service_id" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900" disabled>
                     <option value="">-- Pilih Layanan --</option>
                 </select>
             </div>
@@ -179,7 +207,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
-                <select name="status" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                <select name="status" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900">
                     <option value="Aktif">Aktif</option>
                     <option value="Nonaktif">Nonaktif</option>
                 </select>
@@ -242,7 +270,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
-                <select name="status" id="edit_status" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all">
+                <select name="status" id="edit_status" class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all [&>option]:bg-slate-900">
                     <option value="Aktif">Aktif</option>
                     <option value="Nonaktif">Nonaktif</option>
                 </select>
@@ -343,6 +371,41 @@ document.getElementById('add_operator_id').addEventListener('change', function()
                 serviceSelect.disabled = false;
             });
     }
+});
+function filterSelect(input, selectId) {
+    const filter = input.value.toLowerCase();
+    const select = document.getElementById(selectId);
+    const options = select.getElementsByTagName('option');
+    
+    for (let i = 0; i < options.length; i++) {
+        const text = options[i].textContent.toLowerCase();
+        // Always show the empty/placeholder option
+        if (options[i].value === "") {
+            options[i].style.display = "";
+            continue;
+        }
+        
+        if (text.indexOf(filter) > -1) {
+            options[i].style.display = "";
+        } else {
+            options[i].style.display = "none";
+        }
+    }
+}
+
+// Table Search Logic
+document.getElementById('tableSearch').addEventListener('keyup', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.indexOf(filter) > -1) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
 });
 </script>
 @endpush
