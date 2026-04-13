@@ -32,6 +32,14 @@
         </div>
         
         <div class="flex gap-2">
+            <button id="btnBulkDelete" onclick="bulkDelete()" class="hidden bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-500/20">
+                <span class="material-symbols-outlined">delete_sweep</span>
+                Hapus Terpilih (<span id="selectedCount">0</span>)
+            </button>
+            <button onclick="deleteAll()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all border border-white/5">
+                <span class="material-symbols-outlined">delete_forever</span>
+                Hapus Semua
+            </button>
             <button onclick="openModal('generateFlashSaleModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20">
                 <span class="material-symbols-outlined">rocket_launch</span>
                 Generate Otomatis
@@ -49,7 +57,10 @@
             <table class="w-full text-left">
                 <thead class="bg-white/5 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
                     <tr>
-                        <th class="px-6 py-4">Produk</th>
+                        <th class="px-6 py-4 w-10 text-center">
+                            <input type="checkbox" id="selectAll" class="rounded bg-white/5 border-white/10 text-primary focus:ring-0 cursor-pointer">
+                        </th>
+                        <th class="px-6 py-4 font-bold">Produk</th>
                         <th class="px-6 py-4 text-right">Harga Normal</th>
                         <th class="px-6 py-4 text-right">Harga Flash Sale</th>
                         <th class="px-6 py-4 text-center">Periode</th>
@@ -60,6 +71,9 @@
                 <tbody class="divide-y divide-white/5">
                     @forelse($flashSales as $sale)
                     <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="px-6 py-4 text-center">
+                            <input type="checkbox" class="row-checkbox rounded bg-white/5 border-white/10 text-primary focus:ring-0 cursor-pointer" value="{{ $sale->id }}" onchange="updateSelectedCount()">
+                        </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 @if($sale->service->category && $sale->service->category->thumbnail)
@@ -120,7 +134,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-16 text-center">
+                        <td colspan="7" class="px-6 py-16 text-center">
                             <div class="flex flex-col items-center justify-center text-slate-500 opacity-30">
                                 <span class="material-symbols-outlined text-6xl mb-2">bolt</span>
                                 <p class="text-xs uppercase tracking-widest font-bold">Belum ada Flash Sale</p>
@@ -458,13 +472,26 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 text-indigo-400 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[10px]">account_balance_wallet</span>
+                            Saldo Tokovoucher
+                        </label>
+                        <div class="h-[41px] flex items-center px-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-white font-bold text-sm">
+                            Rp {{ number_format($tokoBalance, 0, ',', '.') }}
+                        </div>
+                    </div>
+                    <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Target Margin (%)</label>
                         <input type="number" id="gen_margin" value="5" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm">
                     </div>
-                    <div class="flex items-end">
+                    <div class="flex flex-col justify-end gap-2">
+                        <label class="text-[10px] text-slate-500 font-bold uppercase cursor-pointer flex items-center gap-1.5 mb-1 px-1">
+                            <input type="checkbox" id="limit_by_balance" checked class="rounded bg-white/5 border-white/10 text-indigo-600 focus:ring-0">
+                            Sesuai Saldo
+                        </label>
                         <button type="button" onclick="generateBatch()" id="btnGenerate" class="w-full h-[41px] bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
                             <span class="material-symbols-outlined text-sm">cached</span>
-                            Generate Sekarang
+                            Generate
                         </button>
                     </div>
                 </div>
@@ -545,6 +572,7 @@ async function generateBatch() {
     const btn = document.getElementById('btnGenerate');
     const count = document.getElementById('gen_count').value;
     const category = document.getElementById('gen_category').value;
+    const limitByBalance = document.getElementById('limit_by_balance').checked;
     const btnSave = document.getElementById('btnSaveBatch');
     
     if (!count || count < 1) return alert('Jumlah produk minimal 1');
@@ -553,7 +581,7 @@ async function generateBatch() {
     btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">cached</span> Generating...';
     
     try {
-        const response = await fetch(`/admin/flash-sales/random-products?count=${count}&category_id=${category}`);
+        const response = await fetch(`/admin/flash-sales/random-products?count=${count}&category_id=${category}&limit_by_balance=${limitByBalance}`);
         const data = await response.json();
         
         if (data.length === 0) {
@@ -946,6 +974,88 @@ document.getElementById('tableSearch').addEventListener('keyup', function() {
         }
     });
 });
+// Bulk Delete Logic
+document.getElementById('selectAll')?.addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    updateSelectedCount();
+});
+
+function updateSelectedCount() {
+    const checked = document.querySelectorAll('.row-checkbox:checked').length;
+    const btn = document.getElementById('btnBulkDelete');
+    const countDisplay = document.getElementById('selectedCount');
+    
+    if (checked > 0) {
+        btn.classList.remove('hidden');
+        countDisplay.textContent = checked;
+    } else {
+        btn.classList.add('hidden');
+    }
+}
+
+async function bulkDelete() {
+    const checked = document.querySelectorAll('.row-checkbox:checked');
+    const ids = Array.from(checked).map(cb => cb.value);
+    
+    if (ids.length === 0) return;
+    
+    if (!confirm(`Hapus ${ids.length} Flash Sale terpilih?`)) return;
+    
+    const btn = document.getElementById('btnBulkDelete');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">cached</span> Menghapus...';
+    
+    try {
+        const response = await fetch('{{ route("admin.flash-sales.bulk-delete") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ ids: ids })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert('Gagal menghapus: ' + result.message);
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span class="material-symbols-outlined">delete_sweep</span> Hapus Terpilih (${ids.length})`;
+    }
+}
+
+async function deleteAll() {
+    if (!confirm('PERINGATAN: Hapus SELURUH data Flash Sale?')) return;
+    if (!confirm('KONFIRMASI TERAKHIR: Tindakan ini tidak dapat dibatalkan. Lanjutkan?')) return;
+    
+    try {
+        const response = await fetch('{{ route("admin.flash-sales.bulk-delete") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ all: true })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert('Gagal menghapus: ' + result.message);
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan: ' + error.message);
+    }
+}
 </script>
 @endpush
 @endsection

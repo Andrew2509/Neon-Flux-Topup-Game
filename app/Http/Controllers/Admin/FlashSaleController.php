@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\FlashSale;
 use App\Models\Service;
+use App\Services\TokovoucherService;
 use Illuminate\Http\Request;
 
 class FlashSaleController extends Controller
@@ -16,7 +17,11 @@ class FlashSaleController extends Controller
         $services = Service::where('status', 'Aktif')->with('category')->get();
         $categories = \App\Models\Category::where('status', 'Aktif')->orderBy('name')->get();
         
-        return view('admin.flash-sale', compact('flashSales', 'services', 'categories'));
+        // Fetch Tokovoucher balance for generator
+        $tokovoucherService = new TokovoucherService();
+        $tokoBalance = $tokovoucherService->checkBalance() ?? 0;
+        
+        return view('admin.flash-sale', compact('flashSales', 'services', 'categories', 'tokoBalance'));
     }
 
     public function getOperators($category_id)
@@ -101,6 +106,15 @@ class FlashSaleController extends Controller
         if ($categoryId && $categoryId !== 'all') {
             $query->where('category_id', $categoryId);
         }
+
+        // Limit by balance if requested
+        if ($request->boolean('limit_by_balance')) {
+            $tokovoucherService = new TokovoucherService();
+            $balance = $tokovoucherService->checkBalance();
+            if ($balance !== null) {
+                $query->where('cost', '<=', $balance);
+            }
+        }
         
         $services = $query->inRandomOrder()
             ->limit($count)
@@ -135,6 +149,27 @@ class FlashSaleController extends Controller
             return response()->json(['success' => true, 'message' => 'Batch Flash Sale berhasil disimpan.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Gagal menyimpan: ' . $e->getMessage()], 422);
+        }
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        try {
+            if ($request->has('all') && $request->all == true) {
+                FlashSale::truncate();
+                return response()->json(['success' => true, 'message' => 'Seluruh Flash Sale berhasil dihapus.']);
+            }
+
+            $ids = $request->ids;
+            if (!$ids || !is_array($ids)) {
+                return response()->json(['success' => false, 'message' => 'Pilih setidaknya satu item.'], 400);
+            }
+
+            FlashSale::whereIn('id', $ids)->delete();
+            return response()->json(['success' => true, 'message' => count($ids) . ' Flash Sale berhasil dihapus.']);
+            
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus: ' . $e->getMessage()], 422);
         }
     }
 }

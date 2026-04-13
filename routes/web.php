@@ -144,6 +144,7 @@ Route::group(['middleware' => []], function () {
         Route::get('/admin/flash-sales/services/{jenis_id}', [App\Http\Controllers\Admin\FlashSaleController::class, 'getServices'])->name('admin.flash-sales.services');
         Route::get('/admin/flash-sales/random-products', [App\Http\Controllers\Admin\FlashSaleController::class, 'generateRandomProducts'])->name('admin.flash-sales.random');
         Route::post('/admin/flash-sales/bulk-store', [App\Http\Controllers\Admin\FlashSaleController::class, 'storeBulk'])->name('admin.flash-sales.store-bulk');
+        Route::post('/admin/flash-sales/bulk-delete', [App\Http\Controllers\Admin\FlashSaleController::class, 'bulkDelete'])->name('admin.flash-sales.bulk-delete');
     });
     // Admin Withdrawals
     Route::middleware(['auth', 'permission:kelola-penarikan'])->group(function () {
