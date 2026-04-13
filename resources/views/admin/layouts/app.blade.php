@@ -194,6 +194,12 @@
                 <span class="text-sm font-medium hidden-on-collapse">Slider dan Banner</span>
             </a>
             @endcan
+            @can('kelola-flash-sale')
+            <a href="{{ route('admin.flash-sales') }}" class="{{ request()->routeIs('admin.flash-sales') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer centered-on-collapse" title="Flash Sale">
+                <span class="material-symbols-outlined shrink-0">bolt</span>
+                <span class="text-sm font-medium hidden-on-collapse">Flash Sale</span>
+            </a>
+            @endcan
             @can('kelola-pembayaran')
             <a href="{{ route('admin.payments') }}" class="{{ request()->routeIs('admin.payments') ? 'sidebar-active text-primary' : 'text-slate-600 dark:text-slate-400' }} flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all cursor-pointer centered-on-collapse" title="Pembayaran">
                 <span class="material-symbols-outlined shrink-0">payments</span>

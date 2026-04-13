@@ -31,7 +31,12 @@
     <!-- Flash Sale Items Container (Horizontal Scroll) -->
     <div class="bg-black/10 dark:bg-black/40 border-x border-b border-white/5 rounded-b-2xl p-4 overflow-hidden">
         <div class="flex flex-nowrap gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent scroll-smooth">
-            @foreach($flashSaleItems as $item)
+            @foreach($flashSaleItems as $sale)
+            @php
+                $item = $sale->service;
+                $diff = $item->price - $sale->discount_price;
+                $percent = $item->price > 0 ? floor(($diff / $item->price) * 100) : 0;
+            @endphp
             <div class="flex-none w-[200px] md:w-[280px] group cursor-pointer" onclick="selectFromFlashSale('{{ $item->product_code }}', '{{ $item->category->slug }}')">
                 <div class="glass-panel-light dark:bg-slate-900/80 rounded-2xl border border-white/10 p-3 h-full transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(0,240,255,0.15)] relative overflow-hidden">
                     
@@ -41,7 +46,7 @@
                             <img src="{{ $item->category->icon }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
                             <!-- Discount Badge -->
                             <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-red-600 to-red-500 text-[9px] md:text-[11px] font-black text-white text-center py-0.5 uppercase">
-                                {{ $item->discount_percent }}% OFF
+                                {{ $percent }}% OFF
                             </div>
                         </div>
 
@@ -51,13 +56,15 @@
                             <h3 class="text-xs md:text-sm font-bold text-slate-900 dark:text-white leading-tight line-clamp-2 h-8 md:h-10">{{ $item->name }}</h3>
                             
                             <div class="mt-2">
-                                <span class="text-[10px] md:text-xs text-slate-400 dark:text-gray-500 line-through">Rp {{ number_format($item->original_price, 0, ',', '.') }}</span>
-                                <div class="text-sm md:text-base font-black text-primary">Rp {{ number_format($item->price, 0, ',', '.') }}</div>
+                                <span class="text-[10px] md:text-xs text-slate-400 dark:text-gray-500 line-through">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
+                                <div class="text-sm md:text-base font-black text-primary">Rp {{ number_format($sale->discount_price, 0, ',', '.') }}</div>
                             </div>
                             
                             <div class="mt-2 flex items-center justify-between">
                                 <div class="text-[9px] md:text-[10px] text-slate-500 dark:text-gray-400">
-                                    Sisa Stok: <span class="text-orange-500 font-bold">{{ $item->sisa_stok }}</span>
+                                    Stok: <span class="{{ $sale->stock <= 10 ? 'text-red-500' : 'text-orange-500' }} font-bold">
+                                        {{ $sale->stock == -1 ? 'Tersedia' : $sale->stock }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -87,4 +94,32 @@
             location.href = `/topup/${categorySlug}?select=${productCode}`;
         }
     }
+
+    // Countdown Timer Logic
+    @if($flashSaleItems->count() > 0)
+    (function() {
+        const endTime = new Date("{{ $flashSaleItems->first()->end_time->toIso8601String() }}").getTime();
+        const timerElement = document.getElementById('flash-sale-timer');
+
+        const updateTimer = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+
+            if (distance < 0) {
+                clearInterval(updateTimer);
+                timerElement.innerHTML = "PROMO BERAKHIR";
+                return;
+            }
+
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerElement.innerHTML = 
+                (hours < 10 ? "0" + hours : hours) + ":" + 
+                (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+                (seconds < 10 ? "0" + seconds : seconds);
+        }, 1000);
+    })();
+    @endif
 </script>

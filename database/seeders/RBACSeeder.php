@@ -31,6 +31,7 @@ class RBACSeeder extends Seeder
             ['name' => 'Kelola Setting Website', 'slug' => 'kelola-setting'],
             ['name' => 'Manajemen User & Akses', 'slug' => 'manajemen-user-akses'],
             ['name' => 'View Visitor Tracking', 'slug' => 'view-visitors'],
+            ['name' => 'Kelola Flash Sale', 'slug' => 'kelola-flash-sale'],
         ];
 
         foreach ($permissions as $permission) {

@@ -22,6 +22,28 @@ class Service extends Model
     {
         return $this->belongsTo(ProductJenis::class, 'product_jenis_id');
     }
+
+    public function flashSales()
+    {
+        return $this->hasMany(FlashSale::class);
+    }
+
+    /**
+     * Get the active flash sale for this service, if any.
+     */
+    public function getActiveFlashSaleAttribute()
+    {
+        return $this->flashSales()->active()->first();
+    }
+
+    /**
+     * Get the effective price (flash sale price if active, else normal price).
+     */
+    public function getEffectivePriceAttribute()
+    {
+        $flash = $this->active_flash_sale;
+        return $flash ? (float) $flash->discount_price : (float) $this->price;
+    }
     
     /**
      * Calculate price based on cost and global settings.

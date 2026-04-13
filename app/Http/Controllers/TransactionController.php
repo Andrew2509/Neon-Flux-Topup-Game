@@ -80,7 +80,7 @@ class TransactionController extends Controller
         }
 
         $baseTotal = $this->checkoutTotalFromProductAndPaymentMethod(
-            (float) $service->price,
+            (float) $service->effective_price,
             $paymentMethod
         );
 
@@ -100,12 +100,12 @@ class TransactionController extends Controller
                     $q->where('quota', -1)
                       ->orWhere('quota', '>', 0);
                 })
-                ->where('min_purchase', '<=', (float) $service->price)
+                ->where('min_purchase', '<=', (float) $service->effective_price)
                 ->first();
 
             if ($appliedVoucher) {
                 if ($appliedVoucher->type === 'percentage') {
-                    $discountAmount = floor((float) $service->price * ($appliedVoucher->discount_amount / 100));
+                    $discountAmount = floor((float) $service->effective_price * ($appliedVoucher->discount_amount / 100));
                 } else {
                     $discountAmount = $appliedVoucher->discount_amount;
                 }

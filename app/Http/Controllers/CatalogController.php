@@ -154,18 +154,11 @@ class CatalogController extends Controller
             ->get();
 
         // [Flash Sale Section Data]
-        $flashSaleItems = \App\Models\Service::where('status', 'Aktif')
-            ->where('price', '>', 50000)
-            ->with('category')
-            ->inRandomOrder()
-            ->take(6)
+        $flashSaleItems = \App\Models\FlashSale::active()
+            ->with(['service', 'service.category'])
+            ->latest()
+            ->take(10)
             ->get();
-
-        $flashSaleItems->each(function($item) {
-            $item->original_price = $item->price * 1.15;
-            $item->discount_percent = 15;
-            $item->sisa_stok = rand(100, 1000);
-        });
 
         $view = $this->deviceType().'.neonflux.topup';
 
@@ -228,20 +221,11 @@ class CatalogController extends Controller
         }
 
         // [Flash Sale Section Data]
-        // Fetch 6 random active services that are popular/flagged
-        $flashSaleItems = \App\Models\Service::where('status', 'Aktif')
-            ->where('price', '>', 50000) // Filter for mid-range items for better visual impact
-            ->with('category')
-            ->inRandomOrder()
-            ->take(6)
+        $flashSaleItems = \App\Models\FlashSale::active()
+            ->with(['service', 'service.category'])
+            ->latest()
+            ->take(10)
             ->get();
-
-        // Simulate discount for UI demo
-        $flashSaleItems->each(function($item) {
-            $item->original_price = $item->price * 1.15; // 15% higher mock original price
-            $item->discount_percent = 15;
-            $item->sisa_stok = rand(100, 1000);
-        });
 
         return view($viewPath, compact('category', 'services', 'groupedPayments', 'activeJenis', 'flashSaleItems'));
     }

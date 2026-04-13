@@ -129,6 +129,16 @@ Route::group(['middleware' => []], function () {
         Route::put('/admin/sliders/{slider}', [App\Http\Controllers\Admin\SliderController::class, 'update'])->name('admin.sliders.update');
         Route::delete('/admin/sliders/{slider}', [App\Http\Controllers\Admin\SliderController::class, 'destroy'])->name('admin.sliders.destroy');
     });
+    // Admin Flash Sales
+    Route::middleware(['auth', 'permission:kelola-flash-sale'])->group(function () {
+        Route::get('/admin/flash-sales', [App\Http\Controllers\Admin\FlashSaleController::class, 'index'])->name('admin.flash-sales');
+        Route::get('/admin/flash-sales/create', [App\Http\Controllers\Admin\FlashSaleController::class, 'create'])->name('admin.flash-sales.create');
+        Route::post('/admin/flash-sales', [App\Http\Controllers\Admin\FlashSaleController::class, 'store'])->name('admin.flash-sales.store');
+        Route::get('/admin/flash-sales/{flashSale}/edit', [App\Http\Controllers\Admin\FlashSaleController::class, 'edit'])->name('admin.flash-sales.edit');
+        Route::put('/admin/flash-sales/{flashSale}', [App\Http\Controllers\Admin\FlashSaleController::class, 'update'])->name('admin.flash-sales.update');
+        Route::delete('/admin/flash-sales/{flashSale}', [App\Http\Controllers\Admin\FlashSaleController::class, 'destroy'])->name('admin.flash-sales.destroy');
+        Route::post('/admin/flash-sales/{id}/toggle', [App\Http\Controllers\Admin\FlashSaleController::class, 'toggleStatus'])->name('admin.flash-sales.toggle');
+    });
     // Admin Withdrawals
     Route::middleware(['auth', 'permission:kelola-penarikan'])->group(function () {
         Route::get('/admin/withdrawals/bank', [App\Http\Controllers\Admin\WithdrawalController::class, 'bankForm'])->name('admin.withdrawals.bank');
