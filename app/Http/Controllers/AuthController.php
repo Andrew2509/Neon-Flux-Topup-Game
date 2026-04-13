@@ -62,6 +62,10 @@ class AuthController extends Controller
                     'avatar' => $googleUser->avatar,
                 ]);
             } else {
+                // Mencari role member dengan aman
+                $memberRole = Role::where('slug', 'member')->first();
+                $roleId = $memberRole ? $memberRole->id : 2; // Fallback ke ID 2 jika tidak ada slug 'member'
+
                 // Create new user
                 $user = User::create([
                     'name' => $googleUser->name,
@@ -69,7 +73,7 @@ class AuthController extends Controller
                     'google_id' => $googleUser->id,
                     'google_token' => $googleUser->token,
                     'avatar' => $googleUser->avatar,
-                    'role_id' => Role::where('slug', 'member')->first()->id ?? 2,
+                    'role_id' => $roleId,
                     'status' => 'active',
                     'balance' => 0,
                 ]);
@@ -80,9 +84,14 @@ class AuthController extends Controller
 
             return $this->redirectUser($user);
 
-        } catch (\Exception $e) {
-            \Log::error('Google Auth Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Gagal login menggunakan Google. Silakan coba lagi.');
+        } catch (\Throwable $e) {
+            \Log::error('Google Auth Fatal Error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return redirect()->route('login')->with('error', 'Gagal login menggunakan Google. Pesan: ' . $e->getMessage());
         }
     }
 
