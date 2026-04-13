@@ -83,7 +83,7 @@
         </button>
 
         {{-- Theme Toggle --}}
-        <button type="button" class="nf-theme-toggle hidden md:flex items-center justify-center size-10 rounded-xl glass-panel border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white hover:text-primary dark:hover:text-primary transition-colors" aria-label="Toggle Theme">
+        <button type="button" class="nf-theme-toggle flex items-center justify-center size-10 rounded-xl glass-panel border border-black/10 dark:border-white/15 bg-white/60 dark:bg-[rgba(20,20,35,0.5)] backdrop-blur-md text-slate-900 dark:text-white hover:text-primary transition-colors" aria-label="Toggle Theme">
             <span class="material-icons-round text-xl">dark_mode</span>
         </button>
 

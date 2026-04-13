@@ -20,6 +20,13 @@
             <p class="text-xs font-black text-white/50 uppercase tracking-widest px-4 pt-5 pb-2">Lainnya</p>
             <a href="{{ route('faq') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 hover:bg-white/10 text-base font-medium">FAQ</a>
             <a href="{{ route('cara-order') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 hover:bg-white/10 text-base font-medium">Cara order</a>
+            <p class="text-xs font-black text-white/50 uppercase tracking-widest px-4 pt-5 pb-2">Pengaturan</p>
+            <button type="button" class="nf-theme-toggle flex items-center justify-between w-full px-4 py-3 rounded-xl text-white/90 hover:bg-white/10 text-base font-medium transition-colors" aria-label="Toggle Theme">
+                <span class="flex items-center gap-3">
+                    <span class="material-icons-round text-xl">dark_mode</span>
+                    <span>Mode Tampilan</span>
+                </span>
+            </button>
         </nav>
     </div>
 </div>
