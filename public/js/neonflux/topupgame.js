@@ -1039,8 +1039,6 @@ document.addEventListener('DOMContentLoaded', () => {
         voucherMessage.classList.remove('hidden');
     }
 
-    }
-
     // --- Flash Sale Timer ---
     const timerDisplay = document.getElementById('flash-sale-timer');
     if (timerDisplay) {
