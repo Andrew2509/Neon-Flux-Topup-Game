@@ -71,7 +71,7 @@ class CatalogController extends Controller
 
     public function index()
     {
-        $popular = Category::where('status', 'Aktif')
+        $categoriesQuery = Category::where('status', 'Aktif')
             ->where(function ($q) {
                 $q->whereDoesntHave('providerCategory')
                     ->orWhereHas('providerCategory', function ($q) {
@@ -81,6 +81,11 @@ class CatalogController extends Controller
             ->whereHas('services', function ($q) {
                 $q->where('status', 'Aktif');
             })
+            ->withExists(['flashSales as has_active_flash_sale' => function ($q) {
+                $q->active();
+            }]);
+
+        $popular = (clone $categoriesQuery)
             ->withCount(['services' => function ($q) {
                 $q->where('status', 'Aktif');
             }])
@@ -88,18 +93,7 @@ class CatalogController extends Controller
             ->take(8)
             ->get();
 
-        $categories = Category::where('status', 'Aktif')
-            ->where(function ($q) {
-                $q->whereDoesntHave('providerCategory')
-                    ->orWhereHas('providerCategory', function ($q) {
-                        $q->where('status', 'Aktif');
-                    });
-            })
-            ->whereHas('services', function ($q) {
-                $q->where('status', 'Aktif');
-            })
-            ->orderBy('name', 'asc')
-            ->get();
+        $categories = $categoriesQuery->orderBy('name', 'asc')->get();
 
         // 1. Define UI Groups for Tabs
         $groupMaps = [
@@ -180,6 +174,9 @@ class CatalogController extends Controller
 
         $services = \App\Models\Service::where('category_id', $category->id)
             ->where('status', 'Aktif')
+            ->with(['flashSales' => function ($q) {
+                $q->active();
+            }])
             ->where(function ($q) {
                 $q->whereNull('product_jenis_id')
                     ->orWhereHas('productJenis', function ($q) {

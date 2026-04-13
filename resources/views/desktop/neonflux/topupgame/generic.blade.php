@@ -106,13 +106,26 @@
 
                 <div class="grid grid-cols-3 md:grid-cols-4 gap-3" id="services-grid">
                     @forelse($services as $s)
+                    @php
+                        $flashSale = $s->flashSales->first();
+                        $hasFlashSale = (bool)$flashSale;
+                        $displayPrice = $hasFlashSale ? $flashSale->discount_price : $s->price;
+                    @endphp
                     <label class="cursor-pointer group relative service-item" data-jenis="{{ $s->product_jenis_id }}">
-                        <input type="radio" name="product_code" value="{{ $s->product_code }}" class="peer hidden radio-card" data-name="{{ $s->name }}" data-price="{{ number_format($s->price, 0, ',', '.') }}" required>
+                        <input type="radio" name="product_code" value="{{ $s->product_code }}" class="peer hidden radio-card" 
+                               data-name="{{ $s->name }}" 
+                               data-price="{{ number_format($displayPrice, 0, ',', '.') }}" 
+                               @if($hasFlashSale) data-flash-price="{{ number_format($displayPrice, 0, ',', '.') }}" @endif
+                               required>
                         <div class="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full hidden peer-checked:flex items-center justify-center text-white transition-all duration-300 z-20 border-2 border-white dark:border-slate-900 shadow-lg shadow-primary/20 overflow-hidden">
                             <span class="material-symbols-outlined text-[14px] font-bold">check</span>
                         </div>
                         <div class="glass-panel-light p-4 rounded-xl flex flex-col items-center justify-center h-full transition-all duration-300 peer-checked:bg-primary/10 peer-checked:border-primary border border-white/5 hover:border-white/20">
-                            @if(Str::contains($s->name, 'HOT'))
+                            @if($hasFlashSale)
+                            <div class="absolute top-2 right-2">
+                                <span class="bg-linear-to-r from-secondary to-pink-500 text-[8px] font-black px-1.5 py-0.5 rounded text-white shadow-lg animate-pulse">FLASH SALE</span>
+                            </div>
+                            @elseif(Str::contains($s->name, 'HOT'))
                             <div class="absolute top-2 right-2">
                                 <span class="bg-secondary text-[10px] font-bold px-1.5 py-0.5 rounded text-white shadow-none dark:shadow-neon-magenta">HOT</span>
                             </div>
@@ -120,7 +133,14 @@
                             <img alt="{{ $s->name }}" class="w-10 h-10 mb-2 rounded-lg object-contain shadow-neon-cyan" src="{{ $category->icon }}" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($s->name) }}&background=random&color=fff'" />
                             <span class="font-bold text-center text-sm md:text-base text-slate-950 dark:text-white">{{ $s->name }}</span>
                             <div class="mt-3 bg-slate-100 dark:bg-black/30 rounded-lg px-3 py-1 w-full text-center border border-slate-200 dark:border-white/5 group-hover:border-primary/30 transition-colors">
+                                @if($hasFlashSale)
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-slate-400 line-through">Rp {{ number_format($s->price, 0, ',', '.') }}</span>
+                                    <span class="text-sm font-semibold text-primary">Rp {{ number_format($flashSale->discount_price, 0, ',', '.') }}</span>
+                                </div>
+                                @else
                                 <span class="text-sm font-semibold text-primary">Rp {{ number_format($s->price, 0, ',', '.') }}</span>
+                                @endif
                             </div>
                         </div>
                     </label>
@@ -217,7 +237,10 @@
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Nominal:</span>
-                            <span class="font-medium text-right font-mono text-lg text-primary" id="summary-nominal">Pilih Produk</span>
+                            <div class="text-right flex flex-col items-end">
+                                <span class="font-medium font-mono text-lg text-primary" id="summary-nominal">Pilih Produk</span>
+                                <span id="flash-sale-badge-summary" class="hidden animate-pulse bg-linear-to-r from-secondary to-pink-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow shadow-pink-500/20">FLASH SALE APPLIED</span>
+                            </div>
                         </div>
                         <div class="flex justify-between items-start text-sm">
                             <span class="text-slate-500 dark:text-gray-400">Metode Bayar:</span>

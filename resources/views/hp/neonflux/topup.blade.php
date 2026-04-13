@@ -185,7 +185,16 @@
             @endphp
             <a href="{{ route('topup.game', $item->slug) }}" 
                data-group="{{ $gameGroup }}"
-               class="game-card-mobile glass-panel-mobile p-1.5 rounded-xl flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all">
+               class="game-card-mobile glass-panel-mobile p-1.5 rounded-xl flex flex-col items-center gap-1 shadow-sm active:scale-95 transition-all relative">
+                @if($item->has_active_flash_sale)
+                <!-- Flash Sale Badge -->
+                <div class="absolute top-1 left-1 z-10">
+                    <span class="bg-linear-to-r from-secondary to-pink-500 text-white text-[6px] font-black px-1 py-0.5 rounded shadow shadow-pink-500/20 flex items-center gap-0.5">
+                        <span class="material-icons-round text-[8px]">bolt</span>
+                        SALE
+                    </span>
+                </div>
+                @endif
                 <div class="w-full aspect-square rounded-lg bg-black/5 dark:bg-white/5 overflow-hidden">
                     <img src="{{ $item->icon ?: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=200&auto=format&fit=crop' }}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($item->name) }}&background=random&color=fff'">
                 </div>

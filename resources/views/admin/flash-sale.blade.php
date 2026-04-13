@@ -481,8 +481,10 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Target Margin (%)</label>
-                        <input type="number" id="gen_margin" value="5" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Margin Keuntungan</label>
+                        <div class="h-[41px] flex items-center px-4 bg-slate-800/50 border border-white/5 rounded-xl text-slate-400 font-bold text-[10px] uppercase tracking-wider italic">
+                            Acak (2% - 10%)
+                        </div>
                     </div>
                     <div class="flex flex-col justify-end gap-2">
                         <label class="text-[10px] text-slate-500 font-bold uppercase cursor-pointer flex items-center gap-1.5 mb-1 px-1">
@@ -535,6 +537,7 @@
                                         <th class="px-4 py-3">Produk</th>
                                         <th class="px-4 py-3 text-right">Modal</th>
                                         <th class="px-4 py-3 text-right">Harga Normal</th>
+                                        <th class="px-4 py-3 text-center">Margin</th>
                                         <th class="px-4 py-3 text-right w-40">Harga Promo</th>
                                         <th class="px-4 py-3 text-center">Status</th>
                                         <th class="px-4 py-3 text-center">Aksi</th>
@@ -589,7 +592,12 @@ async function generateBatch() {
             return;
         }
         
-        generatedBatchData = data;
+        // Randomize margin for each product (2% to 10%)
+        generatedBatchData = data.map(item => ({
+            ...item,
+            assigned_margin: Math.floor(Math.random() * (10 - 2 + 1) + 2)
+        }));
+        
         renderBatchTable();
         document.getElementById('gen_preview_container').classList.remove('hidden');
         btnSave.disabled = false;
@@ -604,7 +612,6 @@ async function generateBatch() {
 
 function renderBatchTable() {
     const body = document.getElementById('batch_preview_body');
-    const margin = parseFloat(document.getElementById('gen_margin').value) || 0;
     const feeFlat = parseFloat(document.getElementById('gen_fee_flat').value) || 0;
     const feePct = 2.5; // Default iPaymu
     
@@ -612,6 +619,7 @@ function renderBatchTable() {
     
     generatedBatchData.forEach((item, index) => {
         // Calculate recommended price: Promo = (Cost + FlatFee) / (1 - (FeePct + Margin)/100)
+        const margin = item.assigned_margin;
         const targetPctValue = (feePct + margin) / 100;
         let promoPrice = Math.ceil((item.cost + feeFlat) / (1 - targetPctValue));
         
@@ -634,6 +642,11 @@ function renderBatchTable() {
             </td>
             <td class="px-4 py-4 text-right text-xs text-slate-400 font-mono">
                 Rp ${new Intl.NumberFormat('id-ID').format(item.price)}
+            </td>
+            <td class="px-4 py-4 text-center">
+                <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-bold border border-indigo-500/20">
+                    ${item.assigned_margin}%
+                </span>
             </td>
             <td class="px-4 py-4 text-right">
                 <input type="number" value="${promoPrice}" 

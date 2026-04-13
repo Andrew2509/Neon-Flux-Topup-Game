@@ -26,4 +26,9 @@ class Category extends Model
     {
         return $this->belongsTo(ProviderCategory::class, 'category_ext_id', 'ext_id');
     }
+
+    public function flashSales()
+    {
+        return $this->hasManyThrough(FlashSale::class, Service::class);
+    }
 }

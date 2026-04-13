@@ -232,6 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (summaryTotal) {
                 summaryTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
             }
+
+            // Flash Sale visual indicator in summary
+            const fsIndicator = document.getElementById('flash-sale-badge-summary');
+            if (fsIndicator) {
+                if (selectedProduct2.dataset.flashPrice) {
+                    fsIndicator.classList.remove('hidden');
+                } else {
+                    fsIndicator.classList.add('hidden');
+                }
+            }
+
             if (receiptTotal) {
                 receiptTotal.textContent = 'Rp ' + Math.ceil(Math.max(0, total)).toLocaleString('id-ID');
             }
