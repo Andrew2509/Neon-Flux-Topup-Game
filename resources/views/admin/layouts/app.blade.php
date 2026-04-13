@@ -102,7 +102,7 @@
     <aside class="w-72 glass-panel border-r border-slate-200 dark:border-white/5 flex flex-col z-20 overflow-y-auto">
         <div class="p-6 flex items-center justify-center centered-on-collapse">
             @if($logo = get_image_url('site_logo'))
-                <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-28 w-auto flex-shrink-0">
+                <img src="{{ $logo }}" alt="{{ get_setting('site_name') }}" class="h-16 w-auto flex-shrink-0">
             @else
                 <div class="size-12 rounded-xl bg-gradient-to-br from-primary to-accent-red flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
                     <span class="material-symbols-outlined text-white text-3xl">bolt</span>

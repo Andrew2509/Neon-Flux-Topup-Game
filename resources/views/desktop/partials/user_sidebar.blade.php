@@ -1,8 +1,8 @@
 <aside class="w-20 lg:w-64 bg-corp-sidebar flex flex-col transition-all duration-300 shadow-xl z-20" data-purpose="sidebar-navigation">
     <!-- Sidebar Logo -->
-    <div class="h-32 flex items-center justify-center px-6 border-b border-white/10 centered-on-collapse">
+    <div class="h-20 flex items-center justify-center px-6 border-b border-white/10 centered-on-collapse">
         @if($logo = get_image_url('site_logo'))
-            <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'PrincePay Gaming') }}" class="h-24 w-auto object-contain shrink-0">
+            <img src="{{ $logo }}" alt="{{ get_setting('site_name', 'PrincePay Gaming') }}" class="h-14 w-auto object-contain shrink-0">
         @else
             <div class="w-12 h-12 bg-corp-accent rounded-lg flex items-center justify-center shadow-lg shrink-0">
                 <svg class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
