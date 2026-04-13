@@ -70,3 +70,59 @@ body.neonflux {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 240, 255, 0.6);
 }
+
+/* --- Premium Glass Classes --- */
+.glass-premium {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card-premium {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-premium:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+    transform: translateY(-4px);
+}
+
+/* --- Animations --- */
+@keyframes shine-sweep {
+    0% { transform: translateX(-100%) skewX(-15deg); }
+    50% { transform: translateX(100%) skewX(-15deg); }
+    100% { transform: translateX(100%) skewX(-15deg); }
+}
+
+.animate-shine {
+    position: relative;
+    overflow: hidden;
+}
+
+.animate-shine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transform: translateX(-100%) skewX(-15deg);
+}
+
+.animate-shine:hover::after {
+    animation: shine-sweep 1s ease-in-out;
+}
