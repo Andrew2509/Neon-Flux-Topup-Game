@@ -1,14 +1,14 @@
 <!-- Flash Sale Section -->
 <div class="mb-10 w-full">
     <!-- Flash Sale Header Box -->
-    <div class="relative overflow-hidden rounded-t-2xl bg-red-600/20 backdrop-blur-xl p-4 flex items-center justify-between border-x border-t border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+    <div class="relative overflow-hidden rounded-t-2xl bg-primary/20 backdrop-blur-xl p-4 flex items-center justify-between border-x border-t border-white/10 shadow-[0_0_20px_rgba(0,240,255,0.15)]">
         <!-- Shine Effect Background -->
         <div class="absolute inset-0 opacity-10 pointer-events-none" style="background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);"></div>
         
         <div class="flex items-center gap-3 relative z-10">
             <!-- Lightning Bolt Icon (Using SVG/Icon) -->
-            <div class="bg-yellow-400 p-1.5 rounded-lg shadow-[0_0_15px_rgba(250,204,21,0.5)] animate-pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-600"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <div class="bg-primary p-1.5 rounded-lg shadow-[0_0_15px_rgba(0,240,255,0.5)] animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-900"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             </div>
             <h2 class="text-xl md:text-2xl font-display font-black text-white italic tracking-tighter uppercase">Flash Sale</h2>
             
@@ -45,7 +45,7 @@
                         <div class="relative w-16 h-16 md:w-20 md:h-20 flex-none rounded-xl overflow-hidden border border-white/10">
                             <img src="{{ $item->category->icon }}" alt="{{ $item->name }}" class="w-full h-full object-cover">
                             <!-- Discount Badge -->
-                            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-red-600 to-red-500 text-[9px] md:text-[11px] font-black text-white text-center py-0.5 uppercase">
+                            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-primary to-cyan-500 text-[9px] md:text-[11px] font-black text-slate-900 text-center py-0.5 uppercase">
                                 {{ $percent }}% OFF
                             </div>
                         </div>
@@ -62,7 +62,7 @@
                             
                             <div class="mt-2 flex items-center justify-between">
                                 <div class="text-[9px] md:text-[10px] text-slate-500 dark:text-gray-400">
-                                    Stok: <span class="{{ $sale->stock <= 10 ? 'text-red-500' : 'text-orange-500' }} font-bold">
+                                    Stok: <span class="{{ $sale->stock <= 10 ? 'text-secondary' : 'text-orange-500' }} font-bold">
                                         {{ $sale->stock == -1 ? 'Tersedia' : $sale->stock }}
                                     </span>
                                 </div>
