@@ -60,16 +60,6 @@ Route::group(['middleware' => []], function () {
         ->name('api.ipaymu.callback');
     Route::match(['get', 'post'], '/api/tokovoucher/webhook', [App\Http\Controllers\Api\WebhookController::class, 'tokovoucher'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
-    // Debug Routes
-    Route::get('/debug/ip', function () {
-        $response = Http::get('https://api.ipify.org?format=json');
-
-        return response()->json([
-            'outgoing_ip' => $response->json()['ip'] ?? 'Unknown',
-            'user_ip' => request()->ip(),
-            'note' => 'IP iPaymu adalah outgoing_ip',
-        ]);
-    });
     Route::get('/cron/sync-tokovoucher/{token}', [App\Http\Controllers\Api\CronController::class, 'syncTokovoucher'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     Route::post('/admin/cron/register', [App\Http\Controllers\Api\CronController::class, 'registerToCronJobOrg'])->name('admin.cron.register');
 
@@ -247,21 +237,7 @@ Route::group(['middleware' => []], function () {
     // Smart Search API
     Route::get('/api/v1/search', [\App\Http\Controllers\Api\SearchController::class, 'search'])->name('api.search');
 
-    // JWT Test Routes
-    Route::prefix('api/jwt')->group(function () {
-        Route::get('/generate', function (\App\Services\JwtService $jwt) {
-            $token = $jwt->generateToken(['user_id' => 1, 'email' => 'admin@princepay.com']);
 
-            return response()->json(['token' => $token]);
-        });
-
-        Route::get('/verify', function (\Illuminate\Http\Request $request) {
-            return response()->json([
-                'message' => 'Token is valid!',
-                'data' => $request->attributes->get('jwt_payload'),
-            ]);
-        })->middleware('jwt');
-    });
 
     // JWKS Endpoint
     Route::get('/.well-known/jwks.json', [App\Http\Controllers\Api\JwksController::class, 'index']);

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(prepend: [
             \App\Http\Middleware\RedirectToWww::class,
             \App\Http\Middleware\TrackVisitor::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
         $middleware->alias([
@@ -22,13 +23,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->validateCsrfTokens(except: [
-            'login',
-            'register',
-            'logout',
-            'verify-otp',
-            'resend-otp',
-            'forgot-password',
-            'reset-password-phone',
             '.well-known/jwks.json',
             'api/ipaymu/callback',
         ]);
