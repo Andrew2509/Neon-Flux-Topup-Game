@@ -213,6 +213,21 @@ class CatalogController extends Controller
             $viewPath = "{$viewFolder}.neonflux.topupgame.generic";
         }
 
-        return view($viewPath, compact('category', 'services', 'groupedPayments', 'activeJenis'));
+        // [Flash Sale Section Data]
+        // Fetch 6 random active services that are popular/flagged
+        $flashSaleItems = \App\Models\Service::where('status', 'Aktif')
+            ->where('price', '>', 50000) // Filter for mid-range items for better visual impact
+            ->inRandomOrder()
+            ->take(6)
+            ->get();
+
+        // Simulate discount for UI demo
+        $flashSaleItems->each(function($item) {
+            $item->original_price = $item->price * 1.15; // 15% higher mock original price
+            $item->discount_percent = 15;
+            $item->sisa_stok = rand(100, 1000);
+        });
+
+        return view($viewPath, compact('category', 'services', 'groupedPayments', 'activeJenis', 'flashSaleItems'));
     }
 }

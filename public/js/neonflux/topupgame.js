@@ -1039,9 +1039,36 @@ document.addEventListener('DOMContentLoaded', () => {
         voucherMessage.classList.remove('hidden');
     }
 
-    function resetVoucher() {
-        if (appliedCodeInput) appliedCodeInput.value = '';
-        if (appliedDiscountInput) appliedDiscountInput.value = '0';
-        if (discountRow) discountRow.classList.add('hidden');
+    }
+
+    // --- Flash Sale Timer ---
+    const timerDisplay = document.getElementById('flash-sale-timer');
+    if (timerDisplay) {
+        function updateFlashSaleTimer() {
+            const now = new Date();
+            // Set end of today 23:59:59
+            const endOfDay = new Date();
+            endOfDay.setHours(23, 59, 59, 999);
+            
+            let diff = endOfDay - now;
+            if (diff <= 0) {
+                timerDisplay.textContent = "00:00:00";
+                return;
+            }
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            diff -= hours * (1000 * 60 * 60);
+            const mins = Math.floor(diff / (1000 * 60));
+            diff -= mins * (1000 * 60);
+            const secs = Math.floor(diff / 1000);
+            
+            timerDisplay.textContent = 
+                String(hours).padStart(2, '0') + ":" + 
+                String(mins).padStart(2, '0') + ":" + 
+                String(secs).padStart(2, '0');
+        }
+        
+        setInterval(updateFlashSaleTimer, 1000);
+        updateFlashSaleTimer();
     }
 });
