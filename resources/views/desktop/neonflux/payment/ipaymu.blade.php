@@ -379,7 +379,7 @@ const pollId = setInterval(() => {
                 window.location.href = `{{ route('track.order', ['order_id' => $order->order_id]) }}`;
             }
         });
-}, 15000);
+}, 3000);
 </script>
 @endpush
 

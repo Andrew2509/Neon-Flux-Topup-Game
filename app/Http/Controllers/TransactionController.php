@@ -437,7 +437,7 @@ class TransactionController extends Controller
         $svc = new IPaymuService;
         $res = $svc->getTransactionDetails(trim($tid));
         if (! IPaymuService::isCheckTransactionPaid($res)) {
-            Cache::put($throttleKey, 1, 15);
+            Cache::put($throttleKey, 1, 3);
 
             return;
         }
