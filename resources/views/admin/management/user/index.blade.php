@@ -72,8 +72,8 @@
                             <p class="text-xs text-slate-500">{{ $user->phone }}</p>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider {{ $user->role->slug === 'super-admin' ? 'bg-accent-red/10 text-accent-red border border-accent-red/20' : 'bg-primary/10 text-primary border border-primary/20' }}">
-                                {{ $user->role->name }}
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider {{ optional($user->role)->slug === 'super-admin' ? 'bg-accent-red/10 text-accent-red border border-accent-red/20' : 'bg-primary/10 text-primary border border-primary/20' }}">
+                                {{ optional($user->role)->name ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-6 py-4">
