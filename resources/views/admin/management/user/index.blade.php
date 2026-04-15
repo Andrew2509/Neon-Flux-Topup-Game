@@ -6,7 +6,100 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Header Actions & Filters -->
+
+    {{-- ============================================ --}}
+    {{-- CARD: Akun TokoVoucher Terhubung             --}}
+    {{-- ============================================ --}}
+    <div class="glass-panel rounded-3xl border border-white/5 overflow-hidden">
+        {{-- Header bar --}}
+        <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between gap-4 bg-white/[0.02]">
+            <div class="flex items-center gap-3">
+                <div class="size-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-blue-400 text-lg">token</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-100">Akun TokoVoucher Terhubung</h3>
+                    <p class="text-[10px] text-slate-500">Kredensial provider yang digunakan untuk transaksi otomatis</p>
+                </div>
+            </div>
+            @if($tokovoucherProvider)
+            <span class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                {{ $tokovoucherProvider->status === 'Aktif' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20' }}">
+                <span class="size-1.5 rounded-full {{ $tokovoucherProvider->status === 'Aktif' ? 'bg-green-400 animate-pulse' : 'bg-red-400' }}"></span>
+                {{ $tokovoucherProvider->status ?? 'Tidak Diketahui' }}
+            </span>
+            @endif
+        </div>
+
+        {{-- Body --}}
+        <div class="p-6">
+            @if($tokovoucherProvider)
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {{-- Member Code --}}
+                <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-4 space-y-1">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Member Code</p>
+                    <p class="text-sm font-mono font-bold text-slate-100 truncate">{{ $tokovoucherProvider->provider_id ?: '—' }}</p>
+                </div>
+
+                {{-- Secret Key (masked) --}}
+                <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-4 space-y-1">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Secret Key</p>
+                    <div class="flex items-center gap-2">
+                        <p id="tv-secret-display" class="text-sm font-mono font-bold text-slate-100 truncate">
+                            {{ substr($tokovoucherProvider->api_key, 0, 4) . str_repeat('•', max(0, strlen($tokovoucherProvider->api_key) - 8)) . substr($tokovoucherProvider->api_key, -4) }}
+                        </p>
+                        <button onclick="toggleTvSecret()" title="Tampilkan/Sembunyikan" class="text-slate-500 hover:text-primary transition-colors shrink-0">
+                            <span id="tv-eye-icon" class="material-symbols-outlined text-base">visibility</span>
+                        </button>
+                    </div>
+                    <p id="tv-secret-full" class="text-[10px] font-mono text-primary break-all hidden">{{ $tokovoucherProvider->api_key }}</p>
+                </div>
+
+                {{-- Saldo --}}
+                <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-4 space-y-1">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Saldo Tersedia</p>
+                    <p class="text-sm font-bold text-blue-400">Rp {{ number_format($tokovoucherProvider->balance, 0, ',', '.') }}</p>
+                    <p class="text-[9px] text-slate-600">Batas aman: Rp {{ number_format($tokovoucherProvider->getSafeNominalLimit(), 0, ',', '.') }}</p>
+                </div>
+
+                {{-- Mode & Aksi --}}
+                <div class="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col justify-between gap-3">
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Environment</p>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase inline-block
+                            {{ ($tokovoucherProvider->mode ?? '') === 'production' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20' }}">
+                            {{ ucfirst($tokovoucherProvider->mode ?? 'sandbox') }}
+                        </span>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{{ route('admin.providers.edit', $tokovoucherProvider->id) }}"
+                           class="flex-1 text-center py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold hover:bg-primary/20 transition-all flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">edit</span> Edit
+                        </a>
+                        <form action="{{ route('admin.providers.balance', $tokovoucherProvider->id) }}" method="POST" class="flex-1">
+                            @csrf
+                            <button type="submit" class="w-full py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-sm">sync</span> Sync
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @else
+            <div class="flex flex-col items-center justify-center py-8 gap-3 text-slate-500">
+                <span class="material-symbols-outlined text-4xl opacity-20">link_off</span>
+                <p class="text-xs font-medium">Provider TokoVoucher belum dikonfigurasi.</p>
+                <a href="{{ route('admin.providers.create') }}" class="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition-all">
+                    + Tambah Provider
+                </a>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- ============================================ --}}
+    {{-- Header Actions & Filters                     --}}
+    {{-- ============================================ --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div class="flex flex-wrap items-center gap-3">
             <button onclick="openModal('modal-add-user')" class="glass-panel px-4 py-2.5 rounded-xl bg-primary/20 hover:bg-primary/30 text-primary border-primary/20 transition-all flex items-center gap-2">
@@ -241,6 +334,21 @@
 
 @push('scripts')
 <script>
+    function toggleTvSecret() {
+        const display = document.getElementById('tv-secret-display');
+        const full    = document.getElementById('tv-secret-full');
+        const icon    = document.getElementById('tv-eye-icon');
+        if (full.classList.contains('hidden')) {
+            full.classList.remove('hidden');
+            display.classList.add('hidden');
+            icon.textContent = 'visibility_off';
+        } else {
+            full.classList.add('hidden');
+            display.classList.remove('hidden');
+            icon.textContent = 'visibility';
+        }
+    }
+
     function openModal(id) {
         document.getElementById(id).classList.remove('hidden');
         document.body.style.overflow = 'hidden';
