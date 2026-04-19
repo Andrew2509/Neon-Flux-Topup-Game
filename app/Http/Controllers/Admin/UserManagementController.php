@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
-use App\Models\Provider;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Auth;
@@ -34,9 +33,8 @@ class UserManagementController extends Controller
 
         $users = $query->paginate(20);
         $roles = Role::all();
-        $tokovoucherProvider = Provider::forTokovoucher();
 
-        return view('admin.management.user.index', compact('users', 'roles', 'tokovoucherProvider'));
+        return view('admin.management.user.index', compact('users', 'roles'));
     }
 
     public function store(Request $request)
